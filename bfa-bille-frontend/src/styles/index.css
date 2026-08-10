@@ -1,0 +1,160 @@
+/* ============================================================
+   BFA Bille Academy — Feuille de styles globale (Tailwind v4)
+   Charte : Vert #006400 · Doré #D4AF37 · Blanc #FFFFFF
+            Gris clair #F5F5F5 · Gris foncé #333333
+   ============================================================ */
+@import "tailwindcss";
+
+@theme {
+  /* --- Couleurs de la charte --- */
+  --color-vert: #006400;
+  --color-vert-dark: #004d00;
+  --color-vert-light: #0a7a0a;
+  --color-dore: #d4af37;
+  --color-dore-dark: #b8972f;
+  --color-clair: #f5f5f5;
+  --color-sombre: #333333;
+  /* Formulaires : validation */
+  --color-erreur: #e53935;
+  --color-succes: #4caf50;
+
+  /* --- Typographie --- */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif;
+
+  /* --- Animations : ballon qui rebondit + ombre au sol --- */
+  --animate-ball-bounce: ball-bounce 1.1s cubic-bezier(0.28, 0.84, 0.42, 1)
+    infinite;
+  --animate-shadow-pulse: shadow-pulse 1.1s cubic-bezier(0.28, 0.84, 0.42, 1)
+    infinite;
+  /* Formulaires : secousse sur champ invalide */
+  --animate-shake: shake 0.4s ease;
+
+  @keyframes ball-bounce {
+    0%,
+    100% {
+      transform: translateY(0) scale(1, 1);
+    }
+    30% {
+      transform: translateY(-40px) scale(0.92, 1.08);
+    }
+    50% {
+      transform: translateY(0) scale(1.12, 0.82);
+    }
+    72% {
+      transform: translateY(-18px) scale(0.96, 1.04);
+    }
+    88% {
+      transform: translateY(0) scale(1.05, 0.95);
+    }
+  }
+
+  @keyframes shadow-pulse {
+    0%,
+    100% {
+      opacity: 0.5;
+      transform: scale(1);
+    }
+    30% {
+      opacity: 0.12;
+      transform: scale(0.65);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1);
+    }
+    72% {
+      opacity: 0.28;
+      transform: scale(0.85);
+    }
+    88% {
+      opacity: 0.5;
+      transform: scale(1);
+    }
+  }
+
+  /* Champ de formulaire invalide : légère secousse latérale */
+  @keyframes shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    20% {
+      transform: translateX(-8px);
+    }
+    40% {
+      transform: translateX(8px);
+    }
+    60% {
+      transform: translateX(-6px);
+    }
+    80% {
+      transform: translateX(6px);
+    }
+  }
+}
+
+/* ===================== Styles de base ===================== */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background-color: #ffffff;
+    color: var(--color-sombre);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.6;
+  }
+
+  ::selection {
+    background-color: var(--color-dore);
+    color: var(--color-vert-dark);
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* ============ Contenu des articles du blog (WYSIWYG) ========= */
+/* Styles du HTML généré dans la page de détail d'un article. */
+@layer components {
+  .prose-blog p {
+    margin: 0 0 1rem;
+  }
+
+  .prose-blog p:last-child {
+    margin-bottom: 0;
+  }
+
+  .prose-blog h3 {
+    margin: 1.5rem 0 0.75rem;
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: var(--color-vert);
+  }
+
+  .prose-blog ul {
+    margin: 0 0 1rem;
+    padding-left: 1.25rem;
+    list-style: disc;
+  }
+
+  .prose-blog ul li {
+    margin: 0.35rem 0;
+  }
+
+  .prose-blog strong {
+    color: var(--color-vert);
+    font-weight: 700;
+  }
+
+  .prose-blog em {
+    font-style: italic;
+  }
+}
