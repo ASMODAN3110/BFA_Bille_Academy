@@ -1,60 +1,16 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowRight } from '@fortawesome/free-solid-svg-icons'
-import { Link } from 'react-router-dom'
+import { faInbox } from '@fortawesome/free-solid-svg-icons'
 import Card from '../ui/Card'
-import Badge from '../ui/Badge'
-import Table from '../ui/Table'
-import { recentRequests } from '../../data/mockData'
-import { parseLocalDate, formatDateCard } from '../../utils/dateUtils'
 
 /* ============================================================
    RecentRequests — Tableau des demandes d'essai récentes
    ------------------------------------------------------------
-   - Réutilise `Table` (en-tête vert, lignes alternées, survol
-     gris clair) et `Badge` pour les statuts :
-       Confirmé → success (vert), En attente → warning (orange),
-       Refusé → danger (rouge)
-   - Colonne Actions : lien vers la gestion des essais
+   - ⚠️ Les demandes mock ont été retirées ; le widget affiche un
+     état vide en attendant le backend (GET /admin/demandes-essai).
+   - Quand le backend fournira les dernières candidatures, on
+     réintroduira `Table` + `Badge` (Confirmé → success,
+     En attente → warning, Refusé → danger).
    ============================================================ */
-
-const STATUS_VARIANT = {
-  'Confirmé': 'success',
-  'En attente': 'warning',
-  'Refusé': 'danger',
-}
-
-const COLUMNS = [
-  { key: 'name', label: 'Nom du candidat' },
-  { key: 'ageGroup', label: 'Catégorie' },
-  {
-    key: 'dateApplied',
-    label: 'Date de candidature',
-    render: (row) => formatDateCard(parseLocalDate(row.dateApplied)),
-  },
-  {
-    key: 'status',
-    label: 'Statut',
-    render: (row) => (
-      <Badge variant={STATUS_VARIANT[row.status] ?? 'default'}>
-        {row.status}
-      </Badge>
-    ),
-  },
-  {
-    key: 'actions',
-    label: 'Actions',
-    render: (row) => (
-      <Link
-        to="/admin/trials"
-        aria-label={`Gérer la demande de ${row.name}`}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-vert/30 bg-vert/10 px-3 py-1.5 text-xs font-bold text-vert transition hover:bg-vert hover:text-dore active:scale-95"
-      >
-        Gérer
-        <FontAwesomeIcon icon={faArrowRight} className="h-3 w-3" />
-      </Link>
-    ),
-  },
-]
 
 export default function RecentRequests() {
   return (
@@ -66,7 +22,15 @@ export default function RecentRequests() {
         </p>
       </div>
 
-      <Table columns={COLUMNS} rows={recentRequests} rowKey="id" />
+      <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
+        <FontAwesomeIcon icon={faInbox} className="h-10 w-10 text-sombre/20" />
+        <p className="font-bold text-sombre/70">
+          Aucune demande récente pour le moment.
+        </p>
+        <p className="text-sm text-sombre/50">
+          Les candidatures apparaîtront ici une fois le backend connecté.
+        </p>
+      </div>
     </Card>
   )
 }

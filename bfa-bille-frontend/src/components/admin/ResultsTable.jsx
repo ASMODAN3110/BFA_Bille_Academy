@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faFutbol, faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons'
 import Card from '../ui/Card'
 import Badge from '../ui/Badge'
 import Table from '../ui/Table'
@@ -100,6 +100,23 @@ export default function ResultsTable({ results, onEdit, onDelete }) {
       ),
     },
   ]
+
+  if (results.length === 0) {
+    return (
+      <Card className="p-10 text-center">
+        <FontAwesomeIcon
+          icon={faFutbol}
+          className="mx-auto h-10 w-10 text-sombre/20"
+        />
+        <p className="mt-3 font-bold text-sombre/70">
+          Aucun résultat pour le moment.
+        </p>
+        <p className="mt-1 text-sm text-sombre/50">
+          Les résultats seront chargés depuis le backend.
+        </p>
+      </Card>
+    )
+  }
 
   return (
     <Card className="p-4 md:p-5">

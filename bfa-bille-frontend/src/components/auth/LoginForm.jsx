@@ -79,10 +79,12 @@ export default function LoginForm() {
     try {
       await login(email.trim(), password)
       navigate('/admin/dashboard', { replace: true })
-    } catch {
-      // Identifiants invalides (@EF47).
+    } catch (err) {
+      // Identifiants invalides (@EF47) — message renvoyé par le backend
+      // (ex. « Identifiants incorrects », « Données de connexion invalides »).
       setAuthError(
-        'Veuillez vérifier votre adresse email et votre mot de passe, puis réessayer.',
+        err?.message ||
+          'Veuillez vérifier votre adresse email et votre mot de passe, puis réessayer.',
       )
     } finally {
       setIsLoading(false)

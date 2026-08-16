@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import Breadcrumb from '../components/layout/Breadcrumb'
 import SectionTitle from '../components/ui/SectionTitle'
 import Card from '../components/ui/Card'
 import CategoryFilter from '../components/results/CategoryFilter'
@@ -46,17 +45,9 @@ export default function Results() {
     return classements[selectedCategory] ? { [selectedCategory]: classements[selectedCategory] } : {}
   }, [selectedCategory])
 
-  const breadcrumbItems = [
-    { label: 'Accueil', href: '/' },
-    { label: 'Résultats' },
-  ]
-
   return (
     <section id="resultats" className="bg-clair py-16 md:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        {/* Fil d'ariane */}
-        <Breadcrumb items={breadcrumbItems} className="mb-8" />
-
         <motion.div
           ref={ref}
           variants={fadeUp}

@@ -8,7 +8,6 @@ import EventsTable from '../components/admin/EventsTable'
 import EventForm from '../components/admin/EventForm'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import Button from '../components/ui/Button'
-import { events as eventsData } from '../data/mockData'
 import { fadeUp } from '../hooks/useScrollAnimation'
 
 /* ============================================================
@@ -21,7 +20,10 @@ import { fadeUp } from '../hooks/useScrollAnimation'
    ============================================================ */
 
 export default function AdminCalendar({ autoAdd = false }) {
-  const [events, setEvents] = useState(eventsData)
+  /* ⚠️ Plus de données mock : la liste part vide. Les événements
+     arriveront du backend (GET /admin/evenements) quand les
+     endpoints CRUD existeront. */
+  const [events, setEvents] = useState([])
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date()
     return new Date(now.getFullYear(), now.getMonth(), 1)

@@ -62,9 +62,12 @@ export default function Calendar() {
           onTypeChange={setSelectedType}
         />
 
-        {/* Calendrier + liste */}
+        {/* Calendrier + liste.
+            ⚠️ min-w-0 sur les enfants de grille : sans lui, le track auto
+            d'une grille en 1 colonne prend le min-content le plus large et
+            fait exploser la largeur sur mobile (overflow horizontal). */}
         <div className="grid items-start gap-8 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+          <div className="min-w-0 lg:col-span-2">
             <CalendarGrid
               currentDate={currentDate}
               eventMap={eventMap}
@@ -74,7 +77,7 @@ export default function Calendar() {
             />
           </div>
 
-          <div className="lg:col-span-1">
+          <div className="min-w-0 lg:col-span-1">
             <EventsList
               events={filteredEvents}
               monthLabel={monthLabel}

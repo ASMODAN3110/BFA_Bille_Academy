@@ -18,7 +18,6 @@ import Modal from '../components/ui/Modal'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Pagination from '../components/ui/Pagination'
-import { adminAlbums } from '../data/mockData'
 import { fadeUp } from '../hooks/useScrollAnimation'
 
 /* ============================================================
@@ -42,7 +41,10 @@ import { fadeUp } from '../hooks/useScrollAnimation'
 const PAGE_SIZE = 4
 
 export default function AdminGallery() {
-  const [albums, setAlbums] = useState(adminAlbums)
+  /* ⚠️ Plus de données mock : la liste part vide. Les albums
+     arriveront du backend (GET /admin/albums) quand les endpoints
+     CRUD existeront. */
+  const [albums, setAlbums] = useState([])
   const [selectedTheme, setSelectedTheme] = useState('Tous')
   const [selectedAlbumId, setSelectedAlbumId] = useState(null)
   const [isAlbumModalOpen, setIsAlbumModalOpen] = useState(false)
@@ -55,7 +57,7 @@ export default function AdminGallery() {
   const [page, setPage] = useState(1)
 
   /* Compteur local pour des ids de médias stables (upload). */
-  const idCounter = useRef(adminAlbums.length * 100)
+  const idCounter = useRef(0)
 
   const currentView = selectedAlbumId ? 'media' : 'grid'
 

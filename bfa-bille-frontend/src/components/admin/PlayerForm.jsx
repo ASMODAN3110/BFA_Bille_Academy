@@ -3,7 +3,7 @@ import Modal from '../ui/Modal'
 import Button from '../ui/Button'
 import FormInput from '../trial/FormInput'
 import FormSelect from '../trial/FormSelect'
-import { categories } from '../../data/mockData'
+import { categories } from '../../data/categories'
 
 /* ============================================================
    PlayerForm — Formulaire ajout / modification d'un joueur

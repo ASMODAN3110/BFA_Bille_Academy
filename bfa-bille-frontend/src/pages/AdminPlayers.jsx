@@ -10,7 +10,6 @@ import PlayerForm from '../components/admin/PlayerForm'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import Button from '../components/ui/Button'
 import Pagination from '../components/ui/Pagination'
-import { players as playersData, playerStatuses } from '../data/mockData'
 import { fadeUp } from '../hooks/useScrollAnimation'
 
 /* ============================================================
@@ -25,14 +24,11 @@ import { fadeUp } from '../hooks/useScrollAnimation'
 
 const PAGE_SIZE = 5
 
-const normalize = (list) =>
-  list.map((p) => ({
-    ...p,
-    statut: p.statut ?? playerStatuses[p.id] ?? 'Actif',
-  }))
-
 export default function AdminPlayers({ autoAdd = false }) {
-  const [players, setPlayers] = useState(() => normalize(playersData))
+  /* ⚠️ Plus de données mock : la liste part vide. Les effectifs
+     arriveront du backend (GET /admin/joueurs) quand les endpoints
+     CRUD existeront. */
+  const [players, setPlayers] = useState([])
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('Tous')
   const [status, setStatus] = useState('Tous')

@@ -9,7 +9,7 @@ import {
 import Card from '../ui/Card'
 import StatCard from './StatCard'
 import { staggerContainer, staggerItem } from '../../hooks/useScrollAnimation'
-import { categories } from '../../data/mockData'
+import { categories } from '../../data/categories'
 
 /* ============================================================
    PlayerStats — Statistiques des joueurs (admin)

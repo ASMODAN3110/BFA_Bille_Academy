@@ -1,59 +1,45 @@
 import { createContext, useCallback, useMemo, useState } from 'react'
-import { adminCredentials } from '../data/mockData'
+import { api, getStoredUser, setSession, clearSession } from '../utils/api'
 
 /* ============================================================
    AuthContext — Authentification du back-office
    ------------------------------------------------------------
-   - `login(email, password)` : simule un appel API (1,5 s) puis
-     vérifie les identifiants contre `adminCredentials`. Résout
-     le compte connecté en cas de succès, rejette la promesse en
-     cas d'échec (l'appelant affiche le message d'erreur).
-   - `logout()` : supprime la session et le token stocké.
+   - `login(email, motDePasse)` : POST /api/auth/login. En cas de
+     succès, stocke { token, user } (localStorage) et résout le
+     compte connecté. En cas d'échec, rejette la promesse avec le
+     message du backend (l'appelant l'affiche).
+   - `logout()` : POST /api/auth/logout (best-effort), puis purge
+     la session locale.
    - Au chargement, on restaure la session depuis localStorage
      (lecture synchrone → aucun flash de redirection).
+   - Enveloppe des réponses : { success, ... } → on teste
+     data.success avant d'utiliser data.token / data.user.
    ============================================================ */
-
-const TOKEN_KEY = 'bfa_admin_token'
-
-/* Restaure l'utilisateur connecté depuis le localStorage (ou null). */
-function readStoredUser() {
-  try {
-    const raw = localStorage.getItem(TOKEN_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw)
-    return parsed?.email ? { email: parsed.email } : null
-  } catch {
-    return null
-  }
-}
 
 export const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(readStoredUser)
+  const [user, setUser] = useState(getStoredUser)
 
-  const login = useCallback(async (email, password) => {
-    // Simulation d'appel API (1,5 s) — à brancher sur un vrai endpoint.
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+  const login = useCallback(async (email, motDePasse) => {
+    const data = await api('/api/auth/login', {
+      method: 'POST',
+      body: { email, motDePasse },
+    })
 
-    const success =
-      email === adminCredentials.email && password === adminCredentials.motDePasse
-
-    if (!success) {
-      throw new Error('Identifiants incorrects.')
+    if (!data || !data.success) {
+      throw new Error(data?.message || 'Identifiants incorrects.')
     }
 
-    const currentUser = { email: adminCredentials.email }
-    localStorage.setItem(
-      TOKEN_KEY,
-      JSON.stringify({ token: 'mock-token-bfa', email: currentUser.email }),
-    )
-    setUser(currentUser)
-    return currentUser
+    setSession({ token: data.token, user: data.user })
+    setUser(data.user)
+    return data.user
   }, [])
 
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY)
+    // Best-effort : on déconnecte localement même si le backend ne répond pas.
+    api('/api/auth/logout', { method: 'POST' }).catch(() => {})
+    clearSession()
     setUser(null)
   }, [])
 

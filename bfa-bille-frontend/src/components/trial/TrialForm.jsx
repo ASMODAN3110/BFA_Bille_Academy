@@ -11,7 +11,7 @@ import FormSelect from './FormSelect'
 import FormTextarea from './FormTextarea'
 import FormStatus from './FormStatus'
 import useTrialForm, { todayISO } from '../../hooks/useTrialForm'
-import { categories } from '../../data/mockData'
+import { categories } from '../../data/categories'
 import { useScrollAnimation, fadeUp } from '../../hooks/useScrollAnimation'
 
 /* ============================================================

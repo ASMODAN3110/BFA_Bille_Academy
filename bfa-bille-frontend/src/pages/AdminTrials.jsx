@@ -15,15 +15,16 @@ import TrialExport from '../components/admin/trials/TrialExport'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import Button from '../components/ui/Button'
 import Pagination from '../components/ui/Pagination'
-import { trialRequests } from '../data/mockData'
 import { TRIAL_STORAGE_KEY } from '../hooks/useTrialForm'
 import { fadeUp } from '../hooks/useScrollAnimation'
 
 /* ============================================================
    AdminTrials — Gestion des demandes d'essai (/admin/trials)
    ------------------------------------------------------------
-   - Fusionne les candidatures mock (trialRequests) + celles
-     inscrites via le formulaire public (localStorage)
+   - Candidatures inscrites via le formulaire public (localStorage)
+     — les candidatures mock ont été retirées ; les données du
+     backend (GET /admin/demandes-essai) s'y ajouteront quand les
+     endpoints CRUD existeront.
    - Statistiques (@EF20), recherche + filtres (statut, catégorie,
      date), pagination
    - Valider (@EF18), Refuser avec motif obligatoire (@EF19),
@@ -43,10 +44,9 @@ const readStoredTrials = () => {
 }
 
 export default function AdminTrials() {
-  const [trials, setTrials] = useState(() => [
-    ...trialRequests,
-    ...readStoredTrials(),
-  ])
+  /* Les candidatures du formulaire public (localStorage) restent
+     affichées : ce sont de vraies données, pas du mock. */
+  const [trials, setTrials] = useState(() => readStoredTrials())
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState('Tous')
   const [category, setCategory] = useState('Tous')

@@ -14,7 +14,6 @@ import StatCard from '../components/admin/StatCard'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
-import { results as resultsData } from '../data/mockData'
 import {
   fadeUp,
   staggerContainer,
@@ -48,7 +47,10 @@ const bfaResult = (r) => {
 }
 
 export default function AdminResults() {
-  const [results, setResults] = useState(resultsData)
+  /* ⚠️ Plus de données mock : la liste part vide. Les résultats
+     arriveront du backend (GET /admin/resultats) quand les
+     endpoints CRUD existeront. */
+  const [results, setResults] = useState([])
   const [type, setType] = useState('Tous')
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState(null)

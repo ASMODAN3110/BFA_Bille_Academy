@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 import Card from '../../ui/Card'
-import { categories } from '../../../data/mockData'
+import { categories } from '../../../data/categories'
 
 /* ============================================================
    TrialSearch — Recherche + filtres des demandes d'essai (admin)

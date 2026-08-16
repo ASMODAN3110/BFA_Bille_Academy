@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { categories } from '../data/mockData'
+import { categories } from '../data/categories'
 import { parseLocalDate } from '../utils/dateUtils'
 
 /* ============================================================

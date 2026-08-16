@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import SectionTitle from '../components/ui/SectionTitle'
-import Breadcrumb from '../components/layout/Breadcrumb'
 import ProductFilters from '../components/shop/ProductFilters'
 import ProductGrid from '../components/shop/ProductGrid'
 import QuoteForm from '../components/shop/QuoteForm'
@@ -37,11 +36,6 @@ export default function Shop() {
   return (
     <section id="boutique" className="bg-clair py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Breadcrumb
-          className="mb-6"
-          items={[{ label: 'Accueil', href: '/' }, { label: 'Boutique' }]}
-        />
-
         <motion.div
           ref={ref}
           variants={fadeUp}

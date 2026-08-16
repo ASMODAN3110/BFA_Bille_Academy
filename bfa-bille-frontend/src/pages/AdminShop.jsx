@@ -11,7 +11,6 @@ import QuoteRequests from '../components/admin/shop/QuoteRequests'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import Button from '../components/ui/Button'
 import Pagination from '../components/ui/Pagination'
-import { adminProducts, adminQuotes } from '../data/mockData'
 import { fadeUp } from '../hooks/useScrollAnimation'
 
 /* ============================================================
@@ -38,8 +37,11 @@ const stockLevel = (qty) => {
 }
 
 export default function AdminShop({ autoAdd = false }) {
-  const [products, setProducts] = useState(adminProducts)
-  const [quotes, setQuotes] = useState(adminQuotes)
+  /* ⚠️ Plus de données mock : les listes partent vides. Les produits
+     et devis arriveront du backend (GET /admin/produits, /admin/devis)
+     quand les endpoints CRUD existeront. */
+  const [products, setProducts] = useState([])
+  const [quotes, setQuotes] = useState([])
   const [categoryFilter, setCategoryFilter] = useState('Tous')
   const [stockFilter, setStockFilter] = useState('Tous')
   const [selectedProduct, setSelectedProduct] = useState(null)

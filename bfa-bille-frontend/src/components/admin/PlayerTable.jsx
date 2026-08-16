@@ -2,6 +2,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faPenToSquare,
   faTrash,
+  faUsers,
 } from '@fortawesome/free-solid-svg-icons'
 import Card from '../ui/Card'
 import Badge from '../ui/Badge'
@@ -84,6 +85,23 @@ export default function PlayerTable({ players, onEdit, onDelete }) {
       ),
     },
   ]
+
+  if (players.length === 0) {
+    return (
+      <Card className="p-10 text-center">
+        <FontAwesomeIcon
+          icon={faUsers}
+          className="mx-auto h-10 w-10 text-sombre/20"
+        />
+        <p className="mt-3 font-bold text-sombre/70">
+          Aucun joueur pour le moment.
+        </p>
+        <p className="mt-1 text-sm text-sombre/50">
+          Les effectifs seront chargés depuis le backend.
+        </p>
+      </Card>
+    )
+  }
 
   return (
     <Card className="p-4 md:p-5">

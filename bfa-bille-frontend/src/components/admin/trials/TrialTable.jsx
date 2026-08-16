@@ -1,3 +1,5 @@
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faClipboardList } from '@fortawesome/free-solid-svg-icons'
 import Card from '../../ui/Card'
 import Badge from '../../ui/Badge'
 import Table from '../../ui/Table'
@@ -116,6 +118,23 @@ export default function TrialTable({
       ),
     },
   ]
+
+  if (trials.length === 0) {
+    return (
+      <Card className="p-10 text-center">
+        <FontAwesomeIcon
+          icon={faClipboardList}
+          className="mx-auto h-10 w-10 text-sombre/20"
+        />
+        <p className="mt-3 font-bold text-sombre/70">
+          Aucune demande d'essai pour le moment.
+        </p>
+        <p className="mt-1 text-sm text-sombre/50">
+          Les candidatures du formulaire public apparaîtront ici.
+        </p>
+      </Card>
+    )
+  }
 
   return (
     <Card className="p-4 md:p-5">

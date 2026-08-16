@@ -2,7 +2,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFileExport, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 import Card from '../ui/Card'
 import Button from '../ui/Button'
-import { categories } from '../../data/mockData'
+import { categories } from '../../data/categories'
 
 /* ============================================================
    PlayerSearch — Recherche, filtres et export des joueurs

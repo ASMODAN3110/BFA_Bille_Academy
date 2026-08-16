@@ -11,7 +11,6 @@ import BlogFormModal from '../components/admin/blog/BlogFormModal'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import Button from '../components/ui/Button'
 import Pagination from '../components/ui/Pagination'
-import { adminBlogPosts } from '../data/mockData'
 import { fadeUp } from '../hooks/useScrollAnimation'
 
 /* ============================================================
@@ -37,7 +36,10 @@ const ITEMS_PER_PAGE = 10
 const sortKey = (a) => a.datePublication || a.dateModification || ''
 
 export default function AdminBlog({ autoAdd = false }) {
-  const [articles, setArticles] = useState(adminBlogPosts)
+  /* ⚠️ Plus de données mock : la liste part vide. Les articles
+     arriveront du backend (GET /admin/articles) quand les
+     endpoints CRUD existeront. */
+  const [articles, setArticles] = useState([])
   const [statusFilter, setStatusFilter] = useState('Tous')
   const [searchTerm, setSearchTerm] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
