@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faFutbol } from '@fortawesome/free-solid-svg-icons'
 import Breadcrumb from '../components/layout/Breadcrumb'
 import SectionTitle from '../components/ui/SectionTitle'
 import Button from '../components/ui/Button'
@@ -10,8 +12,13 @@ import RosterTable from '../components/team/RosterTable'
 import StaffList from '../components/team/StaffList'
 import ObjectivesList from '../components/team/ObjectivesList'
 import PalmaresList from '../components/team/PalmaresList'
-import { teamSheets } from '../data/mockData'
 import { useScrollAnimation, fadeUp } from '../hooks/useScrollAnimation'
+
+/* ⚠️ Plus de données mock : aucune fiche technique pour le moment.
+   Sera branché au backend (module « Joueurs » / « Équipes »).
+   Le composant affiche un état vide tant que la liste est vide
+   (sans crash `team.categorie`, sans boucle de redirection). */
+const teamSheets = {}
 
 /* ============================================================
    TeamSheet — Fiche technique d'une catégorie
@@ -30,13 +37,51 @@ export default function TeamSheet() {
   const navigate = useNavigate()
   const { ref, isInView } = useScrollAnimation({ amount: 0.1 })
 
+  const hasData = Object.keys(teamSheets).length > 0
+
   // Redirection vers la première catégorie (U9) si l'URL est
-  // invalide ou absente.
+  // invalide ou absente — uniquement quand des fiches existent
+  // (sinon : boucle vers /equipes/technique/undefined).
   useEffect(() => {
-    if (categorie && !teamSheets[categorie]) {
+    if (hasData && categorie && !teamSheets[categorie]) {
       navigate(`/equipes/technique/${CATEGORIES[0]}`, { replace: true })
     }
-  }, [categorie, navigate])
+  }, [hasData, categorie, navigate])
+
+  // Aucune fiche technique : état vide (garde placée APRÈS les hooks).
+  if (!hasData) {
+    return (
+      <section id="fiche-technique" className="bg-clair py-16 md:py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <Breadcrumb
+            items={[
+              { label: 'Accueil', href: '/' },
+              { label: 'Équipes', href: '/equipes' },
+              { label: 'Fiches techniques', href: '/equipes/technique' },
+            ]}
+            className="mb-8"
+          />
+
+          <SectionTitle
+            title="Fiches Techniques"
+            subtitle="Profils techniques détaillés, effectifs et données historiques par catégorie."
+          />
+
+          <div className="mx-auto max-w-md rounded-2xl border border-dashed border-dore/40 bg-white px-6 py-14 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-clair text-dore-dark">
+              <FontAwesomeIcon icon={faFutbol} className="h-7 w-7" />
+            </div>
+            <p className="mt-5 font-semibold text-sombre">
+              Aucune fiche technique pour le moment.
+            </p>
+            <p className="mt-2 text-sm text-sombre/60">
+              Les fiches des catégories arriveront prochainement.
+            </p>
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   const team = teamSheets[categorie] ?? teamSheets[CATEGORIES[0]]
 

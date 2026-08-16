@@ -8,6 +8,8 @@ import {
   faMapLocationDot,
   faLayerGroup,
   faFutbol,
+  faShieldHalved,
+  faBullseye,
 } from '@fortawesome/free-solid-svg-icons'
 import { parseLocalDate, formatDateLong } from '../../utils/dateUtils'
 
@@ -21,7 +23,7 @@ import { parseLocalDate, formatDateLong } from '../../utils/dateUtils'
 
 const TYPE_STYLE = {
   Match: 'bg-dore/15 text-dore-dark',
-  Training: 'bg-vert/10 text-vert',
+  'Entraînement': 'bg-vert/10 text-vert',
 }
 
 export default function EventDetails({ event, onClose }) {
@@ -108,9 +110,7 @@ export default function EventDetails({ event, onClose }) {
                   <FontAwesomeIcon icon={faClock} className="h-4 w-4 text-dore-dark" />
                   Horaire
                 </p>
-                <p className="mt-2 font-bold text-sombre">
-                  {event.heureDebut} – {event.heureFin}
-                </p>
+                <p className="mt-2 font-bold text-sombre">{event.heure}</p>
               </div>
 
               <div className="rounded-xl bg-clair p-4">
@@ -128,6 +128,60 @@ export default function EventDetails({ event, onClose }) {
                 </p>
                 <p className="mt-2 font-bold text-sombre">{event.categorie}</p>
               </div>
+
+              {/* Détails selon le type : MATCH → équipes, ENTRAINEMENT → objectif */}
+              {event.type === 'Match' && (
+                <div className="rounded-xl bg-dore/10 p-4 md:col-span-2">
+                  <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sombre/50">
+                    <FontAwesomeIcon icon={faShieldHalved} className="h-4 w-4 text-dore-dark" />
+                    Rencontre
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+                    <p className="text-lg font-extrabold text-sombre">
+                      {event.equipeA || '—'}{' '}
+                      <span className="text-dore-dark">vs</span>{' '}
+                      {event.equipeB || '—'}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      {event.typeMatch && (
+                        <span className="rounded-full bg-dore px-3 py-1 text-xs font-bold text-vert-dark">
+                          {event.typeMatch === 'CHAMPIONNAT'
+                            ? 'Championnat'
+                            : 'Amical'}
+                        </span>
+                      )}
+                      {event.scoreA != null && event.scoreB != null && (
+                        <span className="rounded-full bg-vert px-3 py-1 text-xs font-bold text-white">
+                          {event.scoreA} – {event.scoreB}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {event.type === 'Entraînement' && (
+                <div className="rounded-xl bg-vert/10 p-4 md:col-span-2">
+                  <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sombre/50">
+                    <FontAwesomeIcon icon={faBullseye} className="h-4 w-4 text-vert" />
+                    Entraînement
+                  </p>
+                  {event.objectif ? (
+                    <p className="mt-2 text-sm font-medium text-sombre">
+                      {event.objectif}
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-sm text-sombre/60">
+                      Objectif non précisé.
+                    </p>
+                  )}
+                  {event.duree != null && (
+                    <p className="mt-2 text-sm font-bold text-vert">
+                      Durée : {event.duree} min
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Rappel */}
               <div className="flex items-center gap-3 rounded-xl bg-vert p-4 text-white md:col-span-2">

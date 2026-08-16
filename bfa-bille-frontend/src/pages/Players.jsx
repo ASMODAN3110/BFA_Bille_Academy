@@ -1,28 +1,75 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import SectionTitle from '../components/ui/SectionTitle'
 import Button from '../components/ui/Button'
 import PlayerFilters from '../components/players/PlayerFilters'
 import PlayerGrid from '../components/players/PlayerGrid'
 import PlayerDetails from '../components/players/PlayerDetails'
-import { players } from '../data/mockData'
+import Pagination from '../components/ui/Pagination'
 import usePlayerFilter from '../hooks/usePlayerFilter'
+import { useCategories } from '../hooks/useCategories'
+import { api } from '../utils/api'
 import { useScrollAnimation, fadeUp } from '../hooks/useScrollAnimation'
 
 /* ============================================================
    Players — Page « Annuaire des joueurs » (/equipes)
    ------------------------------------------------------------
-   - Filtres par catégorie (Tous, U9, U15, U17)
-   - Grille responsive 1 / 2 / 4 colonnes
-   - Modale de fiche détaillée au clic sur une carte
+   - Données : GET /api/players (limit=100, tri serveur) +
+     GET /api/categories (filtres) — plus de mock.
+   - Filtres par catégorie, pagination locale, modale de fiche.
    ============================================================ */
+
+const PAGE_SIZE = 8
 
 export default function Players() {
   const { ref, isInView } = useScrollAnimation({ amount: 0.1 })
-  const { categories, counts, selectedCategory, setSelectedCategory, filteredPlayers } =
-    usePlayerFilter(players)
+  const { categories: categoryOptions } = useCategories()
 
+  const [players, setPlayers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [page, setPage] = useState(1)
   const [selectedPlayer, setSelectedPlayer] = useState(null)
+
+  const {
+    categories,
+    counts,
+    selectedCategory,
+    setSelectedCategory,
+    filteredPlayers,
+  } = usePlayerFilter(players, categoryOptions)
+
+  /* Chargement de l'effectif (le backend trie déjà nom puis prénom). */
+  useEffect(() => {
+    let active = true
+    api('/api/players?limit=100')
+      .then((data) => {
+        if (!active) return
+        setPlayers(data?.data?.items ?? [])
+        setLoading(false)
+      })
+      .catch((err) => {
+        if (!active) return
+        setError(err?.message || 'Impossible de charger les joueurs.')
+        setLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  /* Retour à la 1re page dès qu'un filtre change. */
+  useEffect(() => {
+    setPage(1)
+  }, [selectedCategory])
+
+  const totalPages = Math.max(1, Math.ceil(filteredPlayers.length / PAGE_SIZE))
+  const pageItems = filteredPlayers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  const activeLabel =
+    selectedCategory === 'Tous'
+      ? null
+      : (categoryOptions.find((c) => c.id === selectedCategory)?.nom ?? null)
 
   return (
     <section id="equipes" className="bg-clair py-16 md:py-24">
@@ -46,11 +93,24 @@ export default function Players() {
           onChange={setSelectedCategory}
         />
 
-        <p className="mb-8 text-center text-sm text-sombre/60">
-          {filteredPlayers.length} joueur{filteredPlayers.length > 1 ? 's' : ''}{' '}
-          affiché{filteredPlayers.length > 1 ? 's' : ''}
-          {selectedCategory !== 'Tous' && ` · catégorie ${selectedCategory}`}
-        </p>
+        {loading ? (
+          <p className="mb-8 text-center text-sm text-sombre/60">
+            Chargement des joueurs…
+          </p>
+        ) : error ? (
+          <div
+            role="alert"
+            className="mb-8 rounded-2xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-center text-sm font-medium text-erreur"
+          >
+            {error}
+          </div>
+        ) : (
+          <p className="mb-8 text-center text-sm text-sombre/60">
+            {filteredPlayers.length} joueur{filteredPlayers.length > 1 ? 's' : ''}{' '}
+            affiché{filteredPlayers.length > 1 ? 's' : ''}
+            {activeLabel && ` · catégorie ${activeLabel}`}
+          </p>
+        )}
 
         {/* Lien vers les fiches techniques */}
         <div className="mb-10 flex flex-col items-center justify-center gap-3 rounded-2xl border border-dore/30 bg-white p-5 sm:flex-row sm:gap-6">
@@ -68,7 +128,18 @@ export default function Players() {
           </Button>
         </div>
 
-        <PlayerGrid players={filteredPlayers} onSelect={setSelectedPlayer} />
+        {!loading && !error && (
+          <>
+            <PlayerGrid players={pageItems} onSelect={setSelectedPlayer} />
+            <div className="mt-10 flex justify-center">
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+              />
+            </div>
+          </>
+        )}
       </div>
 
       {/* Modale de fiche détaillée */}

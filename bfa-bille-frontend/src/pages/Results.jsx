@@ -5,7 +5,6 @@ import Card from '../components/ui/Card'
 import CategoryFilter from '../components/results/CategoryFilter'
 import ResultsList from '../components/results/ResultsList'
 import RankingTable from '../components/results/RankingTable'
-import { results, classements } from '../data/mockData'
 import { useScrollAnimation, fadeUp } from '../hooks/useScrollAnimation'
 import { parseLocalDate } from '../utils/dateUtils'
 
@@ -22,10 +21,15 @@ import { parseLocalDate } from '../utils/dateUtils'
    - Transition fade-in au changement de catégorie
    ============================================================ */
 
-const CATEGORIES = ['Tous', ...Object.keys(classements)] // ['Tous','U17 A','U15 Elite']
+/* ['Tous', ...Object.keys(classements)] — classements vide → « Tous » seul. */
+const CATEGORIES = ['Tous']
 
 export default function Results() {
   const { ref, isInView } = useScrollAnimation({ amount: 0.1 })
+  // ⚠️ Plus de données mock : aucun résultat ni classement.
+  // Seront branchés au backend (module « Résultats »).
+  const [results] = useState([])
+  const [classements] = useState({})
   const [selectedCategory, setSelectedCategory] = useState('Tous')
 
   // Résultats filtrés par catégorie et triés par date décroissante.
@@ -37,13 +41,13 @@ export default function Results() {
     return [...byCategory].sort(
       (a, b) => parseLocalDate(b.date) - parseLocalDate(a.date),
     )
-  }, [selectedCategory])
+  }, [selectedCategory, results])
 
   // Classements à afficher : une seule catégorie, ou toutes si « Tous ».
   const classementsToShow = useMemo(() => {
     if (selectedCategory === 'Tous') return classements
     return classements[selectedCategory] ? { [selectedCategory]: classements[selectedCategory] } : {}
-  }, [selectedCategory])
+  }, [selectedCategory, classements])
 
   return (
     <section id="resultats" className="bg-clair py-16 md:py-24">
@@ -80,21 +84,23 @@ export default function Results() {
             <ResultsList results={filteredResults} />
           </Card>
 
-          {/* Classements */}
-          <Card className="p-6 md:p-8">
-            <h3 className="mb-6 text-xl font-extrabold text-vert">
-              Classements
-            </h3>
-            <div className="space-y-8">
-              {Object.entries(classementsToShow).map(([categorie, teams]) => (
-                <RankingTable
-                  key={categorie}
-                  title={categorie}
-                  teams={teams}
-                />
-              ))}
-            </div>
-          </Card>
+          {/* Classements — masqués tant qu'aucun classement n'existe */}
+          {Object.keys(classementsToShow).length > 0 && (
+            <Card className="p-6 md:p-8">
+              <h3 className="mb-6 text-xl font-extrabold text-vert">
+                Classements
+              </h3>
+              <div className="space-y-8">
+                {Object.entries(classementsToShow).map(([categorie, teams]) => (
+                  <RankingTable
+                    key={categorie}
+                    title={categorie}
+                    teams={teams}
+                  />
+                ))}
+              </div>
+            </Card>
+          )}
         </motion.div>
       </div>
     </section>

@@ -7,23 +7,21 @@ import {
 import Card from '../ui/Card'
 import Badge from '../ui/Badge'
 import Table from '../ui/Table'
+import { getAge } from '../../utils/ageUtils'
 
 /* ============================================================
    PlayerTable — Tableau des joueurs (admin)
    ------------------------------------------------------------
-   - Colonnes : Joueur (photo + nom), Catégorie, Poste, Âge,
-     Statut (Badge), Actions (Modifier / Supprimer)
+   - Colonnes : Joueur (photo/initiales + nom), Catégorie, Poste,
+     Âge (calculé depuis dateNaissance), Actions
    - Réutilise `Table` (en-tête vert, lignes alternées)
    ============================================================ */
 
-const STATUS_VARIANT = {
-  'Actif': 'success',
-  'MVP': 'mvp',
-  'Blessé': 'danger',
-}
-
 const actionButtonClasses =
   'flex h-9 w-9 items-center justify-center rounded-lg transition active:scale-95'
+
+const initials = (row) =>
+  `${row.prenom?.[0] ?? ''}${row.nom?.[0] ?? ''}`.toUpperCase() || '?'
 
 export default function PlayerTable({ players, onEdit, onDelete }) {
   const columns = [
@@ -32,11 +30,17 @@ export default function PlayerTable({ players, onEdit, onDelete }) {
       label: 'Joueur',
       render: (row) => (
         <div className="flex items-center gap-3">
-          <img
-            src={row.photo}
-            alt={row.nom}
-            className="h-9 w-9 shrink-0 rounded-full object-cover"
-          />
+          {row.photo ? (
+            <img
+              src={row.photo}
+              alt={row.nom}
+              className="h-9 w-9 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-vert/10 text-xs font-bold text-vert">
+              {initials(row)}
+            </div>
+          )}
           <div className="min-w-0">
             <p className="truncate font-semibold text-sombre">{row.nom}</p>
             <p className="truncate text-xs text-sombre/60">{row.prenom}</p>
@@ -47,18 +51,16 @@ export default function PlayerTable({ players, onEdit, onDelete }) {
     {
       key: 'categorie',
       label: 'Catégorie',
-      render: (row) => <Badge variant="selected">{row.categorie}</Badge>,
+      render: (row) => (
+        <Badge variant="selected">{row.categorie?.nom ?? '—'}</Badge>
+      ),
     },
     { key: 'poste', label: 'Poste' },
-    { key: 'age', label: 'Âge', render: (row) => `${row.age} ans` },
     {
-      key: 'statut',
-      label: 'Statut',
-      render: (row) => (
-        <Badge variant={STATUS_VARIANT[row.statut] ?? 'default'}>
-          {row.statut}
-        </Badge>
-      ),
+      key: 'age',
+      label: 'Âge',
+      render: (row) =>
+        `${row.dateNaissance ? getAge(row.dateNaissance) : '—'} ans`,
     },
     {
       key: 'actions',
@@ -97,7 +99,7 @@ export default function PlayerTable({ players, onEdit, onDelete }) {
           Aucun joueur pour le moment.
         </p>
         <p className="mt-1 text-sm text-sombre/50">
-          Les effectifs seront chargés depuis le backend.
+          Ajoutez le premier joueur pour l'afficher ici.
         </p>
       </Card>
     )

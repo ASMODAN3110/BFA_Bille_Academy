@@ -4,12 +4,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowRightLong } from '@fortawesome/free-solid-svg-icons'
 import Card from '../ui/Card'
 import SectionTitle from '../ui/SectionTitle'
-import { news } from '../../data/mockData'
 import {
   useScrollAnimation,
   staggerContainer,
   staggerItem,
 } from '../../hooks/useScrollAnimation'
+
+/* ⚠️ Plus de données mock : la section part vide (aucune
+   actualité). Sera branchée au backend (module « Blog »). */
+const news = []
 
 /* ============================================================
    News — Dernières actualités (3 articles)
@@ -24,6 +27,9 @@ const formatDate = (isoDate) =>
 
 export default function News() {
   const { ref, isInView } = useScrollAnimation()
+
+  // Section masquée tant qu'aucune actualité n'est publiée.
+  if (news.length === 0) return null
 
   return (
     <section id="actualites" className="bg-white py-20 md:py-24">

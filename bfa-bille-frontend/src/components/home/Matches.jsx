@@ -4,12 +4,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCalendar, faClock, faMapLocationDot } from '@fortawesome/free-solid-svg-icons'
 import Card from '../ui/Card'
 import SectionTitle from '../ui/SectionTitle'
-import { matches } from '../../data/mockData'
 import {
   useScrollAnimation,
   staggerContainer,
   staggerItem,
 } from '../../hooks/useScrollAnimation'
+
+/* ⚠️ Plus de données mock : la section part vide (aucun match
+   à venir). Sera branchée au backend (module « Calendrier »). */
+const matches = []
 
 /* ============================================================
    Matches — Prochains matchs (3)
@@ -25,6 +28,9 @@ const formatLongDate = (isoDate) =>
 
 export default function Matches() {
   const { ref, isInView } = useScrollAnimation()
+
+  // Section masquée tant qu'aucun match n'est programmé.
+  if (matches.length === 0) return null
 
   return (
     <section id="matches" className="bg-white py-20 md:py-24">

@@ -10,9 +10,12 @@ import {
 import Breadcrumb from '../components/layout/Breadcrumb'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
-import { blogPosts } from '../data/mockData'
 import { fadeUp } from '../hooks/useScrollAnimation'
 import { parseLocalDate, formatDateCard } from '../utils/dateUtils'
+
+/* ⚠️ Plus de données mock : aucun article. Le cas vide est déjà
+   géré plus bas par le pattern « Article introuvable » (!post). */
+const blogPosts = []
 
 /* Couleur du badge de catégorie (identique à BlogCard). */
 const CATEGORY_BADGE = {

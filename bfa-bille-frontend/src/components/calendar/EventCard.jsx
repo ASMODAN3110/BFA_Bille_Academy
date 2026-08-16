@@ -55,7 +55,7 @@ export default function EventCard({ event, onSelect }) {
             </h3>
             <p className="mt-1 flex items-center gap-1.5 text-xs text-sombre/60">
               <FontAwesomeIcon icon={faClock} className="h-3.5 w-3.5 text-dore-dark" />
-              {event.heureDebut} – {event.heureFin}
+              {event.heure}
             </p>
             <p className="mt-0.5 flex items-center gap-1.5 text-xs text-sombre/60">
               <FontAwesomeIcon

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCalendarPlus } from '@fortawesome/free-solid-svg-icons'
@@ -9,21 +9,23 @@ import EventForm from '../components/admin/EventForm'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import Button from '../components/ui/Button'
 import { fadeUp } from '../hooks/useScrollAnimation'
+import { api } from '../utils/api'
+import { normalizeEvent } from '../utils/eventAdapter'
 
 /* ============================================================
    AdminCalendar — Gestion du calendrier (/admin/calendar)
    ------------------------------------------------------------
-   - CRUD complet des événements : créer, modifier, supprimer
+   - Données : GET /api/events?limit=100 (liste normalisée).
+   - CRUD : POST/PUT/DELETE /admin/events (protégés, auth: true).
    - Vue mensuelle (grille) + liste détaillée (tableau)
    - `autoAdd` : ouvre le formulaire d'ajout au chargement
      (route /admin/events/add depuis les actions rapides)
    ============================================================ */
 
 export default function AdminCalendar({ autoAdd = false }) {
-  /* ⚠️ Plus de données mock : la liste part vide. Les événements
-     arriveront du backend (GET /admin/evenements) quand les
-     endpoints CRUD existeront. */
   const [events, setEvents] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date()
     return new Date(now.getFullYear(), now.getMonth(), 1)
@@ -31,11 +33,31 @@ export default function AdminCalendar({ autoAdd = false }) {
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState(null)
   const [toDelete, setToDelete] = useState(null)
+  const [serverError, setServerError] = useState(null)
+
+  /* Recharge les événements depuis le backend (tri date puis heure serveur). */
+  const loadEvents = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await api('/api/events?limit=100', { auth: true })
+      setEvents((data?.data?.items ?? []).map(normalizeEvent))
+    } catch (err) {
+      setError(err?.message || 'Impossible de charger les événements.')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadEvents()
+  }, [loadEvents])
 
   /* Route /admin/events/add → ouvre le formulaire d'ajout. */
   useEffect(() => {
     if (autoAdd) {
       setEditing(null)
+      setServerError(null)
       setFormOpen(true)
     }
   }, [autoAdd])
@@ -57,27 +79,51 @@ export default function AdminCalendar({ autoAdd = false }) {
 
   const openAdd = () => {
     setEditing(null)
+    setServerError(null)
     setFormOpen(true)
   }
 
   const openEdit = (event) => {
     setEditing(event)
+    setServerError(null)
     setFormOpen(true)
   }
 
-  const handleSave = (data) => {
-    setEvents((prev) =>
-      editing
-        ? prev.map((e) => (e.id === editing.id ? data : e))
-        : [...prev, data],
-    )
-    setFormOpen(false)
-    setEditing(null)
+  /* Ajout (POST) / modification (PUT) — l'événement renvoyé par le
+     backend est normalisé puis inséré dans la liste locale. */
+  const handleSave = async (data) => {
+    setServerError(null)
+    try {
+      const saved = editing
+        ? await api(`/admin/events/${editing?.id}`, {
+            method: 'PUT',
+            body: data,
+            auth: true,
+          })
+        : await api('/admin/events', { method: 'POST', body: data, auth: true })
+      const normalized = normalizeEvent(saved?.data)
+      setEvents((prev) =>
+        editing
+          ? prev.map((e) => (e.id === normalized.id ? normalized : e))
+          : [...prev, normalized],
+      )
+      setFormOpen(false)
+      setEditing(null)
+    } catch (err) {
+      setServerError(err?.message || 'Une erreur est survenue.')
+    }
   }
 
+  /* Suppression (DELETE) — puis retrait de la liste locale. */
   const handleDelete = () => {
-    setEvents((prev) => prev.filter((e) => e.id !== toDelete.id))
+    const id = toDelete?.id
+    if (id == null) return
     setToDelete(null)
+    api(`/admin/events/${id}`, { method: 'DELETE', auth: true })
+      .then(() => setEvents((prev) => prev.filter((e) => e.id !== id)))
+      .catch((err) =>
+        setError(err?.message || 'Impossible de supprimer l’événement.'),
+      )
   }
 
   return (
@@ -98,27 +144,44 @@ export default function AdminCalendar({ autoAdd = false }) {
         }
       />
 
-      <AdminCalendarGrid
-        events={events}
-        currentMonth={currentMonth}
-        onPrev={goPrevMonth}
-        onNext={goNextMonth}
-      />
+      {loading ? (
+        <p className="text-center text-sm text-sombre/60">
+          Chargement des événements…
+        </p>
+      ) : error ? (
+        <div
+          role="alert"
+          className="rounded-2xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-center text-sm font-medium text-erreur"
+        >
+          {error}
+        </div>
+      ) : (
+        <>
+          <AdminCalendarGrid
+            events={events}
+            currentMonth={currentMonth}
+            onPrev={goPrevMonth}
+            onNext={goNextMonth}
+          />
 
-      <EventsTable
-        events={sortedEvents}
-        onEdit={openEdit}
-        onDelete={setToDelete}
-      />
+          <EventsTable
+            events={sortedEvents}
+            onEdit={openEdit}
+            onDelete={setToDelete}
+          />
+        </>
+      )}
 
       <EventForm
         open={formOpen}
         onClose={() => {
           setFormOpen(false)
           setEditing(null)
+          setServerError(null)
         }}
         onSave={handleSave}
         event={editing}
+        serverError={serverError}
       />
 
       <ConfirmDialog

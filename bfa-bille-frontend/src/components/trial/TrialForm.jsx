@@ -11,7 +11,7 @@ import FormSelect from './FormSelect'
 import FormTextarea from './FormTextarea'
 import FormStatus from './FormStatus'
 import useTrialForm, { todayISO } from '../../hooks/useTrialForm'
-import { categories } from '../../data/categories'
+import { useCategories } from '../../hooks/useCategories'
 import { useScrollAnimation, fadeUp } from '../../hooks/useScrollAnimation'
 
 /* ============================================================
@@ -26,6 +26,9 @@ import { useScrollAnimation, fadeUp } from '../../hooks/useScrollAnimation'
 
 export default function TrialForm() {
   const { ref, isInView } = useScrollAnimation({ amount: 0.1 })
+  // Catégories chargées depuis l'API (GET /api/categories), noms uniquement.
+  const { categories, loading, error } = useCategories()
+  const categoryNames = categories.map((c) => c.nom)
   const {
     formData,
     errors,
@@ -36,7 +39,7 @@ export default function TrialForm() {
     handleBlur,
     handleSubmit,
     resetForm,
-  } = useTrialForm()
+  } = useTrialForm(categoryNames)
 
   return (
     <motion.div
@@ -90,18 +93,28 @@ export default function TrialForm() {
               error={errors.age}
               touched={touched.age}
             />
-            <FormSelect
-              label="Catégorie"
-              name="categorie"
-              options={categories}
-              placeholder="Sélectionnez une catégorie"
-              value={formData.categorie}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              required
-              error={errors.categorie}
-              touched={touched.categorie}
-            />
+            {loading ? (
+              <p className="text-sm text-sombre/60">
+                Chargement des catégories…
+              </p>
+            ) : error ? (
+              <p className="text-sm text-erreur">
+                Catégories indisponibles : {error}
+              </p>
+            ) : (
+              <FormSelect
+                label="Catégorie"
+                name="categorie"
+                options={categoryNames}
+                placeholder="Sélectionnez une catégorie"
+                value={formData.categorie}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                required
+                error={errors.categorie}
+                touched={touched.categorie}
+              />
+            )}
           </div>
 
           {/* Ligne 3 : Téléphone | Email */}

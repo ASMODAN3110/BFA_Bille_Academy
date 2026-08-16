@@ -4,7 +4,6 @@ import SectionTitle from '../components/ui/SectionTitle'
 import BlogFilters from '../components/blog/BlogFilters'
 import BlogGrid from '../components/blog/BlogGrid'
 import Pagination from '../components/ui/Pagination'
-import { blogPosts } from '../data/mockData'
 import { useScrollAnimation, fadeUp } from '../hooks/useScrollAnimation'
 import { parseLocalDate } from '../utils/dateUtils'
 
@@ -25,6 +24,9 @@ const POSTS_PER_PAGE = 6
 
 export default function Blog() {
   const { ref, isInView } = useScrollAnimation({ amount: 0.1 })
+  // ⚠️ Plus de données mock : le blog part vide (aucun article).
+  // Sera branchée au backend (module « Blog »).
+  const [blogPosts] = useState([])
   const [selectedCategory, setSelectedCategory] = useState('Tous')
   const [currentPage, setCurrentPage] = useState(1)
 
@@ -39,7 +41,7 @@ export default function Blog() {
     return [...byCategory].sort(
       (a, b) => parseLocalDate(b.date) - parseLocalDate(a.date),
     )
-  }, [selectedCategory])
+  }, [selectedCategory, blogPosts])
 
   // Nombre d'articles publiés par catégorie (pour les badges).
   const counts = useMemo(() => {
@@ -51,7 +53,7 @@ export default function Blog() {
       ).length
     }
     return result
-  }, [])
+  }, [blogPosts])
 
   const totalPages = Math.max(1, Math.ceil(filteredPosts.length / POSTS_PER_PAGE))
   const safePage = Math.min(currentPage, totalPages)

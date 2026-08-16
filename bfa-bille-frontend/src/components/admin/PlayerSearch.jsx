@@ -2,13 +2,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFileExport, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 import Card from '../ui/Card'
 import Button from '../ui/Button'
-import { categories } from '../../data/categories'
+import { useCategories } from '../../hooks/useCategories'
 
 /* ============================================================
    PlayerSearch — Recherche, filtres et export des joueurs
    ------------------------------------------------------------
-   - Champ de recherche (nom / poste)
-   - Filtre catégorie (U9, U15, U17) + filtre statut
+   - Champ de recherche (nom / prénom / poste)
+   - Filtre catégorie (GET /api/categories, valeur = id)
    - Bouton Exporter (CSV)
    - Compteur de résultats
    ============================================================ */
@@ -21,12 +21,12 @@ export default function PlayerSearch({
   onQueryChange,
   category,
   onCategoryChange,
-  status,
-  onStatusChange,
   onExport,
   resultCount,
   totalCount,
 }) {
+  const { categories } = useCategories()
+
   return (
     <Card className="p-4 md:p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
@@ -55,22 +55,10 @@ export default function PlayerSearch({
           >
             <option value="Tous">Toutes catégories</option>
             {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
+              <option key={cat.id} value={String(cat.id)}>
+                {cat.nom}
               </option>
             ))}
-          </select>
-
-          <select
-            value={status}
-            onChange={(e) => onStatusChange(e.target.value)}
-            aria-label="Filtrer par statut"
-            className={selectClasses}
-          >
-            <option value="Tous">Tous les statuts</option>
-            <option value="Actif">Actif</option>
-            <option value="MVP">MVP</option>
-            <option value="Blessé">Blessé</option>
           </select>
 
           <Button

@@ -49,8 +49,8 @@ src/
 │   ├── admin/           # Composants back-office (par module)
 │   ├── blog/ gallery/ players/ results/ team/ trial/ shop/ calendar/ home/
 │   └── trial/           # FormInput, FormSelect, FormTextarea, FormStatus
-├── contexts/AuthContext.jsx   # Authentification simulée (localStorage)
-├── data/mockData.js     # Toutes les données de démonstration
+├── config/site.js       # Config du site (navigation, contact, réseaux, devise)
+├── contexts/AuthContext.jsx   # Authentification (session)
 ├── hooks/               # useAuth, useScrollAnimation, useCalendar…
 ├── layouts/AdminLayout.jsx    # Layout du back-office (sidebar fixe + contenu)
 ├── pages/               # Pages publiques (Home, Players, Blog…) + AdminX
@@ -93,9 +93,9 @@ Accessible sur `/admin` puis `/admin/dashboard`. Une seule route protégée (`Pr
 
 Composants UI réutilisables du back-office : `ui/Table` (tableaux génériques), `ui/Badge` (statuts), `ui/Modal`, `ui/ConfirmDialog`, `ui/Pagination`, `ui/FileUpload`, `admin/PageHeader`, `admin/StatCard`.
 
-## Données de démonstration
+## Données
 
-Toutes les données mock sont centralisées dans [src/data/mockData.js](src/data/mockData.js) : joueurs, événements, essais, albums, articles de blog, résultats/classements, produits, demandes de devis, statistiques du dashboard, etc. Les images sont des placeholders **Unsplash** — à remplacer par les visuels réels du club. Les soumissions de formulaires (essais, devis, sauvegarde admin) sont simulées ; les essais sont persistés dans `localStorage`.
+Plus aucune donnée mock : `src/data/mockData.js` a été supprimé. Les modules **Joueurs** et **Calendrier** (public + back-office) sont branchés sur l'API backend ; les autres modules (galerie, blog, boutique, résultats, équipes…) démarrent en **état vide** et seront branchés à leur tour. L'identité du site (navigation, contact, réseaux sociaux, devise du club) est centralisée dans `src/config/site.js`. Les images restent des placeholders à remplacer par les visuels réels du club.
 
 ## Notes techniques
 

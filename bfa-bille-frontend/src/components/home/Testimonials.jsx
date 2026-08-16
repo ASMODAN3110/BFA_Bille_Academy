@@ -3,12 +3,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faQuoteLeft, faStar } from '@fortawesome/free-solid-svg-icons'
 import Card from '../ui/Card'
 import SectionTitle from '../ui/SectionTitle'
-import { testimonials } from '../../data/mockData'
 import {
   useScrollAnimation,
   staggerContainer,
   staggerItem,
 } from '../../hooks/useScrollAnimation'
+
+/* ⚠️ Plus de données mock : la section part vide (aucun
+   témoignage). Sera branchée au backend (module dédié). */
+const testimonials = []
 
 /* ============================================================
    Testimonials — Témoignages (parents & joueurs)
@@ -16,6 +19,9 @@ import {
 
 export default function Testimonials() {
   const { ref, isInView } = useScrollAnimation()
+
+  // Section masquée tant qu'aucun témoignage n'est disponible.
+  if (testimonials.length === 0) return null
 
   return (
     <section id="temoignages" className="bg-white py-20 md:py-24">

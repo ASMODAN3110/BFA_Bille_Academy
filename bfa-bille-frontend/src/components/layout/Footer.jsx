@@ -11,7 +11,7 @@ import {
   faXTwitter,
   faYoutube,
 } from '@fortawesome/free-brands-svg-icons'
-import { club, navLinks, socialLinks } from '../../data/mockData'
+import { club, navLinks, socialLinks } from '../../config/site'
 import logo from '../../assets/logo-removebg-preview.png'
 
 /* ============================================================

@@ -12,7 +12,7 @@ import { parseLocalDate, formatDateCard } from '../../utils/dateUtils'
 /* ============================================================
    EventsTable — Tableau des événements (admin calendrier)
    ------------------------------------------------------------
-   - Colonnes : Titre, Date, Heures, Lieu, Catégorie, Type,
+   - Colonnes : Titre, Date, Heure, Lieu, Catégorie, Type,
      Actions (Modifier / Supprimer)
    ============================================================ */
 
@@ -33,9 +33,9 @@ export default function EventsTable({ events, onEdit, onDelete }) {
       render: (row) => formatDateCard(parseLocalDate(row.date)),
     },
     {
-      key: 'heures',
-      label: 'Heures',
-      render: (row) => `${row.heureDebut} – ${row.heureFin}`,
+      key: 'heure',
+      label: 'Heure',
+      render: (row) => row.heure,
     },
     { key: 'lieu', label: 'Lieu' },
     {
@@ -87,7 +87,7 @@ export default function EventsTable({ events, onEdit, onDelete }) {
           Aucun événement pour le moment.
         </p>
         <p className="mt-1 text-sm text-sombre/50">
-          Les événements seront chargés depuis le backend.
+          Créer le premier événement pour l'afficher ici.
         </p>
       </Card>
     )

@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFutbol } from '@fortawesome/free-solid-svg-icons'
 import Button from '../ui/Button'
-import { club } from '../../data/mockData'
+import { club } from '../../config/site'
 import { useScrollAnimation, scaleIn } from '../../hooks/useScrollAnimation'
 
 /* ============================================================

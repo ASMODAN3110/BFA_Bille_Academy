@@ -68,7 +68,8 @@ export default function useCalendar(events) {
       )
       .sort(
         (a, b) =>
-          a.date.localeCompare(b.date) || a.heureDebut.localeCompare(b.heureDebut),
+          a.date.localeCompare(b.date) ||
+          (a.heure ?? '').localeCompare(b.heure ?? ''),
       )
   }, [monthEvents, selectedCategory, selectedType])
 

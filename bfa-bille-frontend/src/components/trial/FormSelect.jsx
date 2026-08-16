@@ -11,7 +11,15 @@ import {
    ------------------------------------------------------------
    Même logique visuelle que FormInput (focus doré, vert/rouge,
    message d'erreur), avec une flèche personnalisée.
+   `options` accepte des chaînes (« Gardien ») ou des objets
+   { value, label } (catégories : value = id, label = nom).
    ============================================================ */
+
+/* Normalise une option : valeur + libellé affiché. */
+const toOption = (opt) =>
+  opt && typeof opt === 'object' && !Array.isArray(opt)
+    ? { value: opt.value, label: opt.label }
+    : { value: opt, label: opt }
 
 const STATUS_BORDER = {
   error: 'border-erreur focus:border-erreur focus:ring-erreur/30',
@@ -61,11 +69,14 @@ export default function FormSelect({
           <option value="" disabled>
             {placeholder}
           </option>
-          {options.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
-            </option>
-          ))}
+          {options.map((opt, i) => {
+            const { value: optValue, label: optLabel } = toOption(opt)
+            return (
+              <option key={optValue ?? i} value={optValue}>
+                {optLabel}
+              </option>
+            )
+          })}
         </select>
 
         <FontAwesomeIcon

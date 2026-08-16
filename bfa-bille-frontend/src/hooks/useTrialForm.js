@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { categories } from '../data/categories'
 import { parseLocalDate } from '../utils/dateUtils'
 
 /* ============================================================
@@ -11,6 +10,8 @@ import { parseLocalDate } from '../utils/dateUtils'
      onBlur pour marquer le champ comme « touché »)
    - Soumission simulée (setTimeout 1,5 s) + enregistrement dans
      le localStorage (statut "En attente")
+   - Catégories transmises en paramètre (via useCategories() dans
+     TrialForm) : `useTrialForm(categoryNames)` — noms « U9 » etc.
    ============================================================ */
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -31,7 +32,7 @@ export const initialForm = {
 }
 
 /* -------------------- Validation par champ ------------------ */
-export function validateField(name, value) {
+export function validateField(name, value, categoryOptions = []) {
   const v = String(value ?? '').trim()
 
   switch (name) {
@@ -56,7 +57,7 @@ export function validateField(name, value) {
 
     case 'categorie':
       if (!v) return 'Veuillez sélectionner une catégorie.'
-      if (!categories.includes(v)) return 'Catégorie invalide.'
+      if (!categoryOptions.includes(v)) return 'Catégorie invalide.'
       return ''
 
     case 'telephone':
@@ -89,10 +90,10 @@ export function validateField(name, value) {
 }
 
 /** Valide l'ensemble du formulaire → objet { champ: message }. */
-export function validateForm(data) {
+export function validateForm(data, categoryOptions = []) {
   const errors = {}
   for (const key of Object.keys(initialForm)) {
-    const error = validateField(key, data[key])
+    const error = validateField(key, data[key], categoryOptions)
     if (error) errors[key] = error
   }
   return errors
@@ -105,7 +106,7 @@ export function todayISO() {
   return d.toISOString().split('T')[0]
 }
 
-export default function useTrialForm() {
+export default function useTrialForm(categoryOptions = []) {
   const [formData, setFormData] = useState(initialForm)
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
@@ -120,7 +121,10 @@ export default function useTrialForm() {
     setFormData((prev) => ({ ...prev, [name]: value }))
 
     if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }))
+      setErrors((prev) => ({
+        ...prev,
+        [name]: validateField(name, value, categoryOptions),
+      }))
     }
   }
 
@@ -129,7 +133,10 @@ export default function useTrialForm() {
   const handleBlur = (e) => {
     const { name, value } = e.target
     setTouched((prev) => ({ ...prev, [name]: true }))
-    setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }))
+    setErrors((prev) => ({
+      ...prev,
+      [name]: validateField(name, value, categoryOptions),
+    }))
   }
 
   const handleSubmit = (e) => {
@@ -142,7 +149,7 @@ export default function useTrialForm() {
     )
     setTouched(allTouched)
 
-    const nextErrors = validateForm(formData)
+    const nextErrors = validateForm(formData, categoryOptions)
     setErrors(nextErrors)
 
     if (Object.keys(nextErrors).length > 0) {

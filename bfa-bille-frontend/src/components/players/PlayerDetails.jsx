@@ -2,12 +2,13 @@ import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark } from '@fortawesome/free-solid-svg-icons'
+import { getAge } from '../../utils/ageUtils'
 
 /* ============================================================
    PlayerDetails — Modale de fiche détaillée d'un joueur
    ------------------------------------------------------------
-   - Photo en grand, nom, poste, âge, date d'arrivée
-   - Statistiques (matchs, buts, passes) si présentes
+   - Photo en grand (ou initiales si absente), nom, poste, âge
+     (calculé depuis dateNaissance), date d'arrivée (si présente)
    - Fermeture : bouton ✕, clic sur le fond, touche Échap
    - Ouverture/fermeture animées (fade-in + scale)
    ============================================================ */
@@ -18,6 +19,9 @@ const formatDate = (isoDate) =>
     month: 'long',
     year: 'numeric',
   })
+
+const initials = (player) =>
+  `${player.prenom?.[0] ?? ''}${player.nom?.[0] ?? ''}`.toUpperCase() || '?'
 
 export default function PlayerDetails({ player, onClose }) {
   // Touche Échap + verrouillage du scroll de la page
@@ -79,13 +83,19 @@ export default function PlayerDetails({ player, onClose }) {
             <div className="grid sm:grid-cols-[240px_1fr]">
               {/* Photo */}
               <div className="relative">
-                <img
-                  src={player.photo}
-                  alt={`Photo de ${player.nom}`}
-                  className="h-56 w-full object-cover sm:h-full sm:min-h-[300px]"
-                />
+                {player.photo ? (
+                  <img
+                    src={player.photo}
+                    alt={`Photo de ${player.nom}`}
+                    className="h-56 w-full object-cover sm:h-full sm:min-h-[300px]"
+                  />
+                ) : (
+                  <div className="flex h-56 w-full items-center justify-center bg-vert/10 text-6xl font-black text-vert sm:h-full sm:min-h-[300px]">
+                    {initials(player)}
+                  </div>
+                )}
                 <span className="absolute left-3 top-3 rounded-full bg-dore px-3 py-1 text-xs font-bold text-vert-dark">
-                  {player.categorie}
+                  {player.categorie?.nom ?? player.categorie}
                 </span>
               </div>
 
@@ -101,43 +111,17 @@ export default function PlayerDetails({ player, onClose }) {
                 <div className="mt-5 grid grid-cols-2 gap-3">
                   <div className="rounded-xl bg-clair p-3">
                     <p className="text-xs text-sombre/60">Âge</p>
-                    <p className="mt-0.5 font-bold text-sombre">{player.age} ans</p>
+                    <p className="mt-0.5 font-bold text-sombre">
+                      {player.dateNaissance ? getAge(player.dateNaissance) : '—'} ans
+                    </p>
                   </div>
                   <div className="rounded-xl bg-clair p-3">
                     <p className="text-xs text-sombre/60">Arrivée au club</p>
                     <p className="mt-0.5 font-bold text-sombre">
-                      {formatDate(player.dateArrivee)}
+                      {player.dateArrivee ? formatDate(player.dateArrivee) : '—'}
                     </p>
                   </div>
                 </div>
-
-                {player.stats && (
-                  <div className="mt-5">
-                    <p className="text-xs font-bold uppercase tracking-wider text-sombre/60">
-                      Statistiques
-                    </p>
-                    <div className="mt-2 grid grid-cols-3 gap-3 text-center">
-                      <div className="rounded-xl bg-vert p-3 text-white">
-                        <p className="text-xl font-black text-dore">
-                          {player.stats.matches}
-                        </p>
-                        <p className="text-xs text-white/80">Matchs</p>
-                      </div>
-                      <div className="rounded-xl bg-vert p-3 text-white">
-                        <p className="text-xl font-black text-dore">
-                          {player.stats.buts}
-                        </p>
-                        <p className="text-xs text-white/80">Buts</p>
-                      </div>
-                      <div className="rounded-xl bg-vert p-3 text-white">
-                        <p className="text-xl font-black text-dore">
-                          {player.stats.passes}
-                        </p>
-                        <p className="text-xs text-white/80">Passes</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </motion.div>

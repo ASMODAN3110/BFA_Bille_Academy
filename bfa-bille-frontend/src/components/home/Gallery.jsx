@@ -7,8 +7,11 @@ import {
   faCamera,
 } from '@fortawesome/free-solid-svg-icons'
 import SectionTitle from '../ui/SectionTitle'
-import { gallery } from '../../data/mockData'
 import { useScrollAnimation, fadeIn } from '../../hooks/useScrollAnimation'
+
+/* ⚠️ Plus de données mock : la section part vide (aucune photo).
+   Sera branchée au backend (module « Galerie »). */
+const gallery = []
 
 /* ============================================================
    Gallery — Carrousel de photos
@@ -42,6 +45,11 @@ export default function Gallery() {
   }, [next, paused])
 
   const current = gallery[index]
+
+  // Section masquée tant qu'aucune photo n'est disponible
+  // (la garde se place APRÈS les hooks : un carrousel vide
+  // ferait `current.id` sur undefined et un modulo par 0).
+  if (count === 0) return null
 
   return (
     <section id="galerie" className="bg-clair py-20 md:py-24">

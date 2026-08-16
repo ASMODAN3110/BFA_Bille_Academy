@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 import Card from '../../ui/Card'
-import { categories } from '../../../data/categories'
+import { useCategories } from '../../../hooks/useCategories'
 
 /* ============================================================
    TrialSearch — Recherche + filtres des demandes d'essai (admin)
@@ -28,6 +28,7 @@ export default function TrialSearch({
   resultCount,
   totalCount,
 }) {
+  const { categories } = useCategories()
   return (
     <Card className="p-4 md:p-5">
       <div className="grid gap-4 md:grid-cols-[1fr_auto_auto_auto] md:items-center">
@@ -68,8 +69,8 @@ export default function TrialSearch({
         >
           <option value="Tous">Toutes catégories</option>
           {categories.map((c) => (
-            <option key={c} value={c}>
-              {c}
+            <option key={c.id} value={c.nom}>
+              {c.nom}
             </option>
           ))}
         </select>

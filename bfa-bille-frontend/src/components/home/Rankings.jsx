@@ -3,12 +3,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrophy } from '@fortawesome/free-solid-svg-icons'
 import Card from '../ui/Card'
 import SectionTitle from '../ui/SectionTitle'
-import { rankings } from '../../data/mockData'
 import {
   useScrollAnimation,
   staggerContainer,
   staggerItem,
 } from '../../hooks/useScrollAnimation'
+
+/* ⚠️ Plus de données mock : la section part vide (aucun
+   classement). Sera branchée au backend (module « Résultats »). */
+const rankings = []
 
 /* ============================================================
    Rankings — Classements Top 3 (U9, U15, U17)
@@ -22,6 +25,9 @@ const POSITION_BADGE = {
 
 export default function Rankings() {
   const { ref, isInView } = useScrollAnimation()
+
+  // Section masquée tant qu'aucun classement n'est disponible.
+  if (rankings.length === 0) return null
 
   return (
     <section id="classements" className="bg-clair py-20 md:py-24">

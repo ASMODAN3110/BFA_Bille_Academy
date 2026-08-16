@@ -8,12 +8,15 @@ import {
   faUsers,
 } from '@fortawesome/free-solid-svg-icons'
 import SectionTitle from '../ui/SectionTitle'
-import { stats } from '../../data/mockData'
 import {
   useScrollAnimation,
   staggerContainer,
   staggerItem,
 } from '../../hooks/useScrollAnimation'
+
+/* ⚠️ Plus de données mock : la section part vide (aucune statistique
+   pour le moment). Sera branchée au backend (module « Chiffres clés »). */
+const stats = []
 
 /* ============================================================
    Stats — Chiffres clés avec compteur animé
@@ -52,6 +55,9 @@ function Counter({ value, isInView }) {
 
 export default function Stats() {
   const { ref, isInView } = useScrollAnimation({ once: true, amount: 0.3 })
+
+  // Section masquée tant qu'aucune statistique n'est disponible.
+  if (stats.length === 0) return null
 
   return (
     <section id="stats" className="relative overflow-hidden bg-vert-dark py-20 md:py-24">

@@ -1,14 +1,18 @@
 import { motion } from 'framer-motion'
 import Card from '../ui/Card'
 import { staggerItem } from '../../hooks/useScrollAnimation'
+import { getAge } from '../../utils/ageUtils'
 
 /* ============================================================
    PlayerCard — Carte d'un joueur (cliquable)
    ------------------------------------------------------------
-   Photo, nom, poste (en doré), âge et catégorie. Le clic
-   (ou la touche Entrée) ouvre la fiche détaillée via onSelect.
-   Survol : scale + ombre renforcée.
+   Photo (ou initiales si absente), nom, poste (en doré), âge
+   (calculé depuis dateNaissance) et catégorie. Le clic (ou la
+   touche Entrée) ouvre la fiche détaillée via onSelect.
    ============================================================ */
+
+const initials = (player) =>
+  `${player.prenom?.[0] ?? ''}${player.nom?.[0] ?? ''}`.toUpperCase() || '?'
 
 export default function PlayerCard({ player, onSelect }) {
   const handleKeyDown = (event) => {
@@ -30,14 +34,20 @@ export default function PlayerCard({ player, onSelect }) {
       >
         {/* Photo */}
         <div className="relative overflow-hidden">
-          <img
-            src={player.photo}
-            alt={`Photo de ${player.nom}`}
-            loading="lazy"
-            className="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+          {player.photo ? (
+            <img
+              src={player.photo}
+              alt={`Photo de ${player.nom}`}
+              loading="lazy"
+              className="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex aspect-square w-full items-center justify-center bg-vert/10 text-4xl font-black text-vert">
+              {initials(player)}
+            </div>
+          )}
           <span className="absolute right-3 top-3 rounded-full bg-vert/90 px-3 py-1 text-xs font-bold text-white shadow">
-            {player.categorie}
+            {player.categorie?.nom ?? player.categorie}
           </span>
         </div>
 
@@ -50,7 +60,9 @@ export default function PlayerCard({ player, onSelect }) {
             {player.poste}
           </p>
           <div className="mt-4 flex items-center justify-between border-t border-clair pt-3 text-sm">
-            <span className="text-sombre/70">{player.age} ans</span>
+            <span className="text-sombre/70">
+              {player.dateNaissance ? getAge(player.dateNaissance) : '—'} ans
+            </span>
             <span className="font-semibold text-vert opacity-80 transition-opacity group-hover:opacity-100">
               Voir la fiche →
             </span>

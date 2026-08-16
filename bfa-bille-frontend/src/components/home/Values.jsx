@@ -7,7 +7,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import Card from '../ui/Card'
 import SectionTitle from '../ui/SectionTitle'
-import { values } from '../../data/mockData'
+import { values } from '../../config/site'
 import {
   useScrollAnimation,
   staggerContainer,

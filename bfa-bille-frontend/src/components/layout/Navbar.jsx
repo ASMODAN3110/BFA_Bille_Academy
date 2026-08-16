@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { NavLink, Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars, faXmark, faUserTie } from '@fortawesome/free-solid-svg-icons'
-import { navLinks } from '../../data/mockData'
+import { navLinks } from '../../config/site'
 import logo from '../../assets/logo-removebg-preview.png'
 
 /* ============================================================

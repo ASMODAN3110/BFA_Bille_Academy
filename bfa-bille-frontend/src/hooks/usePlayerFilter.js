@@ -1,47 +1,41 @@
 import { useMemo, useState } from 'react'
 
 /* ============================================================
-   usePlayerFilter — Filtre, tri et compteurs des joueurs
+   usePlayerFilter — Filtre et compteurs des joueurs
    ------------------------------------------------------------
-   - Catégories calculées depuis les données (ordre canonique
-     U9, U15, U17) + « Tous »
-   - `counts` : nombre de joueurs par catégorie
-   - `filteredPlayers` : joueurs de la catégorie sélectionnée,
-     triés par ordre alphabétique (nom)
+   - `players`    : joueurs du backend (p. ex. GET /api/players)
+   - `categories` : catégories du backend (GET /api/categories),
+     objets { id, nom, ageMin, ageMax } — ordre de l'API
+   - `selectedCategory` : 'Tous' | categorie.id
+   - `counts` : nombre de joueurs par catégorie (par id)
+   - Le tri est déjà fait côté serveur (nom puis prénom) :
+     aucun tri client nécessaire.
    ============================================================ */
 
-const CATEGORY_ORDER = { U9: 0, U15: 1, U17: 2 }
-
-export default function usePlayerFilter(players) {
+export default function usePlayerFilter(players, categories = []) {
   const [selectedCategory, setSelectedCategory] = useState('Tous')
 
-  // Liste des catégories dans un ordre stable
-  const categories = useMemo(() => {
-    const cats = [...new Set(players.map((p) => p.categorie))]
-    cats.sort((a, b) => (CATEGORY_ORDER[a] ?? 9) - (CATEGORY_ORDER[b] ?? 9))
-    return ['Tous', ...cats]
-  }, [players])
+  // « Tous » + catégories dans l'ordre fourni par l'API (U9, U15, U17).
+  const categoryList = useMemo(() => ['Tous', ...categories], [categories])
 
   // Nombre de joueurs par catégorie
   const counts = useMemo(() => {
     const acc = { Tous: players.length }
     for (const player of players) {
-      acc[player.categorie] = (acc[player.categorie] ?? 0) + 1
+      const id = player.categorie?.id
+      if (id != null) acc[id] = (acc[id] ?? 0) + 1
     }
     return acc
   }, [players])
 
-  // Joueurs filtrés + tri alphabétique
+  // Joueurs de la catégorie sélectionnée (ordre serveur conservé)
   const filteredPlayers = useMemo(() => {
-    const list =
-      selectedCategory === 'Tous'
-        ? players
-        : players.filter((p) => p.categorie === selectedCategory)
-    return [...list].sort((a, b) => a.nom.localeCompare(b.nom, 'fr'))
+    if (selectedCategory === 'Tous') return players
+    return players.filter((p) => p.categorie?.id === selectedCategory)
   }, [players, selectedCategory])
 
   return {
-    categories,
+    categories: categoryList,
     counts,
     selectedCategory,
     setSelectedCategory,

@@ -4,7 +4,6 @@ import SectionTitle from '../components/ui/SectionTitle'
 import ProductFilters from '../components/shop/ProductFilters'
 import ProductGrid from '../components/shop/ProductGrid'
 import QuoteForm from '../components/shop/QuoteForm'
-import { products } from '../data/mockData'
 import { useScrollAnimation, fadeUp } from '../hooks/useScrollAnimation'
 
 /* ============================================================
@@ -22,6 +21,9 @@ const CATEGORIES = ['Tous', 'Nouveautés', 'Vêtements', 'Accessoires']
 
 export default function Shop() {
   const { ref, isInView } = useScrollAnimation({ amount: 0.1 })
+  // ⚠️ Plus de données mock : la boutique part vide (aucun produit).
+  // Sera branchée au backend (module « Boutique »).
+  const [products] = useState([])
   const [selectedCategory, setSelectedCategory] = useState('Tous')
   const [selectedProduct, setSelectedProduct] = useState(null)
 
@@ -31,7 +33,7 @@ export default function Shop() {
     if (selectedCategory === 'Nouveautés')
       return products.filter((product) => product.estNouveau)
     return products.filter((product) => product.categorie === selectedCategory)
-  }, [selectedCategory])
+  }, [selectedCategory, products])
 
   return (
     <section id="boutique" className="bg-clair py-16 md:py-24">

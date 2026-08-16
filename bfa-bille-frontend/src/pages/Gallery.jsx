@@ -5,7 +5,6 @@ import Button from '../components/ui/Button'
 import AlbumFilters from '../components/gallery/AlbumFilters'
 import AlbumGrid from '../components/gallery/AlbumGrid'
 import AlbumDetails from '../components/gallery/AlbumDetails'
-import { albums } from '../data/mockData'
 import { useScrollAnimation, fadeUp } from '../hooks/useScrollAnimation'
 
 /* ============================================================
@@ -22,6 +21,9 @@ const PAGE_SIZE = 3
 
 export default function Gallery() {
   const { ref, isInView } = useScrollAnimation({ amount: 0.1 })
+  // ⚠️ Plus de données mock : la galerie part vide (aucun album).
+  // Sera branchée au backend (module « Galerie »).
+  const [albums] = useState([])
   const [selectedTheme, setSelectedTheme] = useState('Tous')
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [selectedAlbum, setSelectedAlbum] = useState(null)
@@ -31,7 +33,7 @@ export default function Gallery() {
       selectedTheme === 'Tous'
         ? albums
         : albums.filter((album) => album.theme === selectedTheme),
-    [selectedTheme],
+    [selectedTheme, albums],
   )
 
   const counts = useMemo(() => {
@@ -40,7 +42,7 @@ export default function Gallery() {
       result[theme] = albums.filter((a) => a.theme === theme).length
     }
     return result
-  }, [])
+  }, [albums])
 
   const visibleAlbums = filteredAlbums.slice(0, visibleCount)
   const hasMore = visibleCount < filteredAlbums.length
