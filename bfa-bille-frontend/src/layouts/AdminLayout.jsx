@@ -33,7 +33,7 @@ export default function AdminLayout() {
         type="button"
         onClick={() => setSidebarOpen(true)}
         aria-label="Ouvrir le menu"
-        className="fixed bottom-5 right-5 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-vert text-dore shadow-lg transition hover:bg-vert-dark active:scale-95 lg:hidden"
+        className="fixed bottom-5 right-5 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-vert text-dore shadow-lg transition hover:bg-vert-light active:scale-95 lg:hidden"
       >
         <FontAwesomeIcon icon={faBars} className="h-5 w-5" />
       </button>

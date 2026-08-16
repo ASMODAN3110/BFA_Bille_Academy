@@ -26,7 +26,10 @@ export default function Hero() {
         className="pointer-events-none absolute -bottom-40 -left-24 h-96 w-96 rounded-full bg-dore/10 blur-3xl"
       />
 
-      <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-20 sm:px-6 md:py-24 lg:grid-cols-2 lg:gap-8 lg:px-8">
+      {/* gap-16 (et non gap-12) en colonne unique : laisse la place au
+          rebond du ballon pour qu'il ne recouvre pas les boutons.
+          lg:gap-8 : en 2 colonnes le ballon est à droite, pas de collision. */}
+      <div className="relative mx-auto grid max-w-7xl items-center gap-16 px-4 py-20 sm:px-6 md:py-24 lg:grid-cols-2 lg:gap-8 lg:px-8">
         {/* Colonne texte */}
         <div className="text-center lg:text-left">
           <motion.div variants={fadeUp} initial="hidden" animate="visible">
@@ -65,11 +68,11 @@ export default function Hero() {
             transition={{ delay: 0.45 }}
             className="mt-9 flex flex-col items-center gap-4 sm:flex-row sm:justify-center lg:justify-start"
           >
-            <Button to="/essais" size="lg">
+            <Button to="/essais" size="lg" glare>
               Inscrire mon enfant
               <span aria-hidden="true">→</span>
             </Button>
-            <Button to="/equipes" variant="outline" size="lg">
+            <Button to="/equipes" variant="outline" size="lg" glare>
               Découvrir les équipes
             </Button>
           </motion.div>

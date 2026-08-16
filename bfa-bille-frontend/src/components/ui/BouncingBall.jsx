@@ -35,6 +35,15 @@
                             'sepia(1) hue-rotate(20deg)') pour
                             teinter l'image sans la retoucher
      - `className`        : classes ajoutées sur le conteneur
+
+   Responsive : la taille et le rebond sont pilotés par des variables
+   CSS (`--bb-size`, `--bb-bounce`) posées sur le conteneur `.bb-ball`.
+   Deux media queries réduisent la taille + le rebond quand le Hero est
+   empilé (colonne unique) pour que le ballon ne recouvre JAMAIS le
+   texte ni les boutons au-dessus :
+     - < 1024px  : taille clamp(7rem, 24vw, 10rem), rebond 48px
+     - ≤ 770px   : taille clamp(6rem, 24vw, 7.5rem), rebond 40px
+   L'ombre au sol suit automatiquement (calculée en var(--bb-size)).
    ============================================================ */
 
 // Adaptez ce chemin à l'emplacement réel du fichier dans votre
@@ -58,7 +67,15 @@ export default function BouncingBall({
   const sizeValue = typeof height === 'number' ? `${height}px` : height
 
   return (
-    <div className={`flex flex-col items-center ${className}`}>
+    <div
+      className={`bb-ball flex flex-col items-center ${className}`}
+      style={{
+        '--bb-size': sizeValue,
+        '--bb-bounce': `${bounceHeight}px`,
+        '--bb-speed': `${speed}s`,
+        '--bb-shadow-intensity': shadowIntensity,
+      }}
+    >
       <style>{`
         /* ---------- Rebond + squash/stretch + flou de mouvement ---------- */
         @keyframes ball-bounce-realistic {
@@ -125,16 +142,38 @@ export default function BouncingBall({
             animation: none !important;
           }
         }
+
+        /* ---------- Responsive : en colonne unique (< 1024px, Hero
+           empilé), le ballon doit rester dans SA propre ligne pour ne
+           jamais recouvrir le texte ni les boutons au-dessus. On réduit
+           sa taille et son rebond via des variables CSS (inline — d'où
+           le !important) ; l'ombre suit automatiquement (calculée en
+           var(--bb-size)). Sur 2 colonnes (>= 1024px), rien ne change. */
+        @media (max-width: 1023px) {
+          .bb-ball {
+            --bb-size: clamp(7rem, 24vw, 10rem) !important;
+            --bb-bounce: 48px !important;
+          }
+        }
+        /* Mobile / tablette étroite (≤ 770px) : ballon plus petit et
+           rebond court → il reste sous les boutons « Inscrire » et
+           « Découvrir les équipes ». */
+        @media (max-width: 770px) {
+          .bb-ball {
+            --bb-size: clamp(6rem, 24vw, 7.5rem) !important;
+            --bb-bounce: 40px !important;
+          }
+        }
       `}</style>
 
       <div
         aria-hidden="true"
         className="animate-ball-bounce-realistic"
         style={{
-          width: sizeValue,
-          height: sizeValue,
-          animationDuration: `${speed}s`,
-          '--bounce-height': `${bounceHeight}px`,
+          width: 'var(--bb-size)',
+          height: 'var(--bb-size)',
+          animationDuration: 'var(--bb-speed)',
+          '--bounce-height': 'var(--bb-bounce)',
         }}
       >
         <img
@@ -154,14 +193,14 @@ export default function BouncingBall({
         aria-hidden="true"
         className="animate-shadow-bounce-realistic rounded-[50%] block"
         style={{
-          width: `calc(${sizeValue} * 0.62)`,
-          height: `calc(${sizeValue} * 0.11)`,
-          marginTop: `calc(${sizeValue} * 0.1)`,
+          width: 'calc(var(--bb-size) * 0.62)',
+          height: 'calc(var(--bb-size) * 0.11)',
+          marginTop: 'calc(var(--bb-size) * 0.1)',
           background:
             'radial-gradient(ellipse at center, rgba(0,0,0,1) 0%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0) 80%)',
           filter: 'blur(2px)',
-          animationDuration: `${speed}s`,
-          '--shadow-intensity': shadowIntensity,
+          animationDuration: 'var(--bb-speed)',
+          '--shadow-intensity': 'var(--bb-shadow-intensity)',
         }}
       />
     </div>

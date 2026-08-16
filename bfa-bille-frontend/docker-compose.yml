@@ -1,0 +1,7 @@
+services:
+  bfa-bille-frontend:
+    build: .
+    ports:
+      # 8080 était occupé par un autre projet (fapfapmarket-web) → 8081
+      - "8081:80"
+    restart: unless-stopped

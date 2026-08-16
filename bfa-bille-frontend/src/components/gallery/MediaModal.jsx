@@ -51,7 +51,7 @@ export default function MediaModal({
               type="button"
               onClick={onClose}
               aria-label="Fermer l'album"
-              className="absolute right-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-vert text-white shadow-lg transition-colors hover:bg-vert-dark"
+              className="absolute right-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-vert text-white shadow-lg transition-colors hover:bg-vert-light"
             >
               <FontAwesomeIcon icon={faXmark} className="h-5 w-5" />
             </button>

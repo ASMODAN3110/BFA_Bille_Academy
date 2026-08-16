@@ -1,0 +1,112 @@
+/* ============================================================
+   GlareHover — Effet de reflet lumineux au survol
+   ------------------------------------------------------------
+   CSS officiel React Bits, adapté au projet BFA Bille Academy.
+   Le reflet est porté par un ::before absolu qui balaie la
+   surface via background-position (--gh-angle donne l'angle du
+   dégradé, --gh-size sa taille en %).
+
+   Adaptations projet :
+   - pointer-events: none sur ::before → le reflet ne bloque
+     jamais les clics ni le contenu situé dessous.
+   - .glare-hover--btn : variante « bouton » — le bouton est lui-
+     même la surface du reflet (pas un wrapper). Conserve
+     l'affichage inline-flex (texte + flèche alignés) et ne force
+     aucune couleur (chacune vient des variantes Tailwind).
+   ============================================================ */
+
+.glare-hover {
+  width: var(--gh-width);
+  height: var(--gh-height);
+  background: var(--gh-bg);
+  border-radius: var(--gh-br);
+  border: 1px solid var(--gh-border);
+  overflow: hidden;
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.glare-hover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    var(--gh-angle),
+    hsla(0, 0%, 0%, 0) 60%,
+    var(--gh-rgba) 70%,
+    hsla(0, 0%, 0%, 0),
+    hsla(0, 0%, 0%, 0) 100%
+  );
+  transition: var(--gh-duration) ease;
+  background-size:
+    var(--gh-size) var(--gh-size),
+    100% 100%;
+  background-repeat: no-repeat;
+  background-position:
+    -100% -100%,
+    0 0;
+  /* Le reflet ne doit jamais intercepter les clics ni le contenu */
+  pointer-events: none;
+}
+
+.glare-hover:hover {
+  cursor: pointer;
+}
+
+.glare-hover:hover::before {
+  background-position:
+    100% 100%,
+    0 0;
+}
+
+.glare-hover--play-once::before {
+  transition: none;
+}
+
+.glare-hover--play-once:hover::before {
+  transition: var(--gh-duration) ease;
+  background-position:
+    100% 100%,
+    0 0;
+}
+
+/* ============================================================
+   Variante bouton (utilisée par <Button glare>)
+   ------------------------------------------------------------
+   Le bouton reçoit .glare-hover + .glare-hover--btn sur son
+   PROPRE élément (Link / <a> / <button>) : le reflet est donc la
+   surface du bouton, pas un wrapper derrière lui.
+   - display: inline-flex → le texte + la flèche restent sur la
+     même ligne (la base .glare-hover utilise display: grid).
+   - Aucune couleur imposée : elle vient des variantes Tailwind
+     (text-white, text-vert-dark, etc.).
+   - Au survol, le fond du bouton passe à --gh-bg-hover
+     (variable CSS définie en ligne par Button).
+   ============================================================ */
+
+.glare-hover--btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: auto;
+  height: auto;
+  /* La base .glare-hover impose 1px ; le variante outline utilise
+     une bordure dorée de 2px (border-2). Transparent sinon. */
+  border-width: 2px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--gh-duration, 650ms) ease,
+    color var(--gh-duration, 650ms) ease,
+    box-shadow 300ms ease,
+    transform 300ms ease;
+}
+
+/* Le fond de base vient de --gh-bg (inline). Au survol, on
+   override la propriété background (PAS la variable --gh-bg,
+   qui est inline et gagnerait toujours). */
+.glare-hover--btn:hover {
+  background: var(--gh-bg-hover, #0a7a0a);
+}

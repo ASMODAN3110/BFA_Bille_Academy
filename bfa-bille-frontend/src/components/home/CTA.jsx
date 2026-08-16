@@ -64,7 +64,7 @@ export default function CTA() {
             >
               Contactez-nous
             </Button>
-            <Button to="/essais" variant="outline" size="lg">
+            <Button to="/essais" variant="outline" size="lg" glare>
               Voir les essais
             </Button>
           </div>
