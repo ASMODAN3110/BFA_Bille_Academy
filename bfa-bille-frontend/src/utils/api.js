@@ -63,7 +63,11 @@ export function clearSession() {
 export async function api(path, { method = 'GET', body, auth = false } = {}) {
   const headers = {}
   const token = getToken()
-  if (body !== undefined) headers['Content-Type'] = 'application/json'
+  // FormData (upload multipart) : fetch fixe lui-même le header
+  // `Content-Type: multipart/form-data; boundary=…`. Ne PAS forcer
+  // le Content-Type JSON, sinon le backend ne parse rien.
+  const isFormData = body instanceof FormData
+  if (body !== undefined && !isFormData) headers['Content-Type'] = 'application/json'
   if (auth && token) headers['Authorization'] = `Bearer ${token}`
 
   let res
@@ -71,7 +75,8 @@ export async function api(path, { method = 'GET', body, auth = false } = {}) {
     res = await fetch(`${import.meta.env.VITE_API_URL ?? ''}${path}`, {
       method,
       headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body:
+        body !== undefined ? (isFormData ? body : JSON.stringify(body)) : undefined,
     })
   } catch {
     throw new Error('Impossible de contacter le serveur. Réessayez.')

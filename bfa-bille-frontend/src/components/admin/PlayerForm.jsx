@@ -3,6 +3,7 @@ import Modal from '../ui/Modal'
 import Button from '../ui/Button'
 import FormInput from '../trial/FormInput'
 import FormSelect from '../trial/FormSelect'
+import MediaUploadField from '../ui/MediaUploadField'
 import { useCategories } from '../../hooks/useCategories'
 import { getAge } from '../../utils/ageUtils'
 
@@ -147,6 +148,9 @@ export default function PlayerForm({
     setErrors((prev) => ({ ...prev, [name]: validateField(name, value, categories) }))
   }
 
+  // Renseigné par le champ média (upload MinIO → URL publique).
+  const setPhoto = (value) => setForm((prev) => ({ ...prev, photo: value }))
+
   const handleSubmit = (e) => {
     e.preventDefault()
     const allTouched = Object.keys(emptyForm).reduce(
@@ -287,13 +291,13 @@ export default function PlayerForm({
             error={touched.poste ? errors.poste : undefined}
             touched={touched.poste}
           />
-          <FormInput
-            label="Photo (URL)"
+          <MediaUploadField
+            label="Photo"
             name="photo"
             value={form.photo}
-            onChange={handleChange}
+            onChange={setPhoto}
             onBlur={handleBlur}
-            placeholder="https://…"
+            dossier="joueurs"
             error={touched.photo ? errors.photo : undefined}
             touched={touched.photo}
           />

@@ -5,6 +5,7 @@ import Button from '../../ui/Button'
 import FormInput from '../../trial/FormInput'
 import FormSelect from '../../trial/FormSelect'
 import FormTextarea from '../../trial/FormTextarea'
+import MediaUploadField from '../../ui/MediaUploadField'
 import { PRODUCT_CATEGORIES } from './ShopFilters'
 
 /* ============================================================
@@ -125,6 +126,9 @@ export default function ProductFormModal({ open, onClose, onSave, product }) {
     setTouched((prev) => ({ ...prev, [name]: true }))
     setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }))
   }
+
+  // Renseigné par le champ média (upload MinIO → URL publique).
+  const setImage = (value) => setForm((prev) => ({ ...prev, image: value }))
 
   /* Bascule une taille dans la sélection (multi-select). */
   const toggleSize = (size) => {
@@ -305,13 +309,13 @@ export default function ProductFormModal({ open, onClose, onSave, product }) {
             )}
           </div>
 
-          <FormInput
-            label="Image (URL)"
+          <MediaUploadField
+            label="Image"
             name="image"
             value={form.image}
-            onChange={handleChange}
+            onChange={setImage}
             onBlur={handleBlur}
-            placeholder="https://…"
+            dossier="boutique"
             error={touched.image ? errors.image : undefined}
             touched={touched.image}
             className="sm:col-span-2"

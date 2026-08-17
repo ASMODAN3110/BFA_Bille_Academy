@@ -21,15 +21,16 @@ import Button from './Button'
    - Props : onUpload([{ id, file, nom, type, url }])
    ============================================================ */
 
+/* Formats alignés sur le backend : JPG, PNG, MP4, WEBM.
+   ⚠️ PAS de WebP — le backend rejette image/webp (400). */
 const MAX_SIZE = 10 * 1024 * 1024 // 10 Mo
 const ACCEPTED_MIMES = [
   'image/jpeg',
   'image/png',
-  'image/webp',
   'video/mp4',
   'video/webm',
 ]
-const ACCEPTED_EXT = ['jpg', 'jpeg', 'png', 'webp', 'mp4', 'webm']
+const ACCEPTED_EXT = ['jpg', 'jpeg', 'png', 'mp4', 'webm']
 
 const isAccepted = (file) => {
   if (ACCEPTED_MIMES.includes(file.type)) return true
@@ -142,7 +143,7 @@ export default function FileUpload({
     <div className="space-y-4">
       <DragDropZone
         onFiles={handleFiles}
-        accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
+        accept="image/jpeg,image/png,video/mp4,video/webm"
         label={label}
         helper={helper}
       />

@@ -4,6 +4,7 @@ import Button from '../../ui/Button'
 import Editor from '../../ui/Editor'
 import FormInput from '../../trial/FormInput'
 import FormSelect from '../../trial/FormSelect'
+import MediaUploadField from '../../ui/MediaUploadField'
 
 /* ============================================================
    BlogFormModal — Création / modification d'un article
@@ -101,6 +102,9 @@ export default function BlogFormModal({ open, onClose, onSave, post }) {
     setTouched((prev) => ({ ...prev, [name]: true }))
     setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }))
   }
+
+  // Renseigné par le champ média (upload MinIO → URL publique).
+  const setImage = (value) => setForm((prev) => ({ ...prev, image: value }))
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -218,13 +222,13 @@ export default function BlogFormModal({ open, onClose, onSave, post }) {
             error={touched.auteur ? errors.auteur : undefined}
             touched={touched.auteur}
           />
-          <FormInput
-            label="Image à la une (URL)"
+          <MediaUploadField
+            label="Image à la une"
             name="image"
             value={form.image}
-            onChange={handleChange}
+            onChange={setImage}
             onBlur={handleBlur}
-            placeholder="https://…"
+            dossier="blog"
             error={touched.image ? errors.image : undefined}
             touched={touched.image}
             className="sm:col-span-2"

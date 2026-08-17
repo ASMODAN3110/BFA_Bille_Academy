@@ -5,6 +5,7 @@ import {
   faArrowLeft,
   faImages,
   faPlus,
+  faXmark,
 } from '@fortawesome/free-solid-svg-icons'
 import PageHeader from '../components/admin/PageHeader'
 import ThemeFilter from '../components/admin/gallery/ThemeFilter'
@@ -19,6 +20,7 @@ import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Pagination from '../components/ui/Pagination'
 import { fadeUp } from '../hooks/useScrollAnimation'
+import { deleteMedia } from '../utils/media'
 
 /* ============================================================
    AdminGallery — Gestion de la galerie (/admin/gallery)
@@ -54,6 +56,7 @@ export default function AdminGallery() {
   const [toDeleteAlbum, setToDeleteAlbum] = useState(null)
   const [toDeleteMedia, setToDeleteMedia] = useState(null)
   const [previewMedia, setPreviewMedia] = useState(null)
+  const [error, setError] = useState(null)
   const [page, setPage] = useState(1)
 
   /* Compteur local pour des ids de médias stables (upload). */
@@ -143,11 +146,13 @@ export default function AdminGallery() {
   }
 
   const handleUploaded = (files) => {
+    /* files = URLs réelles MinIO remontées par MediaUploadModal
+       ({ type, url, nomFichier }) — plus d'aperçus data URL locaux. */
     const newMedias = files.map((f) => ({
       id: nextMediaId(),
       type: f.type,
       url: f.url,
-      nomFichier: f.nom,
+      nomFichier: f.nomFichier,
     }))
     setAlbums((prev) =>
       prev.map((a) =>
@@ -165,15 +170,26 @@ export default function AdminGallery() {
   }
 
   const confirmDeleteMedia = () => {
-    setAlbums((prev) =>
-      prev.map((a) =>
-        a.id === selectedAlbumId
-          ? { ...a, medias: a.medias.filter((m) => m.id !== toDeleteMedia?.id) }
-          : a,
-      ),
-    )
+    /* Suppression réelle côté MinIO via le backend, puis retrait de la
+       liste locale. L'URL (ou la clé) est lue avant la purge de l'état. */
+    const url = toDeleteMedia?.url
+    const id = toDeleteMedia?.id
+    if (url == null || id == null) return
     setToDeleteMedia(null)
     setIsDeleteConfirmOpen(false)
+    deleteMedia(url)
+      .then(() =>
+        setAlbums((prev) =>
+          prev.map((a) =>
+            a.id === selectedAlbumId
+              ? { ...a, medias: a.medias.filter((m) => m.id !== id) }
+              : a,
+          ),
+        ),
+      )
+      .catch((err) =>
+        setError(err?.message || 'Impossible de supprimer le média.'),
+      )
   }
 
   const closeDeleteConfirm = () => {
@@ -189,6 +205,23 @@ export default function AdminGallery() {
       animate="visible"
       className="space-y-6"
     >
+      {error && (
+        <div
+          role="alert"
+          className="flex items-center justify-between gap-3 rounded-xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-sm font-medium text-erreur"
+        >
+          <span>{error}</span>
+          <button
+            type="button"
+            onClick={() => setError(null)}
+            aria-label="Fermer l'erreur"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-erreur/70 transition hover:bg-erreur/10"
+          >
+            <FontAwesomeIcon icon={faXmark} className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       <PageHeader
         title="Galerie"
         subtitle="Albums photos et vidéos publiés sur le site public."

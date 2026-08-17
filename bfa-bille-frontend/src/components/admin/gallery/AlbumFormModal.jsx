@@ -4,6 +4,7 @@ import Button from '../../ui/Button'
 import FormInput from '../../trial/FormInput'
 import FormSelect from '../../trial/FormSelect'
 import FormTextarea from '../../trial/FormTextarea'
+import MediaUploadField from '../../ui/MediaUploadField'
 import { GALLERY_THEMES } from './ThemeFilter'
 
 /* ============================================================
@@ -84,6 +85,10 @@ export default function AlbumFormModal({ open, onClose, onSave, album }) {
     setTouched((prev) => ({ ...prev, [name]: true }))
     setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }))
   }
+
+  // Renseigné par le champ média (upload MinIO → URL publique).
+  const setCoverImage = (value) =>
+    setForm((prev) => ({ ...prev, coverImage: value }))
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -182,13 +187,13 @@ export default function AlbumFormModal({ open, onClose, onSave, album }) {
             error={touched.date ? errors.date : undefined}
             touched={touched.date}
           />
-          <FormInput
-            label="Image de couverture (URL)"
+          <MediaUploadField
+            label="Image de couverture"
             name="coverImage"
             value={form.coverImage}
-            onChange={handleChange}
+            onChange={setCoverImage}
             onBlur={handleBlur}
-            placeholder="https://…"
+            dossier="galerie"
             error={touched.coverImage ? errors.coverImage : undefined}
             touched={touched.coverImage}
             className="sm:col-span-2"
