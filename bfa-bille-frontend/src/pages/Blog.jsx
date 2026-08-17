@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import SectionTitle from '../components/ui/SectionTitle'
 import BlogFilters from '../components/blog/BlogFilters'
@@ -6,6 +6,8 @@ import BlogGrid from '../components/blog/BlogGrid'
 import Pagination from '../components/ui/Pagination'
 import { useScrollAnimation, fadeUp } from '../hooks/useScrollAnimation'
 import { parseLocalDate } from '../utils/dateUtils'
+import { api } from '../utils/api'
+import { normalizeArticle } from '../utils/blogAdapter'
 
 /* ============================================================
    Blog — Page « Blog d'actualités » (/blog)
@@ -24,11 +26,29 @@ const POSTS_PER_PAGE = 6
 
 export default function Blog() {
   const { ref, isInView } = useScrollAnimation({ amount: 0.1 })
-  // ⚠️ Plus de données mock : le blog part vide (aucun article).
-  // Sera branchée au backend (module « Blog »).
-  const [blogPosts] = useState([])
+  const [blogPosts, setBlogPosts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState('Tous')
   const [currentPage, setCurrentPage] = useState(1)
+
+  useEffect(() => {
+    let active = true
+    api('/api/blog?limit=100')
+      .then((data) => {
+        if (!active) return
+        setBlogPosts((data?.data?.items ?? []).map(normalizeArticle))
+        setLoading(false)
+      })
+      .catch((err) => {
+        if (!active) return
+        setError(err?.message || 'Impossible de charger les articles.')
+        setLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   // Articles publiés, filtrés par catégorie et triés du plus récent
   // au plus ancien.
@@ -89,37 +109,52 @@ export default function Blog() {
           />
         </motion.div>
 
-        <BlogFilters
-          categories={CATEGORIES}
-          counts={counts}
-          active={selectedCategory}
-          onChange={handleCategoryChange}
-        />
-
-        <p className="mb-8 text-center text-sm text-sombre/60">
-          {filteredPosts.length} article{filteredPosts.length > 1 ? 's' : ''}{' '}
-          publié{filteredPosts.length > 1 ? 's' : ''}
-          {selectedCategory !== 'Tous' && ` · catégorie ${selectedCategory}`}
-        </p>
-
-        {/* Grille — re-animée (fade-in) à chaque changement de filtre ou de page */}
-        <div id="grille-articles" className="scroll-mt-24">
-          <motion.div
-            key={`${selectedCategory}-${safePage}`}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
+        {loading ? (
+          <p className="mb-8 text-center text-sm text-sombre/60">
+            Chargement des articles…
+          </p>
+        ) : error ? (
+          <div
+            role="alert"
+            className="mb-8 rounded-2xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-center text-sm font-medium text-erreur"
           >
-            <BlogGrid posts={visiblePosts} />
-          </motion.div>
-        </div>
+            {error}
+          </div>
+        ) : (
+          <>
+            <BlogFilters
+              categories={CATEGORIES}
+              counts={counts}
+              active={selectedCategory}
+              onChange={handleCategoryChange}
+            />
 
-        <Pagination
-          currentPage={safePage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-          className="mt-12"
-        />
+            <p className="mb-8 text-center text-sm text-sombre/60">
+              {filteredPosts.length} article{filteredPosts.length > 1 ? 's' : ''}{' '}
+              publié{filteredPosts.length > 1 ? 's' : ''}
+              {selectedCategory !== 'Tous' && ` · catégorie ${selectedCategory}`}
+            </p>
+
+            {/* Grille — re-animée (fade-in) à chaque changement de filtre ou de page */}
+            <div id="grille-articles" className="scroll-mt-24">
+              <motion.div
+                key={`${selectedCategory}-${safePage}`}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: 'easeOut' }}
+              >
+                <BlogGrid posts={visiblePosts} />
+              </motion.div>
+            </div>
+
+            <Pagination
+              currentPage={safePage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              className="mt-12"
+            />
+          </>
+        )}
       </div>
     </section>
   )

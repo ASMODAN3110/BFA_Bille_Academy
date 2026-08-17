@@ -5,6 +5,7 @@ import Editor from '../../ui/Editor'
 import FormInput from '../../trial/FormInput'
 import FormSelect from '../../trial/FormSelect'
 import MediaUploadField from '../../ui/MediaUploadField'
+import { DEFAULT_BLOG_IMAGE } from '../../../utils/blogAdapter'
 
 /* ============================================================
    BlogFormModal — Création / modification d'un article
@@ -20,9 +21,6 @@ import MediaUploadField from '../../ui/MediaUploadField'
    ============================================================ */
 
 const BLOG_CATEGORIES = ['Matchs', 'Portraits', 'Communiqués', 'Événements']
-
-const DEFAULT_IMAGE =
-  'https://images.unsplash.com/photo-1526232761682-d26e03ac148e?q=80&w=1200&auto=format&fit=crop'
 
 const emptyForm = {
   titre: '',
@@ -63,7 +61,7 @@ function validateField(name, value) {
   }
 }
 
-export default function BlogFormModal({ open, onClose, onSave, post }) {
+export default function BlogFormModal({ open, onClose, onSave, post, serverError }) {
   const [form, setForm] = useState(emptyForm)
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
@@ -132,7 +130,7 @@ export default function BlogFormModal({ open, onClose, onSave, post }) {
       titre: form.titre.trim(),
       categorie: form.categorie,
       auteur: form.auteur.trim(),
-      image: form.image.trim() || DEFAULT_IMAGE,
+      image: form.image.trim() || DEFAULT_BLOG_IMAGE,
       contenu: form.contenu.trim(),
       extrait: contenuTexte.slice(0, 140),
       datePublication: (post?.datePublication || '').trim() || today,
@@ -186,6 +184,14 @@ export default function BlogFormModal({ open, onClose, onSave, post }) {
       }
     >
       <form id="blog-form" onSubmit={handleSubmit} noValidate>
+        {serverError && (
+          <div
+            role="alert"
+            className="mb-4 rounded-xl border border-erreur/30 bg-erreur/10 px-4 py-2.5 text-sm font-medium text-erreur"
+          >
+            {serverError}
+          </div>
+        )}
         <div className="grid gap-4 sm:grid-cols-2">
           <FormInput
             label="Titre"

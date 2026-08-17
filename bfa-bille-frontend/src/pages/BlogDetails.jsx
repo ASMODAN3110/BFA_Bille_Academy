@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -12,10 +12,8 @@ import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import { fadeUp } from '../hooks/useScrollAnimation'
 import { parseLocalDate, formatDateCard } from '../utils/dateUtils'
-
-/* ⚠️ Plus de données mock : aucun article. Le cas vide est déjà
-   géré plus bas par le pattern « Article introuvable » (!post). */
-const blogPosts = []
+import { api } from '../utils/api'
+import { normalizeArticle } from '../utils/blogAdapter'
 
 /* Couleur du badge de catégorie (identique à BlogCard). */
 const CATEGORY_BADGE = {
@@ -31,22 +29,79 @@ const CATEGORY_BADGE = {
    - Fil d'ariane : Accueil › Blog › titre de l'article
    - Image de couverture, badge, date, auteur
    - Contenu complet rendu en HTML (format WYSIWYG)
-   - Un article non publié (ou inexistant) n'est pas accessible :
-     message « Article introuvable » avec retour au blog.
+   - GET /api/blog/:id renvoie 404 pour un brouillon ou un
+     article inexistant → « Article introuvable » (le cas vide
+     du frontend est remplacé par un 404 côté API).
    ============================================================ */
 
 export default function BlogDetails() {
   const { id } = useParams()
   const postId = Number(id)
 
-  const post = blogPosts.find((p) => p.id === postId && p.estPublie)
+  const [post, setPost] = useState(null)
+  const [status, setStatus] = useState('loading') // 'loading' | 'ready' | 'notfound' | 'error'
+  const [error, setError] = useState(null)
 
   // Remonte en haut de page à l'arrivée.
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [postId])
 
-  if (!post) {
+  useEffect(() => {
+    let active = true
+    setStatus('loading')
+    setError(null)
+    api(`/api/blog/${postId}`)
+      .then((data) => {
+        if (!active) return
+        setPost(normalizeArticle(data.data))
+        setStatus('ready')
+      })
+      .catch((err) => {
+        if (!active) return
+        if (err.status === 404) setStatus('notfound')
+        else {
+          setError(err?.message || 'Impossible de charger l’article.')
+          setStatus('error')
+        }
+      })
+    return () => {
+      active = false
+    }
+  }, [postId])
+
+  if (status === 'loading') {
+    return (
+      <section className="bg-clair py-16 md:py-24">
+        <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
+          <p className="text-sm text-sombre/60">Chargement de l’article…</p>
+        </div>
+      </section>
+    )
+  }
+
+  if (status === 'error') {
+    return (
+      <section className="bg-clair py-16 md:py-24">
+        <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
+          <div
+            role="alert"
+            className="rounded-2xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-sm font-medium text-erreur"
+          >
+            {error}
+          </div>
+          <div className="mt-8">
+            <Button to="/blog" variant="outline">
+              <FontAwesomeIcon icon={faArrowLeft} className="h-4 w-4" />
+              Retour au blog
+            </Button>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (status === 'notfound') {
     return (
       <section className="bg-clair py-16 md:py-24">
         <div className="mx-auto max-w-2xl px-4 text-center sm:px-6">

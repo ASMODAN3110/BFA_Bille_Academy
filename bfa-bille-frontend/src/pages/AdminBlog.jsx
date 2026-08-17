@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus } from '@fortawesome/free-solid-svg-icons'
@@ -12,6 +12,8 @@ import ConfirmDialog from '../components/ui/ConfirmDialog'
 import Button from '../components/ui/Button'
 import Pagination from '../components/ui/Pagination'
 import { fadeUp } from '../hooks/useScrollAnimation'
+import { api } from '../utils/api'
+import { normalizeArticle, toArticlePayload } from '../utils/blogAdapter'
 
 /* ============================================================
    AdminBlog — Gestion du blog (/admin/blog)
@@ -36,10 +38,10 @@ const ITEMS_PER_PAGE = 10
 const sortKey = (a) => a.datePublication || a.dateModification || ''
 
 export default function AdminBlog({ autoAdd = false }) {
-  /* ⚠️ Plus de données mock : la liste part vide. Les articles
-     arriveront du backend (GET /admin/articles) quand les
-     endpoints CRUD existeront. */
   const [articles, setArticles] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [serverError, setServerError] = useState(null)
   const [statusFilter, setStatusFilter] = useState('Tous')
   const [searchTerm, setSearchTerm] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -55,6 +57,25 @@ export default function AdminBlog({ autoAdd = false }) {
       setIsModalOpen(true)
     }
   }, [autoAdd])
+
+  /* Chargement depuis le backend (limit=100 + filtres/recherche/
+     pagination côté client — convention du projet). */
+  const loadArticles = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await api('/admin/blog?limit=100', { auth: true })
+      setArticles((data?.data?.items ?? []).map(normalizeArticle))
+    } catch (err) {
+      setError(err?.message || 'Impossible de charger les articles.')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadArticles()
+  }, [loadArticles])
 
   /* Retour à la 1re page dès que le filtre ou la recherche change. */
   useEffect(() => {
@@ -91,43 +112,66 @@ export default function AdminBlog({ autoAdd = false }) {
 
   const openAdd = () => {
     setEditing(null)
+    setServerError(null)
     setIsModalOpen(true)
   }
 
   const openEdit = (post) => {
     setEditing(post)
+    setServerError(null)
     setIsModalOpen(true)
   }
 
-  const handleSave = (data) => {
-    setArticles((prev) =>
-      editing
-        ? prev.map((a) => (a.id === editing.id ? data : a))
-        : [data, ...prev],
-    )
-    setIsModalOpen(false)
-    setEditing(null)
+  const handleSave = async (data) => {
+    setServerError(null)
+    try {
+      if (editing) {
+        const res = await api(`/admin/blog/${editing.id}`, {
+          method: 'PUT',
+          body: toArticlePayload(data),
+          auth: true,
+        })
+        setArticles((prev) =>
+          prev.map((a) => (a.id === editing.id ? normalizeArticle(res.data) : a)),
+        )
+      } else {
+        const res = await api('/admin/blog', {
+          method: 'POST',
+          body: toArticlePayload(data),
+          auth: true,
+        })
+        setArticles((prev) => [normalizeArticle(res.data), ...prev])
+      }
+      setIsModalOpen(false)
+      setEditing(null)
+    } catch (err) {
+      setServerError(err?.message || "Une erreur est survenue à l'enregistrement.")
+    }
   }
 
-  const handleTogglePublish = (post) => {
-    setArticles((prev) =>
-      prev.map((a) =>
-        a.id === post.id
-          ? {
-              ...a,
-              estPublie: !a.estPublie,
-              statut: !a.estPublie ? 'Publié' : 'Brouillon',
-              dateModification: new Date().toISOString().slice(0, 10),
-            }
-          : a,
-      ),
-    )
+  const handleTogglePublish = async (post) => {
+    try {
+      const res = await api(`/admin/blog/${post.id}`, {
+        method: 'PATCH',
+        body: { estPublie: !post.estPublie },
+        auth: true,
+      })
+      setArticles((prev) =>
+        prev.map((a) => (a.id === post.id ? normalizeArticle(res.data) : a)),
+      )
+    } catch (err) {
+      setError(err?.message || 'Impossible de changer le statut.')
+    }
   }
 
   const handleDelete = () => {
-    setArticles((prev) => prev.filter((a) => a.id !== toDelete?.id))
+    const id = toDelete?.id
+    if (id == null) return
     setToDelete(null)
     setIsDeleteConfirmOpen(false)
+    api(`/admin/blog/${id}`, { method: 'DELETE', auth: true })
+      .then(loadArticles)
+      .catch((err) => setError(err?.message || 'Impossible de supprimer l’article.'))
   }
 
   const closeDeleteConfirm = () => {
@@ -155,53 +199,70 @@ export default function AdminBlog({ autoAdd = false }) {
 
       <BlogStats articles={articles} />
 
-      <div className="space-y-4">
-        <BlogFilters
-          selected={statusFilter}
-          onSelect={setStatusFilter}
-          articles={articles}
-        />
-        <BlogSearch value={searchTerm} onChange={setSearchTerm} />
-      </div>
-
-      <BlogTable
-        posts={pageItems}
-        onEdit={openEdit}
-        onTogglePublish={handleTogglePublish}
-        onDelete={(post) => {
-          setToDelete(post)
-          setIsDeleteConfirmOpen(true)
-        }}
-      />
-
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-sombre/60" role="status">
-          {filtered.length === 0 ? (
-            'Aucun résultat.'
-          ) : (
-            <>
-              Affichage{' '}
-              <span className="font-bold text-vert">{start}</span>–{end} sur{' '}
-              <span className="font-bold text-vert">{filtered.length}</span>{' '}
-              article(s)
-            </>
-          )}
+      {loading ? (
+        <p className="text-center text-sm text-sombre/60">
+          Chargement des articles…
         </p>
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-        />
-      </div>
+      ) : error ? (
+        <div
+          role="alert"
+          className="rounded-2xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-center text-sm font-medium text-erreur"
+        >
+          {error}
+        </div>
+      ) : (
+        <>
+          <div className="space-y-4">
+            <BlogFilters
+              selected={statusFilter}
+              onSelect={setStatusFilter}
+              articles={articles}
+            />
+            <BlogSearch value={searchTerm} onChange={setSearchTerm} />
+          </div>
+
+          <BlogTable
+            posts={pageItems}
+            onEdit={openEdit}
+            onTogglePublish={handleTogglePublish}
+            onDelete={(post) => {
+              setToDelete(post)
+              setIsDeleteConfirmOpen(true)
+            }}
+          />
+
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-sombre/60" role="status">
+              {filtered.length === 0 ? (
+                'Aucun résultat.'
+              ) : (
+                <>
+                  Affichage{' '}
+                  <span className="font-bold text-vert">{start}</span>–{end} sur{' '}
+                  <span className="font-bold text-vert">{filtered.length}</span>{' '}
+                  article(s)
+                </>
+              )}
+            </p>
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
+          </div>
+        </>
+      )}
 
       <BlogFormModal
         open={isModalOpen}
         onClose={() => {
           setIsModalOpen(false)
           setEditing(null)
+          setServerError(null)
         }}
         onSave={handleSave}
         post={editing}
+        serverError={serverError}
       />
 
       <ConfirmDialog

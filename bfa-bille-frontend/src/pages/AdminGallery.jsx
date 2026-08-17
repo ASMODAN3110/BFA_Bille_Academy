@@ -115,7 +115,7 @@ export default function AdminGallery() {
       if (requestId !== loadSeq.current) return
       const items = (res?.data?.items ?? []).map(normalizeAlbum)
       // Diagnostic : nombre d'albums réellement reçus.
-      console.log(`[admin/galerie] ${items.length} album(s) chargé(s)`)
+      
       setAlbums(items)
     } catch (err) {
       if (requestId !== loadSeq.current) return
