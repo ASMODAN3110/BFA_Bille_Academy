@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -18,11 +18,15 @@ import {
   fadeUp,
   staggerContainer,
 } from '../hooks/useScrollAnimation'
+import { api } from '../utils/api'
+import { normalizeResult, toResultPayload } from '../utils/resultsAdapter'
+import { useCategories } from '../hooks/useCategories'
 
 /* ============================================================
    AdminResults — Gestion des résultats (/admin/results)
    ------------------------------------------------------------
-   - CRUD complet des rencontres (championnat / amical)
+   - CRUD complet des rencontres (championnat / amical) branché
+     sur GET/POST/PUT/DELETE /admin/results (auth)
    - Bilan BFA : victoires, nuls, défaites
    - Filtre par type de rencontre
    ============================================================ */
@@ -36,9 +40,11 @@ const TYPE_OPTIONS = [
 const selectClasses =
   'w-full rounded-lg border border-clair bg-white px-3 py-2 text-sm text-sombre outline-none transition focus:border-vert focus:ring-2 focus:ring-vert/20'
 
+// Le seed envoie « BFA U9 » / « BFA U15 » / « BFA U17 » (jamais « BFA »
+// seul) : on teste donc .includes('BFA'), pas === 'BFA'.
 const bfaResult = (r) => {
-  if (r.equipeA === 'BFA' && r.equipeB === 'BFA') return 'nul'
-  const isHome = r.equipeA === 'BFA'
+  if (r.equipeA.includes('BFA') && r.equipeB.includes('BFA')) return 'nul'
+  const isHome = r.equipeA.includes('BFA')
   const our = isHome ? r.scoreA : r.scoreB
   const theirs = isHome ? r.scoreB : r.scoreA
   if (our > theirs) return 'victoire'
@@ -47,14 +53,32 @@ const bfaResult = (r) => {
 }
 
 export default function AdminResults() {
-  /* ⚠️ Plus de données mock : la liste part vide. Les résultats
-     arriveront du backend (GET /admin/resultats) quand les
-     endpoints CRUD existeront. */
+  const { categories } = useCategories()
   const [results, setResults] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [serverError, setServerError] = useState(null)
   const [type, setType] = useState('Tous')
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState(null)
   const [toDelete, setToDelete] = useState(null)
+
+  const loadResults = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await api('/admin/results?limit=100', { auth: true })
+      setResults((data?.data?.items ?? []).map(normalizeResult))
+    } catch (err) {
+      setError(err?.message || 'Impossible de charger les résultats.')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadResults()
+  }, [loadResults])
 
   const bilan = useMemo(() => {
     const b = { victoire: 0, nul: 0, defaite: 0 }
@@ -72,27 +96,56 @@ export default function AdminResults() {
 
   const openAdd = () => {
     setEditing(null)
+    setServerError(null)
     setFormOpen(true)
   }
 
   const openEdit = (result) => {
     setEditing(result)
+    setServerError(null)
     setFormOpen(true)
   }
 
-  const handleSave = (data) => {
-    setResults((prev) =>
-      editing
-        ? prev.map((r) => (r.id === editing.id ? data : r))
-        : [data, ...prev],
-    )
+  const closeForm = () => {
     setFormOpen(false)
     setEditing(null)
+    setServerError(null)
+  }
+
+  const handleSave = async (data) => {
+    setServerError(null)
+    try {
+      if (editing) {
+        const res = await api(`/admin/results/${editing.id}`, {
+          method: 'PUT',
+          body: toResultPayload(data),
+          auth: true,
+        })
+        setResults((prev) =>
+          prev.map((r) => (r.id === editing.id ? normalizeResult(res.data) : r)),
+        )
+      } else {
+        const res = await api('/admin/results', {
+          method: 'POST',
+          body: toResultPayload(data),
+          auth: true,
+        })
+        setResults((prev) => [normalizeResult(res.data), ...prev])
+      }
+      setFormOpen(false)
+      setEditing(null)
+    } catch (err) {
+      setServerError(err?.message || "Une erreur est survenue à l'enregistrement.")
+    }
   }
 
   const handleDelete = () => {
-    setResults((prev) => prev.filter((r) => r.id !== toDelete.id))
+    const id = toDelete?.id
+    if (id == null) return
     setToDelete(null)
+    api(`/admin/results/${id}`, { method: 'DELETE', auth: true })
+      .then(loadResults)
+      .catch((err) => setError(err?.message || 'Impossible de supprimer le résultat.'))
   }
 
   return (
@@ -160,20 +213,32 @@ export default function AdminResults() {
         </select>
       </Card>
 
-      <ResultsTable
-        results={filtered}
-        onEdit={openEdit}
-        onDelete={setToDelete}
-      />
+      {loading ? (
+        <p className="text-center text-sm text-sombre/60">
+          Chargement des résultats…
+        </p>
+      ) : error ? (
+        <div
+          role="alert"
+          className="rounded-2xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-center text-sm font-medium text-erreur"
+        >
+          {error}
+        </div>
+      ) : (
+        <ResultsTable
+          results={filtered}
+          onEdit={openEdit}
+          onDelete={setToDelete}
+        />
+      )}
 
       <ResultForm
         open={formOpen}
-        onClose={() => {
-          setFormOpen(false)
-          setEditing(null)
-        }}
+        onClose={closeForm}
         onSave={handleSave}
         result={editing}
+        categories={categories}
+        serverError={serverError}
       />
 
       <ConfirmDialog

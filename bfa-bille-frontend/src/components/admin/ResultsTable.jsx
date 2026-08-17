@@ -34,7 +34,7 @@ export default function ResultsTable({ results, onEdit, onDelete }) {
         <div className="flex items-center gap-3">
           <span
             className={`rounded-full px-2.5 py-1 text-xs font-bold ${
-              row.equipeA === 'BFA'
+              row.equipeA.includes('BFA')
                 ? 'bg-vert/10 text-vert'
                 : 'bg-clair text-sombre/70'
             }`}
@@ -44,7 +44,7 @@ export default function ResultsTable({ results, onEdit, onDelete }) {
           <span className="text-xs text-sombre/50">contre</span>
           <span
             className={`rounded-full px-2.5 py-1 text-xs font-bold ${
-              row.equipeB === 'BFA'
+              row.equipeB.includes('BFA')
                 ? 'bg-vert/10 text-vert'
                 : 'bg-clair text-sombre/70'
             }`}

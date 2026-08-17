@@ -9,9 +9,11 @@ import FormSelect from '../trial/FormSelect'
    ------------------------------------------------------------
    - Modale avec validation : date, équipes, scores, catégorie,
      type de rencontre
+   - Catégories dynamiques (ids réels du backend, pas de liste
+     en dur) : value = String(c.id), envoyé en categorieId à
+     l'enregistrement
    ============================================================ */
 
-const CATEGORIES = ['U9', 'U15', 'U17', 'U17 A', 'U15 Elite']
 const TYPES = ['Championnat', 'Amical']
 
 const emptyForm = {
@@ -57,10 +59,14 @@ function validateField(name, value) {
   }
 }
 
-export default function ResultForm({ open, onClose, onSave, result }) {
+export default function ResultForm({ open, onClose, onSave, result, categories = [], serverError }) {
   const [form, setForm] = useState(emptyForm)
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
+  const categorieOptions = categories.map((c) => ({
+    value: String(c.id),
+    label: c.nom,
+  }))
 
   const [openedFor, setOpenedFor] = useState(null)
   if (open && openedFor !== (result ? result.id : 'new')) {
@@ -73,7 +79,7 @@ export default function ResultForm({ open, onClose, onSave, result }) {
             equipeB: result.equipeB,
             scoreA: String(result.scoreA),
             scoreB: String(result.scoreB),
-            categorie: result.categorie,
+            categorie: result ? String(result.categorieId ?? '') : '',
             type: result.type,
           }
         : emptyForm,
@@ -147,6 +153,14 @@ export default function ResultForm({ open, onClose, onSave, result }) {
       }
     >
       <form id="result-form" onSubmit={handleSubmit} noValidate>
+        {serverError && (
+          <div
+            role="alert"
+            className="mb-4 rounded-xl border border-erreur/30 bg-erreur/10 px-4 py-2.5 text-sm font-medium text-erreur"
+          >
+            {serverError}
+          </div>
+        )}
         <div className="grid gap-4 sm:grid-cols-2">
           <FormInput
             label="Date"
@@ -178,7 +192,7 @@ export default function ResultForm({ open, onClose, onSave, result }) {
               value={form.categorie}
               onChange={handleChange}
               onBlur={handleBlur}
-              options={CATEGORIES}
+              options={categorieOptions}
               placeholder="…"
               required
               error={touched.categorie ? errors.categorie : undefined}
