@@ -2,6 +2,8 @@ services:
   bfa-bille-frontend:
     build: .
     ports:
-      # 8080 était occupé par un autre projet (fapfapmarket-web) → 8081
-      - "8081:80"
+      # 8081 tombe dans la plage de ports exclue par Windows (7994-8093,
+      # réservée Hyper-V/WSL2) → bind interdit « access permissions ».
+      # 8095 est hors de toutes les plages réservées et libre.
+      - "8095:80"
     restart: unless-stopped

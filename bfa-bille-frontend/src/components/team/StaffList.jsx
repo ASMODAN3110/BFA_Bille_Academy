@@ -8,9 +8,11 @@ import {
 } from '../../hooks/useScrollAnimation'
 
 /* ============================================================
-   StaffList — Liste du staff technique
+   StaffList — Staff technique (lignes de texte)
    ------------------------------------------------------------
-   Cartes verticales : avatar, nom, rôle (vert) et qualification.
+   Le backend renvoie le staff en texte multiligne (une personne
+   par ligne, « Rôle : Nom ») → chaque ligne est rendue telle quelle
+   (ne pas sur-parser : l'admin saisit du texte libre).
    Apparition en cascade (stagger) au scroll.
    ============================================================ */
 
@@ -23,24 +25,18 @@ export default function StaffList({ staff }) {
       variants={staggerContainer}
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
-      className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+      className="space-y-3"
     >
-      {staff.map((member) => (
+      {staff.map((line, index) => (
         <motion.div
-          key={member.nom}
+          key={`${line}-${index}`}
           variants={staggerItem}
           className="flex items-start gap-4 rounded-2xl border border-clair bg-clair/40 p-4"
         >
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-vert text-white">
             <FontAwesomeIcon icon={faUserTie} className="h-5 w-5 text-dore" />
           </span>
-          <div>
-            <p className="font-bold text-sombre">{member.nom}</p>
-            <p className="text-sm font-semibold text-vert">{member.role}</p>
-            <p className="mt-1 text-xs text-sombre/60">
-              {member.qualification}
-            </p>
-          </div>
+          <p className="pt-2.5 font-semibold text-sombre">{line}</p>
         </motion.div>
       ))}
     </motion.div>

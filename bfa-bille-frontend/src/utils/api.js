@@ -109,7 +109,11 @@ export async function api(path, { method = 'GET', body, auth = false } = {}) {
   }
 
   if (!res.ok) {
-    throw new Error(data?.message || `Erreur ${res.status}.`)
+    // On attache le statut HTTP pour permettre aux appels d'API de
+    // distinguer un 404 « ressource absente » d'une vraie erreur.
+    const err = new Error(data?.message || `Erreur ${res.status}.`)
+    err.status = res.status
+    throw err
   }
 
   return data

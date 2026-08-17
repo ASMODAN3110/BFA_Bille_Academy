@@ -25,6 +25,7 @@ import AdminPlayers from './pages/AdminPlayers'
 import AdminCalendar from './pages/AdminCalendar'
 import AdminTrials from './pages/AdminTrials'
 import AdminGallery from './pages/AdminGallery'
+import AdminTeamSheets from './pages/AdminTeamSheets'
 import AdminBlog from './pages/AdminBlog'
 import AdminResults from './pages/AdminResults'
 import AdminShop from './pages/AdminShop'
@@ -106,6 +107,10 @@ function AppShell() {
             />
             <Route path="/admin/trials" element={<AdminTrials />} />
             <Route path="/admin/gallery" element={<AdminGallery />} />
+            <Route
+              path="/admin/team-sheets"
+              element={<AdminTeamSheets />}
+            />
             <Route path="/admin/blog" element={<AdminBlog />} />
             <Route path="/admin/blog/new" element={<AdminBlog autoAdd />} />
             <Route path="/admin/results" element={<AdminResults />} />

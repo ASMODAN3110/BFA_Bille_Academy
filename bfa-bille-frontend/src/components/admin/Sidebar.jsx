@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faBagShopping,
   faCalendarDays,
+  faFileLines,
   faGaugeHigh,
   faGear,
   faImages,
@@ -32,6 +33,7 @@ const NAV_ITEMS = [
   { to: '/admin/calendar', label: 'Calendrier', icon: faCalendarDays },
   { to: '/admin/trials', label: 'Essais', icon: faUserCheck },
   { to: '/admin/gallery', label: 'Galerie', icon: faImages },
+  { to: '/admin/team-sheets', label: 'Fiches techniques', icon: faFileLines },
   { to: '/admin/blog', label: 'Blog', icon: faNewspaper },
   { to: '/admin/results', label: 'Résultats', icon: faTrophy },
   { to: '/admin/shop', label: 'Boutique', icon: faBagShopping },

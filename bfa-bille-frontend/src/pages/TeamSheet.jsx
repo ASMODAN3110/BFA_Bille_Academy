@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -13,89 +13,87 @@ import StaffList from '../components/team/StaffList'
 import ObjectivesList from '../components/team/ObjectivesList'
 import PalmaresList from '../components/team/PalmaresList'
 import { useScrollAnimation, fadeUp } from '../hooks/useScrollAnimation'
-
-/* ⚠️ Plus de données mock : aucune fiche technique pour le moment.
-   Sera branché au backend (module « Joueurs » / « Équipes »).
-   Le composant affiche un état vide tant que la liste est vide
-   (sans crash `team.categorie`, sans boucle de redirection). */
-const teamSheets = {}
+import { useCategories } from '../hooks/useCategories'
+import { api } from '../utils/api'
+import { normalizeFiche } from '../utils/teamSheetAdapter'
 
 /* ============================================================
    TeamSheet — Fiche technique d'une catégorie
                (/equipes/technique/:categorie)
    ------------------------------------------------------------
-   - Fil d'ariane (Accueil › Équipes › Fiches techniques › U15)
-   - Sélecteur de catégorie (U9 | U15 | U17) via l'URL
-   - Effectif (tableau + statuts), staff, objectifs, palmarès
-   - Redirection vers U9 si aucune catégorie ou catégorie inconnue
+   Module 5 — branchement backend :
+   - L'URL porte le NOM de catégorie (/equipes/technique/U9), l'API
+     veut l'ID → résolution via useCategories() (find par nom).
+     Ne jamais supposer les ids (réels : 13/14/15).
+   - Fetch : GET /api/team-sheets/categorie/:id (public, sans token)
+     → normalizeFiche (staff/palmares/objectifs multilignes → lignes).
+   - 404 « Fiche technique non disponible pour cette catégorie. » →
+     état vide (icône + message) en conservant le TeamSelector.
+   - Redirection vers la 1re catégorie réelle si le paramètre est
+     inconnu (plus de constante mock).
    ============================================================ */
-
-const CATEGORIES = Object.keys(teamSheets) // ['U9', 'U15', 'U17']
 
 export default function TeamSheet() {
   const { categorie } = useParams()
   const navigate = useNavigate()
+  const { categories, loading: categoriesLoading, error: categoriesError } =
+    useCategories()
   const { ref, isInView } = useScrollAnimation({ amount: 0.1 })
 
-  const hasData = Object.keys(teamSheets).length > 0
+  /* Catégorie résolue par NOM (URL) → objet { id, nom }. */
+  const cat = categories.find((c) => c.nom === categorie)
+  const catId = cat?.id
+  const catName = cat?.nom ?? categorie
 
-  // Redirection vers la première catégorie (U9) si l'URL est
-  // invalide ou absente — uniquement quand des fiches existent
-  // (sinon : boucle vers /equipes/technique/undefined).
+  /* Compteur de requêtes : ignore une réponse périmée (StrictMode /
+     changement rapide de catégorie). */
+  const loadSeq = useRef(0)
+  const [fiche, setFiche] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  /* Redirection vers la première catégorie (réelle, via useCategories)
+     si l'URL est invalide ou absente — jamais de boucle : on ne
+     navigue que lorsque catégorie !== cible. */
   useEffect(() => {
-    if (hasData && categorie && !teamSheets[categorie]) {
-      navigate(`/equipes/technique/${CATEGORIES[0]}`, { replace: true })
+    if (categoriesLoading) return
+    if (categories.length === 0) return
+    const target = catName && cat ? categorie : categories[0].nom
+    if (categorie !== target) {
+      navigate(`/equipes/technique/${target}`, { replace: true })
     }
-  }, [hasData, categorie, navigate])
+  }, [categoriesLoading, categories, categorie, catName, cat, navigate])
 
-  // Aucune fiche technique : état vide (garde placée APRÈS les hooks).
-  if (!hasData) {
-    return (
-      <section id="fiche-technique" className="bg-clair py-16 md:py-24">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <Breadcrumb
-            items={[
-              { label: 'Accueil', href: '/' },
-              { label: 'Équipes', href: '/equipes' },
-              { label: 'Fiches techniques', href: '/equipes/technique' },
-            ]}
-            className="mb-8"
-          />
-
-          <SectionTitle
-            title="Fiches Techniques"
-            subtitle="Profils techniques détaillés, effectifs et données historiques par catégorie."
-          />
-
-          <div className="mx-auto max-w-md rounded-2xl border border-dashed border-dore/40 bg-white px-6 py-14 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-clair text-dore-dark">
-              <FontAwesomeIcon icon={faFutbol} className="h-7 w-7" />
-            </div>
-            <p className="mt-5 font-semibold text-sombre">
-              Aucune fiche technique pour le moment.
-            </p>
-            <p className="mt-2 text-sm text-sombre/60">
-              Les fiches des catégories arriveront prochainement.
-            </p>
-          </div>
-        </div>
-      </section>
-    )
-  }
-
-  const team = teamSheets[categorie] ?? teamSheets[CATEGORIES[0]]
+  /* Chargement de la fiche dès que l'id de catégorie est connu. */
+  useEffect(() => {
+    if (!catId) return
+    const requestId = ++loadSeq.current
+    setLoading(true)
+    setError(null)
+    setFiche(null)
+    api(`/api/team-sheets/categorie/${catId}`)
+      .then((res) => {
+        if (requestId !== loadSeq.current) return
+        setFiche(normalizeFiche(res?.data))
+        setLoading(false)
+      })
+      .catch((err) => {
+        if (requestId !== loadSeq.current) return
+        setError(err?.message || 'Impossible de charger la fiche technique.')
+        setLoading(false)
+      })
+  }, [catId])
 
   const breadcrumbItems = [
     { label: 'Accueil', href: '/' },
     { label: 'Équipes', href: '/equipes' },
     { label: 'Fiches techniques', href: '/equipes/technique' },
-    { label: team.categorie },
   ]
+  if (catName) breadcrumbItems.push({ label: catName })
 
   return (
     <section id="fiche-technique" className="bg-clair py-16 md:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        {/* Fil d'ariane */}
         <Breadcrumb items={breadcrumbItems} className="mb-8" />
 
         <motion.div
@@ -110,60 +108,96 @@ export default function TeamSheet() {
           />
         </motion.div>
 
-        <TeamSelector
-          categories={CATEGORIES}
-          active={team.categorie}
-          onChange={(cat) => navigate(`/equipes/technique/${cat}`)}
-        />
+        {categories.length > 0 && (
+          <TeamSelector
+            categories={categories.map((c) => c.nom)}
+            active={catName}
+            onChange={(name) => navigate(`/equipes/technique/${name}`)}
+          />
+        )}
 
-        {/* Contenu de la fiche — re-animé à chaque changement */}
-        <motion.div
-          key={team.categorie}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="mt-10 space-y-8"
-        >
-          {/* Effectif */}
-          <Card className="p-6 md:p-8">
-            <h3 className="mb-4 text-xl font-extrabold text-vert">
-              Effectif {team.saison}
-            </h3>
-            <RosterTable effectif={team.effectif} />
-            <div className="mt-5 flex justify-end">
-              <Button
-                to="/equipes"
-                variant="outline"
-                size="sm"
-                className="px-6"
-              >
-                Voir tout l'effectif →
-              </Button>
+        {/* Contenu de la fiche */}
+        {categoriesLoading ? (
+          <p className="mt-10 py-10 text-center text-sm text-sombre/60">
+            Chargement des catégories…
+          </p>
+        ) : categoriesError ? (
+          <div
+            role="alert"
+            className="mt-10 rounded-xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-sm font-medium text-erreur"
+          >
+            {categoriesError}
+          </div>
+        ) : !cat ? (
+          /* Redirection en cours vers la 1re catégorie réelle. */
+          null
+        ) : loading ? (
+          <p className="mt-10 py-10 text-center text-sm text-sombre/60">
+            Chargement de la fiche…
+          </p>
+        ) : error || !fiche ? (
+          <div className="mx-auto mt-10 max-w-md rounded-2xl border border-dashed border-dore/40 bg-white px-6 py-14 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-clair text-dore-dark">
+              <FontAwesomeIcon icon={faFutbol} className="h-7 w-7" />
             </div>
-          </Card>
+            <p className="mt-5 font-semibold text-sombre">
+              {error ?? 'Fiche technique non disponible pour cette catégorie.'}
+            </p>
+            <p className="mt-2 text-sm text-sombre/60">
+              {error
+                ? 'Réessayez dans quelques instants.'
+                : 'Aucune fiche technique pour cette catégorie pour le moment.'}
+            </p>
+          </div>
+        ) : (
+          <motion.div
+            key={catName}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            className="mt-10 space-y-8"
+          >
+            {/* Effectif */}
+            <Card className="p-6 md:p-8">
+              <h3 className="mb-4 text-xl font-extrabold text-vert">
+                Effectif {fiche.saison}
+              </h3>
+              <RosterTable effectif={fiche.effectif} />
+              <div className="mt-5 flex justify-end">
+                <Button
+                  to="/equipes"
+                  variant="outline"
+                  size="sm"
+                  className="px-6"
+                >
+                  Voir tout l'effectif →
+                </Button>
+              </div>
+            </Card>
 
-          {/* Staff technique */}
-          <Card className="p-6 md:p-8">
-            <h3 className="mb-5 text-xl font-extrabold text-vert">
-              Staff Technique
-            </h3>
-            <StaffList staff={team.staff} />
-          </Card>
+            {/* Staff technique */}
+            <Card className="p-6 md:p-8">
+              <h3 className="mb-5 text-xl font-extrabold text-vert">
+                Staff Technique
+              </h3>
+              <StaffList staff={fiche.staff} />
+            </Card>
 
-          {/* Objectifs de la saison */}
-          <Card className="p-6 md:p-8">
-            <h3 className="mb-5 text-xl font-extrabold text-vert">
-              Objectifs Saison
-            </h3>
-            <ObjectivesList objectifs={team.objectifs} />
-          </Card>
+            {/* Objectifs de la saison */}
+            <Card className="p-6 md:p-8">
+              <h3 className="mb-5 text-xl font-extrabold text-vert">
+                Objectifs Saison
+              </h3>
+              <ObjectivesList objectifs={fiche.objectifs} />
+            </Card>
 
-          {/* Palmarès */}
-          <Card className="p-6 md:p-8">
-            <h3 className="mb-5 text-xl font-extrabold text-vert">Palmarès</h3>
-            <PalmaresList palmares={team.palmares} />
-          </Card>
-        </motion.div>
+            {/* Palmarès */}
+            <Card className="p-6 md:p-8">
+              <h3 className="mb-5 text-xl font-extrabold text-vert">Palmarès</h3>
+              <PalmaresList palmares={fiche.palmares} />
+            </Card>
+          </motion.div>
+        )}
       </div>
     </section>
   )

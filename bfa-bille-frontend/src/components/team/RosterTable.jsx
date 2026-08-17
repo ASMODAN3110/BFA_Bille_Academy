@@ -1,26 +1,20 @@
 import Table from '../ui/Table'
-import Badge from '../ui/Badge'
 
 /* ============================================================
-   RosterTable — Tableau de l'effectif avec statuts
+   RosterTable — Tableau de l'effectif (sans statut)
    ------------------------------------------------------------
-   Colonnes : joueur, poste, statut (Badge SELECTED / MVP).
+   Colonnes : joueur (Prenom Nom), poste. Le backend n'a pas de
+   concept de « statut » : la colonne a été retirée (Module 5).
+   L'effectif n'a pas d'id stable et les noms peuvent se répéter
+   → clés de lignes par index.
    ============================================================ */
 
 const COLUMNS = [
-  { key: 'nom', label: 'Player Name' },
-  { key: 'poste', label: 'Position' },
-  {
-    key: 'statut',
-    label: 'Status',
-    render: (row) => (
-      <Badge variant={row.statut === 'MVP' ? 'mvp' : 'selected'}>
-        {row.statut}
-      </Badge>
-    ),
-  },
+  { key: 'nom', label: 'Joueur' },
+  { key: 'poste', label: 'Poste' },
 ]
 
 export default function RosterTable({ effectif }) {
-  return <Table columns={COLUMNS} rows={effectif} rowKey="nom" />
+  // rowKey "__index__" (absent des lignes) → Table se rabat sur l'index.
+  return <Table columns={COLUMNS} rows={effectif} rowKey="__index__" />
 }

@@ -8,10 +8,11 @@ import {
 } from '../../hooks/useScrollAnimation'
 
 /* ============================================================
-   PalmaresList — Palmarès de la catégorie
+   PalmaresList — Palmarès de la catégorie (lignes de texte)
    ------------------------------------------------------------
-   Icône de trophée, titre en gras, saison et description.
-   Apparition en cascade (stagger) au scroll.
+   Le backend renvoie le palmarès en texte multiligne (une ligne
+   par titre) → chaque ligne est rendue telle quelle, avec l'icône
+   trophée. Apparition en cascade (stagger) au scroll.
    ============================================================ */
 
 export default function PalmaresList({ palmares }) {
@@ -23,22 +24,18 @@ export default function PalmaresList({ palmares }) {
       variants={staggerContainer}
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
-      className="space-y-4"
+      className="space-y-3"
     >
-      {palmares.map((item, index) => (
+      {palmares.map((line, index) => (
         <motion.div
-          key={`${item.titre}-${index}`}
+          key={`${line}-${index}`}
           variants={staggerItem}
           className="flex items-start gap-4 rounded-2xl border border-clair p-4"
         >
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-dore/15 text-dore-dark">
             <FontAwesomeIcon icon={faTrophy} className="h-6 w-6" />
           </span>
-          <div>
-            <p className="font-bold text-sombre">{item.titre}</p>
-            <p className="text-sm font-semibold text-vert">{item.saison}</p>
-            <p className="mt-1 text-sm text-sombre/70">{item.description}</p>
-          </div>
+          <p className="pt-3 font-bold text-sombre">{line}</p>
         </motion.div>
       ))}
     </motion.div>
