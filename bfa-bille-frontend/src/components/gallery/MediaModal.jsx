@@ -15,6 +15,7 @@ export default function MediaModal({
   onClose,
   label = 'Médias de l’album',
   maxWidth = 'max-w-3xl',
+  closeLabel = "Fermer l'album",
   children,
 }) {
   return (
@@ -50,7 +51,7 @@ export default function MediaModal({
             <button
               type="button"
               onClick={onClose}
-              aria-label="Fermer l'album"
+              aria-label={closeLabel}
               className="absolute right-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-vert text-white shadow-lg transition-colors hover:bg-vert-light"
             >
               <FontAwesomeIcon icon={faXmark} className="h-5 w-5" />

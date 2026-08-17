@@ -4,18 +4,19 @@ import { faCircleCheck, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import Modal from '../../ui/Modal'
 import Button from '../../ui/Button'
 import FileUpload from '../../ui/FileUpload'
-import { uploadManyMedia } from '../../../utils/media'
+import { api } from '../../../utils/api'
 
 /* ============================================================
    MediaUploadModal — Import de médias dans un album (@EF23)
    ------------------------------------------------------------
    - <FileUpload /> : drag & drop, validation formats (JPG, PNG,
      MP4, WEBM) et taille max 10 Mo, aperçu, progression simulée
-   - L'import réel passe par le backend : POST /admin/media/upload-many
-     (FormData) → URLs MinIO publiques remontées à onUpload
+   - L'import réel passe par le backend : POST /admin/albums/:id/media
+     (FormData, champ `files`) → l'album mis à jour (médias inclus)
+     est remonté à onUpload
    - La barre de progression n'est pas le vrai upload (fetch
      n'expose pas la progression) — acceptable pour l'instant.
-   - Props : open, onClose, album, onUpload([{type,url,nomFichier}])
+   - Props : open, onClose, album, onUpload(albumMisAJour)
    ============================================================ */
 
 export default function MediaUploadModal({ open, onClose, album, onUpload }) {
@@ -33,27 +34,21 @@ export default function MediaUploadModal({ open, onClose, album, onUpload }) {
   if (!open && openedFor !== null) setOpenedFor(null)
 
   const handleUpload = async (files) => {
-    if (uploading) return
+    if (uploading || !album) return
     setUploading(true)
     setUploadError(null)
     try {
-      const medias = await uploadManyMedia(
-        files.map((f) => f.file),
-        'galerie',
-      )
-      /* Remonte les URLs réelles (pas les aperçus data URL). Le type
-         est reconstruit depuis l'extension MinIO (.mp4/.webm → vidéo). */
-      onUpload(
-        medias.map((m) => ({
-          type:
-            m.url.includes('.mp4') || m.url.includes('.webm')
-              ? 'video'
-              : 'image',
-          url: m.url,
-          nomFichier: m.url.split('/').pop(),
-        })),
-      )
-      setAddedCount(medias.length)
+      /* Le backend ajoute les médias à l'album (dossier `galerie`
+         géré côté serveur) et renvoie l'album à jour. */
+      const form = new FormData()
+      files.forEach((f) => form.append('files', f.file)) // champ attendu
+      const res = await api(`/admin/albums/${album.id}/media`, {
+        method: 'POST',
+        body: form,
+        auth: true,
+      })
+      onUpload(res.data)
+      setAddedCount(files.length)
     } catch (err) {
       setUploadError(err?.message || "Impossible d'importer les médias.")
     } finally {

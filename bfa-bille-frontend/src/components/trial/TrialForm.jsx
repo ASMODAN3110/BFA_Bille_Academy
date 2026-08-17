@@ -26,7 +26,8 @@ import { useScrollAnimation, fadeUp } from '../../hooks/useScrollAnimation'
 
 export default function TrialForm() {
   const { ref, isInView } = useScrollAnimation({ amount: 0.1 })
-  // Catégories chargées depuis l'API (GET /api/categories), noms uniquement.
+  // Catégories chargées depuis l'API (GET /api/categories) : objets
+  // { id, nom, ageMin, ageMax } → cohérence âge/catégorie dans le hook.
   const { categories, loading, error } = useCategories()
   const categoryNames = categories.map((c) => c.nom)
   const {
@@ -35,11 +36,12 @@ export default function TrialForm() {
     touched,
     isSubmitting,
     submitStatus,
+    submitError,
     handleChange,
     handleBlur,
     handleSubmit,
     resetForm,
-  } = useTrialForm(categoryNames)
+  } = useTrialForm(categories)
 
   return (
     <motion.div
@@ -177,8 +179,9 @@ export default function TrialForm() {
             />
           </div>
 
-          {/* Message de confirmation / d'erreur */}
-          <FormStatus status={submitStatus} />
+          {/* Message de confirmation / d'erreur — le texte d'erreur
+              renvoyé par le backend (400) remplace le message par défaut. */}
+          <FormStatus status={submitStatus} text={submitError || undefined} />
 
           {/* Actions */}
           <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-between">

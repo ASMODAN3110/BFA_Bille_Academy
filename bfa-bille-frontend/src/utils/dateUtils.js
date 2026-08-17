@@ -8,7 +8,7 @@
 
 const MONTHS_SHORT = [
   'JAN', 'FÉV', 'MAR', 'AVR', 'MAI', 'JUN',
-  'JUL', 'AOÛ', 'SEP', 'OCT', 'NOV', 'DÉC',
+  'JUL', 'AOÛT', 'SEP', 'OCT', 'NOV', 'DÉC',
 ]
 
 /** Construit une Date locale depuis une chaîne "YYYY-MM-DD". */

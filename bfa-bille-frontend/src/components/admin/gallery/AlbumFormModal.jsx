@@ -4,30 +4,28 @@ import Button from '../../ui/Button'
 import FormInput from '../../trial/FormInput'
 import FormSelect from '../../trial/FormSelect'
 import FormTextarea from '../../trial/FormTextarea'
-import MediaUploadField from '../../ui/MediaUploadField'
 import { GALLERY_THEMES } from './ThemeFilter'
 
 /* ============================================================
    AlbumFormModal — Création / modification d'un album (@EF22)
    ------------------------------------------------------------
-   - Champs : titre, description, thème, date de création,
-     image de couverture (URL)
-   - La gestion des médias se fait via <MediaUploadModal />
-   - Validation à la soumission (titre, thème, date obligatoires)
-   - Props : open, onClose, onSave(data), album (null = création)
+   - Champs : titre, description, thème. Pas de date ni de
+     couverture (le backend fixe dateCreation et les médias se
+     gèrent via MediaUploadModal).
+   - Body envoyé au backend : { titre, description?, theme }.
+   - Validation à la soumission (titre ≥ 3, thème obligatoire) ;
+     les messages 400 du backend sont affichés via `serverError`.
+   - Props : open, onClose, onSave(data), album (null = création),
+     serverError
    ============================================================ */
-
-const DEFAULT_COVER =
-  'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?q=80&w=1200&auto=format&fit=crop'
 
 const emptyForm = {
   titre: '',
   description: '',
   theme: '',
-  date: '',
-  coverImage: '',
 }
 
+/* Validation miroir du backend (messages exacts). */
 function validateField(name, value) {
   const v = String(value ?? '').trim()
   switch (name) {
@@ -38,15 +36,18 @@ function validateField(name, value) {
     case 'theme':
       if (!v) return 'Veuillez sélectionner un thème.'
       return ''
-    case 'date':
-      if (!v) return 'Ce champ est obligatoire.'
-      return ''
     default:
       return ''
   }
 }
 
-export default function AlbumFormModal({ open, onClose, onSave, album }) {
+export default function AlbumFormModal({
+  open,
+  onClose,
+  onSave,
+  album,
+  serverError = null,
+}) {
   const [form, setForm] = useState(emptyForm)
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
@@ -62,8 +63,6 @@ export default function AlbumFormModal({ open, onClose, onSave, album }) {
             titre: album.titre,
             description: album.description ?? '',
             theme: album.theme,
-            date: album.dateCreation ?? '',
-            coverImage: album.coverImage ?? '',
           }
         : emptyForm,
     )
@@ -86,10 +85,6 @@ export default function AlbumFormModal({ open, onClose, onSave, album }) {
     setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }))
   }
 
-  // Renseigné par le champ média (upload MinIO → URL publique).
-  const setCoverImage = (value) =>
-    setForm((prev) => ({ ...prev, coverImage: value }))
-
   const handleSubmit = (e) => {
     e.preventDefault()
     const allTouched = Object.keys(emptyForm).reduce(
@@ -106,13 +101,9 @@ export default function AlbumFormModal({ open, onClose, onSave, album }) {
     if (Object.keys(nextErrors).length > 0) return
 
     onSave({
-      id: album?.id ?? Date.now(),
       titre: form.titre.trim(),
-      description: form.description.trim(),
+      description: form.description.trim() || null,
       theme: form.theme,
-      dateCreation: form.date,
-      coverImage: form.coverImage.trim() || DEFAULT_COVER,
-      medias: album?.medias ?? [],
     })
   }
 
@@ -139,6 +130,15 @@ export default function AlbumFormModal({ open, onClose, onSave, album }) {
       }
     >
       <form id="album-form" onSubmit={handleSubmit} noValidate>
+        {serverError && (
+          <div
+            role="alert"
+            className="mb-4 rounded-xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-sm font-medium text-erreur"
+          >
+            {serverError}
+          </div>
+        )}
+
         <div className="grid gap-4 sm:grid-cols-2">
           <FormInput
             label="Titre"
@@ -175,28 +175,6 @@ export default function AlbumFormModal({ open, onClose, onSave, album }) {
             required
             error={touched.theme ? errors.theme : undefined}
             touched={touched.theme}
-          />
-          <FormInput
-            label="Date de création"
-            name="date"
-            type="date"
-            value={form.date}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            required
-            error={touched.date ? errors.date : undefined}
-            touched={touched.date}
-          />
-          <MediaUploadField
-            label="Image de couverture"
-            name="coverImage"
-            value={form.coverImage}
-            onChange={setCoverImage}
-            onBlur={handleBlur}
-            dossier="galerie"
-            error={touched.coverImage ? errors.coverImage : undefined}
-            touched={touched.coverImage}
-            className="sm:col-span-2"
           />
         </div>
       </form>

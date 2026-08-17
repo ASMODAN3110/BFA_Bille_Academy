@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -20,10 +20,23 @@ import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Pagination from '../components/ui/Pagination'
 import { fadeUp } from '../hooks/useScrollAnimation'
-import { deleteMedia } from '../utils/media'
+import { api } from '../utils/api'
+import { normalizeAlbum } from '../utils/albumAdapter'
 
 /* ============================================================
    AdminGallery — Gestion de la galerie (/admin/gallery)
+   ------------------------------------------------------------
+   Module 4 — branchement backend :
+   - Liste : GET /admin/albums?limit=100 (Bearer) → normalisée
+     via normalizeAlbum (dateCreation en clé "YYYY-MM-DD",
+     medias garantis en tableau).
+   - CRUD : POST/PUT /admin/albums (+ /:id) {titre, description?,
+     theme} ; DELETE /admin/albums/:id (+ fichiers S3).
+   - Médias : POST /admin/albums/:id/media (multipart, champ
+     `files`) → l'album mis à jour est remonté ; DELETE
+     /admin/albums/:albumId/media/:mediaId → `data` = album à jour.
+   - États : loading / error (chargement) + serverError (actions,
+     affiché dans la modale d'album ou en bandeau sinon).
    ------------------------------------------------------------
    @EF21 Vue grille : albums triés par date, filtre par thème,
          pagination (4 par page)
@@ -33,20 +46,15 @@ import { deleteMedia } from '../utils/media'
          JPG/PNG/MP4/WEBM, max 10 Mo, aperçu, barre de progression
    @EF24 Vue médias : grille d'un album, aperçu, suppression d'un
          média avec confirmation
-   ------------------------------------------------------------
-   État (conforme au cahier des charges) :
-     albums, selectedTheme, selectedAlbumId, currentView
-     (grille / médias), isAlbumModalOpen, isMediaModalOpen,
-     isDeleteConfirmOpen
    ============================================================ */
 
 const PAGE_SIZE = 4
 
 export default function AdminGallery() {
-  /* ⚠️ Plus de données mock : la liste part vide. Les albums
-     arriveront du backend (GET /admin/albums) quand les endpoints
-     CRUD existeront. */
   const [albums, setAlbums] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [serverError, setServerError] = useState(null)
   const [selectedTheme, setSelectedTheme] = useState('Tous')
   const [selectedAlbumId, setSelectedAlbumId] = useState(null)
   const [isAlbumModalOpen, setIsAlbumModalOpen] = useState(false)
@@ -56,11 +64,11 @@ export default function AdminGallery() {
   const [toDeleteAlbum, setToDeleteAlbum] = useState(null)
   const [toDeleteMedia, setToDeleteMedia] = useState(null)
   const [previewMedia, setPreviewMedia] = useState(null)
-  const [error, setError] = useState(null)
   const [page, setPage] = useState(1)
 
-  /* Compteur local pour des ids de médias stables (upload). */
-  const idCounter = useRef(0)
+  /* Compteur de requêtes : ignore une réponse périmée si la liste
+     est rechargée. */
+  const loadSeq = useRef(0)
 
   const currentView = selectedAlbumId ? 'media' : 'grid'
 
@@ -78,7 +86,10 @@ export default function AdminGallery() {
   )
 
   const sortedAlbums = useMemo(
-    () => [...filteredAlbums].sort((a, b) => b.dateCreation.localeCompare(a.dateCreation)),
+    () =>
+      [...filteredAlbums].sort((a, b) =>
+        b.dateCreation.localeCompare(a.dateCreation),
+      ),
     [filteredAlbums],
   )
 
@@ -93,44 +104,91 @@ export default function AdminGallery() {
     setPage(1)
   }, [selectedTheme])
 
-  const nextMediaId = () => {
-    idCounter.current += 1
-    return Date.now() + idCounter.current
-  }
+  /* -------- Chargement -------- */
+
+  const loadAlbums = useCallback(async () => {
+    const requestId = ++loadSeq.current
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await api('/admin/albums?limit=100', { auth: true })
+      if (requestId !== loadSeq.current) return
+      const items = (res?.data?.items ?? []).map(normalizeAlbum)
+      // Diagnostic : nombre d'albums réellement reçus.
+      console.log(`[admin/galerie] ${items.length} album(s) chargé(s)`)
+      setAlbums(items)
+    } catch (err) {
+      if (requestId !== loadSeq.current) return
+      setError(err?.message || 'Impossible de charger les albums.')
+    } finally {
+      if (requestId === loadSeq.current) setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadAlbums()
+  }, [loadAlbums])
 
   /* -------------------- Albums -------------------- */
 
   const openAddAlbum = () => {
     setEditingAlbum(null)
+    setServerError(null)
     setIsAlbumModalOpen(true)
   }
 
   const openEditAlbum = (album) => {
     setEditingAlbum(album)
+    setServerError(null)
     setIsAlbumModalOpen(true)
   }
 
-  const handleSaveAlbum = (data) => {
-    setAlbums((prev) =>
-      editingAlbum
-        ? prev.map((a) => (a.id === editingAlbum.id ? data : a))
-        : [data, ...prev],
-    )
-    setIsAlbumModalOpen(false)
-    setEditingAlbum(null)
+  const handleSaveAlbum = async (data) => {
+    setServerError(null)
+    try {
+      const saved = editingAlbum
+        ? await api(`/admin/albums/${editingAlbum?.id}`, {
+            method: 'PUT',
+            body: data,
+            auth: true,
+          })
+        : await api('/admin/albums', { method: 'POST', body: data, auth: true })
+      const normalized = normalizeAlbum(saved?.data)
+      setAlbums((prev) =>
+        editingAlbum
+          ? prev.map((a) => (a.id === normalized.id ? normalized : a))
+          : [normalized, ...prev],
+      )
+      setIsAlbumModalOpen(false)
+      setEditingAlbum(null)
+    } catch (err) {
+      // 400 → message backend (errors[0]) affiché dans la modale.
+      setServerError(err?.message || "Impossible d'enregistrer l'album.")
+    }
   }
 
   const requestDeleteAlbum = (album) => {
     setToDeleteAlbum(album)
     setToDeleteMedia(null)
+    setServerError(null)
     setIsDeleteConfirmOpen(true)
   }
 
+  /* ⚠️ React Compiler : `toDeleteAlbum?.id` lu au 1er niveau du
+     handler (avec garde null). */
   const confirmDeleteAlbum = () => {
-    setAlbums((prev) => prev.filter((a) => a.id !== toDeleteAlbum?.id))
-    if (toDeleteAlbum?.id === selectedAlbumId) setSelectedAlbumId(null)
+    const id = toDeleteAlbum?.id
+    if (id == null) return
     setToDeleteAlbum(null)
     setIsDeleteConfirmOpen(false)
+    api(`/admin/albums/${id}`, { method: 'DELETE', auth: true })
+      .then(() => {
+        setAlbums((prev) => prev.filter((a) => a.id !== id))
+        setSelectedAlbumId((prevId) => (prevId === id ? null : prevId))
+      })
+      .catch((err) =>
+        setServerError(err?.message || "Impossible de supprimer l'album."),
+      )
   }
 
   /* -------------------- Médias -------------------- */
@@ -145,50 +203,42 @@ export default function AdminGallery() {
     setPage(1)
   }
 
-  const handleUploaded = (files) => {
-    /* files = URLs réelles MinIO remontées par MediaUploadModal
-       ({ type, url, nomFichier }) — plus d'aperçus data URL locaux. */
-    const newMedias = files.map((f) => ({
-      id: nextMediaId(),
-      type: f.type,
-      url: f.url,
-      nomFichier: f.nomFichier,
-    }))
+  /* L'upload a réussi → on remplace l'album par la réponse serveur
+     (le backend renvoie l'album mis à jour, médias inclus). */
+  const handleUploaded = (updatedAlbum) => {
+    const normalized = normalizeAlbum(updatedAlbum)
     setAlbums((prev) =>
-      prev.map((a) =>
-        a.id === selectedAlbumId
-          ? { ...a, medias: [...a.medias, ...newMedias] }
-          : a,
-      ),
+      prev.map((a) => (a.id === normalized.id ? normalized : a)),
     )
+    setServerError(null)
   }
 
   const requestDeleteMedia = (media) => {
     setToDeleteMedia(media)
     setToDeleteAlbum(null)
+    setServerError(null)
     setIsDeleteConfirmOpen(true)
   }
 
+  /* ⚠️ React Compiler : albumId + mediaId lus au 1er niveau. */
   const confirmDeleteMedia = () => {
-    /* Suppression réelle côté MinIO via le backend, puis retrait de la
-       liste locale. L'URL (ou la clé) est lue avant la purge de l'état. */
-    const url = toDeleteMedia?.url
-    const id = toDeleteMedia?.id
-    if (url == null || id == null) return
+    const albumId = selectedAlbumId
+    const mediaId = toDeleteMedia?.id
+    if (albumId == null || mediaId == null) return
     setToDeleteMedia(null)
     setIsDeleteConfirmOpen(false)
-    deleteMedia(url)
-      .then(() =>
+    api(`/admin/albums/${albumId}/media/${mediaId}`, {
+      method: 'DELETE',
+      auth: true,
+    })
+      .then((res) => {
+        const normalized = normalizeAlbum(res?.data)
         setAlbums((prev) =>
-          prev.map((a) =>
-            a.id === selectedAlbumId
-              ? { ...a, medias: a.medias.filter((m) => m.id !== id) }
-              : a,
-          ),
-        ),
-      )
+          prev.map((a) => (a.id === albumId ? normalized : a)),
+        )
+      })
       .catch((err) =>
-        setError(err?.message || 'Impossible de supprimer le média.'),
+        setServerError(err?.message || 'Impossible de supprimer le média.'),
       )
   }
 
@@ -205,15 +255,17 @@ export default function AdminGallery() {
       animate="visible"
       className="space-y-6"
     >
-      {error && (
+      {/* Erreur d'une action hors modale (suppression) — le message
+          d'enregistrement s'affiche dans la modale d'album. */}
+      {serverError && !isAlbumModalOpen && (
         <div
           role="alert"
           className="flex items-center justify-between gap-3 rounded-xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-sm font-medium text-erreur"
         >
-          <span>{error}</span>
+          <span>{serverError}</span>
           <button
             type="button"
-            onClick={() => setError(null)}
+            onClick={() => setServerError(null)}
             aria-label="Fermer l'erreur"
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-erreur/70 transition hover:bg-erreur/10"
           >
@@ -234,44 +286,57 @@ export default function AdminGallery() {
       />
 
       {currentView === 'grid' ? (
-        <>
-          <ThemeFilter
-            selected={selectedTheme}
-            onSelect={setSelectedTheme}
-            count={sortedAlbums.length}
-            total={albums.length}
-          />
+        loading ? (
+          <p className="py-10 text-center text-sm text-sombre/60">
+            Chargement des albums…
+          </p>
+        ) : error ? (
+          <div
+            role="alert"
+            className="rounded-xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-sm font-medium text-erreur"
+          >
+            {error}
+          </div>
+        ) : (
+          <>
+            <ThemeFilter
+              selected={selectedTheme}
+              onSelect={setSelectedTheme}
+              count={sortedAlbums.length}
+              total={albums.length}
+            />
 
-          {pageAlbums.length === 0 ? (
-            <Card className="p-10 text-center">
-              <FontAwesomeIcon
-                icon={faImages}
-                className="mx-auto h-10 w-10 text-sombre/20"
-              />
-              <p className="mt-3 font-bold text-sombre/70">
-                Aucun album dans ce thème.
-              </p>
-            </Card>
-          ) : (
-            <>
-              <AlbumGrid
-                albums={pageAlbums}
-                onOpen={openAlbumMedia}
-                onAddMedia={(album) => {
-                  setSelectedAlbumId(album.id)
-                  setIsMediaModalOpen(true)
-                }}
-                onEdit={openEditAlbum}
-                onDelete={requestDeleteAlbum}
-              />
-              <Pagination
-                currentPage={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-              />
-            </>
-          )}
-        </>
+            {pageAlbums.length === 0 ? (
+              <Card className="p-10 text-center">
+                <FontAwesomeIcon
+                  icon={faImages}
+                  className="mx-auto h-10 w-10 text-sombre/20"
+                />
+                <p className="mt-3 font-bold text-sombre/70">
+                  Aucun album dans ce thème.
+                </p>
+              </Card>
+            ) : (
+              <>
+                <AlbumGrid
+                  albums={pageAlbums}
+                  onOpen={openAlbumMedia}
+                  onAddMedia={(album) => {
+                    setSelectedAlbumId(album.id)
+                    setIsMediaModalOpen(true)
+                  }}
+                  onEdit={openEditAlbum}
+                  onDelete={requestDeleteAlbum}
+                />
+                <Pagination
+                  currentPage={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                />
+              </>
+            )}
+          </>
+        )
       ) : (
         /* ------------ Vue médias d'un album ------------ */
         <Card className="overflow-hidden">
@@ -328,6 +393,7 @@ export default function AdminGallery() {
         }}
         onSave={handleSaveAlbum}
         album={editingAlbum}
+        serverError={serverError}
       />
 
       <MediaUploadModal
@@ -345,7 +411,7 @@ export default function AdminGallery() {
         message={
           toDeleteMedia
             ? `Voulez-vous vraiment supprimer le média « ${
-                toDeleteMedia.nomFichier ?? toDeleteMedia.id ?? ''
+                toDeleteMedia.nom ?? toDeleteMedia.id ?? ''
               } » de l'album ? Cette action est irréversible.`
             : `Voulez-vous vraiment supprimer l'album « ${
                 toDeleteAlbum?.titre ?? ''
@@ -358,7 +424,7 @@ export default function AdminGallery() {
       <Modal
         open={Boolean(previewMedia)}
         onClose={() => setPreviewMedia(null)}
-        title={previewMedia?.nomFichier ?? 'Média'}
+        title={previewMedia?.nom ?? 'Média'}
         subtitle="Aperçu du média"
         size="lg"
         footer={
@@ -382,7 +448,7 @@ export default function AdminGallery() {
         ) : (
           <img
             src={previewMedia?.url}
-            alt={previewMedia?.nomFichier ?? 'Photo de l’album'}
+            alt={previewMedia?.nom ?? 'Photo de l’album'}
             className="w-full rounded-xl"
           />
         )}

@@ -42,7 +42,7 @@ export default function MediaGrid({ album, onPreview, onDeleteMedia }) {
           <button
             type="button"
             onClick={() => onPreview(media)}
-            aria-label={`Visualiser ${media.nomFichier ?? 'le média'}`}
+            aria-label={`Visualiser ${media.nom ?? 'le média'}`}
             title="Visualiser"
             className="block w-full overflow-hidden rounded-xl border border-clair bg-white shadow-sm transition hover:shadow-lg hover:shadow-vert/10"
           >
@@ -58,7 +58,7 @@ export default function MediaGrid({ album, onPreview, onDeleteMedia }) {
               <span className="relative block aspect-video w-full overflow-hidden">
                 <img
                   src={media.url}
-                  alt={media.nomFichier ?? 'Photo de l’album'}
+                  alt={media.nom ?? 'Photo de l’album'}
                   loading="lazy"
                   className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
@@ -68,12 +68,12 @@ export default function MediaGrid({ album, onPreview, onDeleteMedia }) {
 
           <div className="mt-2 flex items-center justify-between gap-2">
             <p className="min-w-0 flex-1 truncate text-xs font-semibold text-sombre">
-              {media.nomFichier ?? 'Sans titre'}
+              {media.nom ?? 'Sans titre'}
             </p>
             <button
               type="button"
               onClick={() => onDeleteMedia(media)}
-              aria-label={`Supprimer le média ${media.nomFichier ?? media.id}`}
+              aria-label={`Supprimer le média ${media.nom ?? media.id}`}
               title="Supprimer"
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-erreur transition hover:bg-erreur/10 active:scale-95"
             >

@@ -73,6 +73,14 @@ export default function TrialDetailsModal({ open, onClose, trial }) {
         <Field label="Poste" value={trial.poste} />
         <Field label="Date d'essai" value={fmt(trial.dateEssai)} />
         <Field label="Date de soumission" value={fmt(trial.dateSoumission)} />
+        <Field
+          label="Traitée par"
+          value={
+            trial.traitePar
+              ? `${trial.traitePar.nom} (${trial.traitePar.email})`
+              : ''
+          }
+        />
       </div>
 
       <div className="mt-5 rounded-xl border border-clair bg-clair/40 p-4">

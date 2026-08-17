@@ -2,6 +2,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faImages } from '@fortawesome/free-solid-svg-icons'
 import Button from '../../ui/Button'
 import Card from '../../ui/Card'
+import { ALBUM_THEMES } from '../../../utils/albumAdapter'
 
 /* ============================================================
    ThemeFilter — Filtre par thème des albums (@EF22)
@@ -9,14 +10,11 @@ import Card from '../../ui/Card'
    - Boutons « chips » : Tous + thèmes de la galerie
    - Compteur « X album(s) affiché(s) sur Y »
    - Props : themes, selected, onSelect(theme), count, total
+   - GALLERY_THEMES = alias d'ALBUM_THEMES : une seule source
+     de thèmes sur le front (module 4), aucune duplication.
    ============================================================ */
 
-export const GALLERY_THEMES = [
-  'Entraînements',
-  'Matchs',
-  'Événements',
-  'Portraits',
-]
+export const GALLERY_THEMES = ALBUM_THEMES
 
 export default function ThemeFilter({
   themes = GALLERY_THEMES,

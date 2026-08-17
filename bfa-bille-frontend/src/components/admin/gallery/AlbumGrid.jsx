@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -8,6 +9,29 @@ import Badge from '../../ui/Badge'
 import AlbumActions from './AlbumActions'
 import { parseLocalDate, formatDateCard } from '../../../utils/dateUtils'
 import { staggerContainer, staggerItem } from '../../../hooks/useScrollAnimation'
+import { getAlbumCover } from '../../../utils/albumAdapter'
+
+/* Couverture d'un album. Si l'URL échoue (média manquant en stockage),
+   on retombe sur le placeholder plutôt qu'une image cassée. */
+function AlbumCover({ cover, title }) {
+  const [failed, setFailed] = useState(false)
+  if (cover && !failed) {
+    return (
+      <img
+        src={cover}
+        alt={`Couverture de l'album ${title}`}
+        loading="lazy"
+        onError={() => setFailed(true)}
+        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+      />
+    )
+  }
+  return (
+    <div className="flex h-full w-full items-center justify-center bg-vert/10">
+      <FontAwesomeIcon icon={faImages} className="h-10 w-10 text-vert/30" />
+    </div>
+  )
+}
 
 /* ============================================================
    AlbumGrid — Grille des albums (back-office galerie)
@@ -37,6 +61,8 @@ export default function AlbumGrid({ albums, onOpen, onAddMedia, onEdit, onDelete
     >
       {albums.map((album) => {
         const videoCount = album.medias.filter((m) => m.type === 'video').length
+        // Couverture = 1re image de l'album (pas de coverImage côté backend).
+        const cover = getAlbumCover(album)
         return (
           <motion.div key={album.id} variants={staggerItem} className="h-full">
             <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-clair bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-vert/10">
@@ -47,12 +73,7 @@ export default function AlbumGrid({ albums, onOpen, onAddMedia, onEdit, onDelete
                 aria-label={`Ouvrir l'album ${album.titre}`}
                 className="relative block aspect-[16/10] w-full overflow-hidden text-left"
               >
-                <img
-                  src={album.coverImage}
-                  alt={`Couverture de l'album ${album.titre}`}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
+                <AlbumCover cover={cover} title={album.titre} />
                 <span className="absolute inset-0 bg-gradient-to-t from-vert-dark/70 via-transparent to-transparent" />
                 <span className="absolute bottom-3 left-3">
                   <Badge variant={THEME_BADGE[album.theme] ?? 'default'}>

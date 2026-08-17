@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faCircleCheck,
   faCircleXmark,
+  faXmark,
 } from '@fortawesome/free-solid-svg-icons'
 import PageHeader from '../components/admin/PageHeader'
 import TrialStats from '../components/admin/trials/TrialStats'
@@ -15,25 +16,36 @@ import TrialExport from '../components/admin/trials/TrialExport'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import Button from '../components/ui/Button'
 import Pagination from '../components/ui/Pagination'
+import { api } from '../utils/api'
+import { useCategories } from '../hooks/useCategories'
 import { TRIAL_STORAGE_KEY } from '../hooks/useTrialForm'
 import { fadeUp } from '../hooks/useScrollAnimation'
 
 /* ============================================================
    AdminTrials — Gestion des demandes d'essai (/admin/trials)
    ------------------------------------------------------------
-   - Candidatures inscrites via le formulaire public (localStorage)
-     — les candidatures mock ont été retirées ; les données du
-     backend (GET /admin/demandes-essai) s'y ajouteront quand les
-     endpoints CRUD existeront.
+   Module 3 — branchement backend :
+   - Liste : GET /admin/trials?limit=100 (Bearer) → normalisée
+     via normalizeTrial (catégorie déduite de l'âge).
+   - Actions : PUT /admin/trials/:id/validate, /refuse (motif),
+     DELETE /admin/trials/:id → la ligne est mise à jour avec la
+     réponse du serveur ; un 409 (déjà traitée) resynchronise.
+   - Actions groupées : PUT validate/refuse en parallèle.
+   - Migration optionnelle : les anciennes demandes du localStorage
+     (formulaire public avant module 3) sont rejouées une seule fois
+     vers POST /api/trials, puis la clé est nettoyée.
    - Statistiques (@EF20), recherche + filtres (statut, catégorie,
-     date), pagination
-   - Valider (@EF18), Refuser avec motif obligatoire (@EF19),
-     Voir détails (@EF15), suppression confirmée
-   - Actions groupées (Valider / Refuser la sélection)
-   - Export CSV
+     date), pagination client, export CSV : inchangés.
    ============================================================ */
 
 const PAGE_SIZE = 10
+const TRIAL_MIGRATED_KEY = 'bfa_trial_migrated'
+
+const STATUT_LABEL = {
+  EN_ATTENTE: 'En attente',
+  CONFIRME: 'Confirmé',
+  REFUSE: 'Refusé',
+}
 
 const readStoredTrials = () => {
   try {
@@ -43,10 +55,39 @@ const readStoredTrials = () => {
   }
 }
 
+/* Promesse partagée de la migration : même sous React StrictMode
+   (double montage en dev), la migration n'est rejouée qu'une fois.
+   Le flag localStorage couvre, lui, les rechargements ultérieurs. */
+let migrationInFlight = null
+
+/* Normalise une demande du backend vers la forme consommée par le
+   back-office (TrialStats / TrialTable / modals). La catégorie est
+   déduite de l'âge (elle n'est pas renvoyée par l'API). */
+const normalizeTrial = (d, categories) => ({
+  id: d.id,
+  nom: d.nomJoueur,
+  prenom: d.prenomJoueur,
+  age: d.age,
+  categorie:
+    categories.find((c) => d.age >= c.ageMin && d.age <= c.ageMax)?.nom ?? '',
+  poste: '',
+  telephone: d.telephone,
+  email: d.email,
+  dateEssai: d.dateEssai,
+  dateSoumission: d.dateSoumission,
+  message: d.message,
+  statut: STATUT_LABEL[d.statut] ?? d.statut,
+  motifRefus: d.motifRefus,
+  traitePar: d.traitePar,
+})
+
 export default function AdminTrials() {
-  /* Les candidatures du formulaire public (localStorage) restent
-     affichées : ce sont de vraies données, pas du mock. */
-  const [trials, setTrials] = useState(() => readStoredTrials())
+  /* Données du backend (plus de localStorage comme source de vérité). */
+  const { categories } = useCategories()
+  const [trials, setTrials] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [serverError, setServerError] = useState(null)
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState('Tous')
   const [category, setCategory] = useState('Tous')
@@ -58,6 +99,10 @@ export default function AdminTrials() {
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [trialToRefuse, setTrialToRefuse] = useState(null)
   const [refuseOpen, setRefuseOpen] = useState(false)
+
+  /* Compteur de requêtes : ignore une réponse périmée si la liste est
+     rechargée (ex. catégories qui arrivent après le 1er fetch). */
+  const loadSeq = useRef(0)
 
   /* Retour à la 1re page dès qu'un filtre change. */
   useEffect(() => {
@@ -106,35 +151,154 @@ export default function AdminTrials() {
     [filtered, page],
   )
 
-  const setStatusOf = (ids, newStatus, extra = {}) => {
-    setTrials((prev) =>
-      prev.map((t) =>
-        ids.includes(t.id) ? { ...t, statut: newStatus, ...extra } : t,
-      ),
-    )
+  /* -------- Chargement + migration optionnelle -------- */
+
+  /* Migration one-shot : les anciennes demandes du localStorage
+     (formulaire public d'avant le module 3) sont rejouées vers le
+     backend, puis la clé est nettoyée. Non bloquant en cas d'échec. */
+  const migrateLegacyTrials = useCallback(() => {
+    if (migrationInFlight) return migrationInFlight
+    migrationInFlight = (async () => {
+      try {
+        if (localStorage.getItem(TRIAL_MIGRATED_KEY)) return
+        const stored = readStoredTrials()
+        if (!Array.isArray(stored) || stored.length === 0) return
+        await Promise.all(
+          stored.map((r) =>
+            api('/api/trials', {
+              method: 'POST',
+              body: {
+                nomJoueur: String(r.nom ?? '').trim(),
+                prenomJoueur: String(r.prenom ?? '').trim(),
+                age: Number(r.age),
+                telephone: String(r.telephone ?? '').trim(),
+                email: String(r.email ?? '').trim(),
+                dateEssai: r.dateEssai ?? '',
+                message: String(r.message ?? '').trim() || null,
+              },
+            }).catch(() => null),
+          ),
+        )
+        localStorage.setItem(TRIAL_MIGRATED_KEY, '1')
+        localStorage.removeItem(TRIAL_STORAGE_KEY)
+      } catch {
+        /* Non bloquant : on garde l'état existant. */
+      }
+    })()
+    return migrationInFlight
+  }, [])
+
+  const loadTrials = useCallback(async () => {
+    const requestId = ++loadSeq.current
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await api('/admin/trials?limit=100', { auth: true })
+      if (requestId !== loadSeq.current) return // réponse périmée
+      const items = res?.data?.items ?? []
+      setTrials(items.map((d) => normalizeTrial(d, categories)))
+    } catch (err) {
+      if (requestId !== loadSeq.current) return
+      setError(err?.message || 'Impossible de charger les demandes.')
+    } finally {
+      if (requestId === loadSeq.current) setLoading(false)
+    }
+  }, [categories])
+
+  /* Premier chargement : migration puis liste. Rechargé quand les
+     catégories arrivent (la catégorie déduite a besoin de leurs bornes). */
+  useEffect(() => {
+    migrateLegacyTrials().then(() => loadTrials())
+  }, [migrateLegacyTrials, loadTrials])
+
+  /* -------- Actions (toutes via l'API) -------- */
+
+  const handleConfirm = async (row) => {
+    setServerError(null)
+    try {
+      const res = await api(`/admin/trials/${row.id}/validate`, {
+        method: 'PUT',
+        auth: true,
+      })
+      setTrials((prev) =>
+        prev.map((t) => (t.id === row.id ? normalizeTrial(res.data, categories) : t)),
+      )
+    } catch (err) {
+      // 409 : déjà traitée → on affiche le message et on resynchronise.
+      setServerError(err?.message || 'Impossible de valider la demande.')
+      loadTrials()
+    }
   }
 
-  const handleConfirm = (row) => setStatusOf([row.id], 'Confirmé')
-  const handleRefuse = (row, reason) =>
-    setStatusOf([row.id], 'Refusé', { motifRefus: reason })
+  const handleRefuse = async (row, reason) => {
+    setServerError(null)
+    try {
+      const res = await api(`/admin/trials/${row.id}/refuse`, {
+        method: 'PUT',
+        body: { motifRefus: reason },
+        auth: true,
+      })
+      setTrials((prev) =>
+        prev.map((t) => (t.id === row.id ? normalizeTrial(res.data, categories) : t)),
+      )
+    } catch (err) {
+      setServerError(err?.message || 'Impossible de refuser la demande.')
+      loadTrials()
+    }
+  }
 
-  const handleBulkConfirm = () => {
-    setStatusOf(selectedIds, 'Confirmé')
+  const handleBulkConfirm = async () => {
+    const ids = selectedIds
     setSelectedIds([])
-  }
-  const handleBulkRefuse = () => {
-    setStatusOf(selectedIds, 'Refusé', {
-      motifRefus: 'Refus collectif (action groupée)',
-    })
-    setSelectedIds([])
+    setServerError(null)
+    try {
+      await Promise.all(
+        ids.map((id) =>
+          api(`/admin/trials/${id}/validate`, { method: 'PUT', auth: true }),
+        ),
+      )
+    } catch (err) {
+      setServerError(err?.message || 'Impossible de valider la sélection.')
+    } finally {
+      await loadTrials()
+    }
   }
 
-  /* ⚠️ React Compiler : `toDelete.id` lu uniquement dans les
-     callbacks setState (jamais au 1er niveau du handler). */
+  const handleBulkRefuse = async () => {
+    const ids = selectedIds
+    setSelectedIds([])
+    setServerError(null)
+    try {
+      await Promise.all(
+        ids.map((id) =>
+          api(`/admin/trials/${id}/refuse`, {
+            method: 'PUT',
+            body: { motifRefus: 'Refus collectif (action groupée)' },
+            auth: true,
+          }),
+        ),
+      )
+    } catch (err) {
+      setServerError(err?.message || 'Impossible de refuser la sélection.')
+    } finally {
+      await loadTrials()
+    }
+  }
+
+  /* ⚠️ React Compiler : `toDelete?.id` lu au 1er niveau du handler
+     (avec garde null) — jamais via une lecture directe d'objet nullable. */
   const handleDelete = () => {
-    setTrials((prev) => prev.filter((t) => t.id !== toDelete.id))
-    setSelectedIds((prev) => prev.filter((id) => id !== toDelete.id))
+    const id = toDelete?.id
+    if (id == null) return
     setToDelete(null)
+    api(`/admin/trials/${id}`, { method: 'DELETE', auth: true })
+      .then(() => {
+        setTrials((prev) => prev.filter((t) => t.id !== id))
+        setSelectedIds((prev) => prev.filter((x) => x !== id))
+      })
+      .catch((err) =>
+        setServerError(err?.message || 'Impossible de supprimer la demande.'),
+      )
   }
 
   const toggleSelect = (id) =>
@@ -171,77 +335,110 @@ export default function AdminTrials() {
 
       <TrialStats trials={trials} />
 
-      <TrialSearch
-        query={query}
-        onQueryChange={setQuery}
-        status={status}
-        onStatusChange={setStatus}
-        category={category}
-        onCategoryChange={setCategory}
-        dateFilter={dateFilter}
-        onDateFilterChange={setDateFilter}
-        resultCount={filtered.length}
-        totalCount={trials.length}
-      />
-
-      {/* Barre d'actions groupées */}
-      {selectedOnPage.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-wrap items-center gap-3 rounded-xl border border-dore/40 bg-dore/10 px-4 py-3"
+      {/* Erreur d'une action (validate/refuse/delete) — bandeau au-dessus de la table. */}
+      {serverError && (
+        <div
+          role="alert"
+          className="flex items-center justify-between gap-3 rounded-xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-sm font-medium text-erreur"
         >
-          <p className="text-sm font-bold text-dore-dark">
-            {selectedOnPage.length} sélectionné(s)
-          </p>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              onClick={handleBulkConfirm}
-            >
-              <FontAwesomeIcon icon={faCircleCheck} className="h-4 w-4" />
-              Valider
-            </Button>
-            <Button
-              type="button"
-              variant="danger"
-              size="sm"
-              onClick={handleBulkRefuse}
-            >
-              <FontAwesomeIcon icon={faCircleXmark} className="h-4 w-4" />
-              Refuser
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setSelectedIds([])}
-            >
-              Tout désélectionner
-            </Button>
-          </div>
-        </motion.div>
+          <span>{serverError}</span>
+          <button
+            type="button"
+            onClick={() => setServerError(null)}
+            aria-label="Fermer l'erreur"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-erreur/70 transition hover:bg-erreur/10"
+          >
+            <FontAwesomeIcon icon={faXmark} className="h-4 w-4" />
+          </button>
+        </div>
       )}
 
-      <TrialTable
-        trials={pageItems}
-        selectedIds={selectedIds}
-        onToggleSelect={toggleSelect}
-        onConfirm={handleConfirm}
-        onRefuse={openRefuse}
-        onDetails={openDetails}
-        onDelete={setToDelete}
-      />
+      {loading ? (
+        <p className="py-10 text-center text-sm text-sombre/60">
+          Chargement des demandes…
+        </p>
+      ) : error ? (
+        <div
+          role="alert"
+          className="rounded-xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-sm font-medium text-erreur"
+        >
+          {error}
+        </div>
+      ) : (
+        <>
+          <TrialSearch
+            query={query}
+            onQueryChange={setQuery}
+            status={status}
+            onStatusChange={setStatus}
+            category={category}
+            onCategoryChange={setCategory}
+            dateFilter={dateFilter}
+            onDateFilterChange={setDateFilter}
+            resultCount={filtered.length}
+            totalCount={trials.length}
+          />
 
-      <div className="flex justify-center">
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-        />
-      </div>
+          {/* Barre d'actions groupées */}
+          {selectedOnPage.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-wrap items-center gap-3 rounded-xl border border-dore/40 bg-dore/10 px-4 py-3"
+            >
+              <p className="text-sm font-bold text-dore-dark">
+                {selectedOnPage.length} sélectionné(s)
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={handleBulkConfirm}
+                >
+                  <FontAwesomeIcon icon={faCircleCheck} className="h-4 w-4" />
+                  Valider
+                </Button>
+                <Button
+                  type="button"
+                  variant="danger"
+                  size="sm"
+                  onClick={handleBulkRefuse}
+                >
+                  <FontAwesomeIcon icon={faCircleXmark} className="h-4 w-4" />
+                  Refuser
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedIds([])}
+                >
+                  Tout désélectionner
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          <TrialTable
+            trials={pageItems}
+            selectedIds={selectedIds}
+            onToggleSelect={toggleSelect}
+            onConfirm={handleConfirm}
+            onRefuse={openRefuse}
+            onDetails={openDetails}
+            onDelete={setToDelete}
+          />
+
+          <div className="flex justify-center">
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
+          </div>
+        </>
+      )}
 
       <TrialDetailsModal
         open={detailsOpen}
