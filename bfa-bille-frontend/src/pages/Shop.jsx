@@ -1,10 +1,12 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import SectionTitle from '../components/ui/SectionTitle'
 import ProductFilters from '../components/shop/ProductFilters'
 import ProductGrid from '../components/shop/ProductGrid'
 import QuoteForm from '../components/shop/QuoteForm'
 import { useScrollAnimation, fadeUp } from '../hooks/useScrollAnimation'
+import { api } from '../utils/api'
+import { normalizeProduct } from '../utils/shopAdapter'
 
 /* ============================================================
    Boutique — Page « Boutique et produits dérivés » (/boutique)
@@ -17,15 +19,27 @@ import { useScrollAnimation, fadeUp } from '../hooks/useScrollAnimation'
      pré-rempli)
    ============================================================ */
 
-const CATEGORIES = ['Tous', 'Nouveautés', 'Vêtements', 'Accessoires']
+const CATEGORIES = ['Tous', 'Nouveautés', 'Vêtements', 'Équipement', 'Accessoires']
 
 export default function Shop() {
   const { ref, isInView } = useScrollAnimation({ amount: 0.1 })
-  // ⚠️ Plus de données mock : la boutique part vide (aucun produit).
-  // Sera branchée au backend (module « Boutique »).
-  const [products] = useState([])
+  const [products, setProducts] = useState([])
+  const [error, setError] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState('Tous')
   const [selectedProduct, setSelectedProduct] = useState(null)
+
+  const loadProducts = useCallback(async () => {
+    try {
+      const data = await api('/api/products?limit=100')
+      setProducts((data?.data?.items ?? []).map(normalizeProduct))
+    } catch (err) {
+      setError(err?.message || 'Impossible de charger la boutique.')
+    }
+  }, [])
+
+  useEffect(() => {
+    loadProducts()
+  }, [loadProducts])
 
   // Produits filtrés selon la catégorie sélectionnée.
   const filteredProducts = useMemo(() => {
@@ -61,6 +75,15 @@ export default function Shop() {
           {filteredProducts.length > 1 ? 's' : ''}
           {selectedCategory !== 'Tous' && ` · ${selectedCategory}`}
         </p>
+
+        {error && (
+          <div
+            role="alert"
+            className="mb-8 rounded-2xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-center text-sm font-medium text-erreur"
+          >
+            {error}
+          </div>
+        )}
 
         {/* Grille — re-animée (fade-in) à chaque changement de filtre */}
         <motion.div

@@ -7,6 +7,8 @@ import FormInput from '../trial/FormInput'
 import FormSelect from '../trial/FormSelect'
 import FormTextarea from '../trial/FormTextarea'
 import FormStatus from '../trial/FormStatus'
+import { api } from '../../utils/api'
+import { toQuotePayload } from '../../utils/shopAdapter'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const PHONE_RE = /^\+?[0-9\s().-]{8,20}$/
@@ -87,6 +89,7 @@ export default function QuoteForm({ product, onClose }) {
   const [touched, setTouched] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState('idle')
+  const [submitMessage, setSubmitMessage] = useState('')
 
   // Réinitialise et pré-remplit le formulaire à chaque ouverture.
   useEffect(() => {
@@ -96,6 +99,7 @@ export default function QuoteForm({ product, onClose }) {
       setTouched({})
       setIsSubmitting(false)
       setSubmitStatus('idle')
+      setSubmitMessage('')
     }
   }, [product])
 
@@ -133,7 +137,7 @@ export default function QuoteForm({ product, onClose }) {
     setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     const allTouched = Object.keys(formData).reduce(
@@ -161,13 +165,23 @@ export default function QuoteForm({ product, onClose }) {
       return
     }
 
-    // Simulation d'envoi (1,5 s) — à brancher sur un vrai email.
+    // Envoi réel vers POST /api/quotes (@EF42) — téléphone obligatoire
+    // validé plus haut (@EF43).
     setIsSubmitting(true)
     setSubmitStatus('idle')
-    setTimeout(() => {
+    setSubmitMessage('')
+    try {
+      await api('/api/quotes', {
+        method: 'POST',
+        body: toQuotePayload(formData, product.id),
+      })
       setSubmitStatus('success')
+    } catch (err) {
+      setSubmitStatus('error')
+      setSubmitMessage(err?.message || "Votre demande n'a pas pu être envoyée.")
+    } finally {
       setIsSubmitting(false)
-    }, 1500)
+    }
   }
 
   return (
@@ -340,12 +354,16 @@ export default function QuoteForm({ product, onClose }) {
                     title={
                       submitStatus === 'success'
                         ? 'Demande de devis envoyée !'
-                        : undefined
+                        : submitStatus === 'error'
+                          ? "Échec de l'envoi"
+                          : undefined
                     }
                     text={
                       submitStatus === 'success'
                         ? 'Votre demande de devis a été envoyée. Notre équipe vous recontactera rapidement pour établir votre devis.'
-                        : undefined
+                        : submitStatus === 'error'
+                          ? submitMessage
+                          : undefined
                     }
                   />
                 )}

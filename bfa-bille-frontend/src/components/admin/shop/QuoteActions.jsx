@@ -26,20 +26,23 @@ export default function QuoteActions({ quote, onToggleTraite }) {
         <FontAwesomeIcon icon={faReply} className="h-3.5 w-3.5" />
         Répondre
       </Button>
-      <Button
-        type="button"
-        variant={quote.estTraite ? 'filter' : 'primary'}
-        size="sm"
-        onClick={() => onToggleTraite(quote)}
-        aria-label={
-          quote.estTraite
-            ? `Marquer la demande de ${quote.nomComplet} comme non traitée`
-            : `Marquer la demande de ${quote.nomComplet} comme traitée`
-        }
-      >
-        <FontAwesomeIcon icon={faCircleCheck} className="h-3.5 w-3.5" />
-        {quote.estTraite ? 'Non traité' : 'Marquer comme traité'}
-      </Button>
+      {quote.estTraite ? (
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-succes/15 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-succes">
+          <FontAwesomeIcon icon={faCircleCheck} className="h-3.5 w-3.5" />
+          Traité
+        </span>
+      ) : (
+        <Button
+          type="button"
+          variant="primary"
+          size="sm"
+          onClick={() => onToggleTraite(quote)}
+          aria-label={`Marquer la demande de ${quote.nomComplet} comme traitée`}
+        >
+          <FontAwesomeIcon icon={faCircleCheck} className="h-3.5 w-3.5" />
+          Marquer comme traité
+        </Button>
+      )}
     </div>
   )
 }

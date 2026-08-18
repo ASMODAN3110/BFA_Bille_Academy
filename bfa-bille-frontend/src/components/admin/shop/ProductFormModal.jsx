@@ -7,6 +7,7 @@ import FormSelect from '../../trial/FormSelect'
 import FormTextarea from '../../trial/FormTextarea'
 import MediaUploadField from '../../ui/MediaUploadField'
 import { PRODUCT_CATEGORIES } from './ShopFilters'
+import { toProductPayload } from '../../../utils/shopAdapter'
 
 /* ============================================================
    ProductFormModal — Création / modification d'un produit
@@ -20,20 +21,10 @@ import { PRODUCT_CATEGORIES } from './ShopFilters'
    - Props : open, onClose, onSave(data), product (null = ajout)
    ============================================================ */
 
-const SIZE_OPTIONS = [
-  'XS',
-  'S',
-  'M',
-  'L',
-  'XL',
-  'XXL',
-  'Taille 4',
-  'Taille 5',
-  'Unique',
-]
-
-const DEFAULT_IMAGE =
-  'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=800&auto=format&fit=crop'
+/* Tailles alignées sur l'enum backend (S/M/L/XL/UNIQUE) — le backend
+   rejette toute autre valeur (@EF41). « Unique » est le libellé du
+   libellé « UNIQUE » ; toProductPayload reconvertit vers l'enum. */
+const SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'Unique']
 
 const emptyForm = {
   nom: '',
@@ -81,7 +72,13 @@ function validateField(name, value) {
   }
 }
 
-export default function ProductFormModal({ open, onClose, onSave, product }) {
+export default function ProductFormModal({
+  open,
+  onClose,
+  onSave,
+  product,
+  serverError,
+}) {
   const [form, setForm] = useState(emptyForm)
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
@@ -162,17 +159,9 @@ export default function ProductFormModal({ open, onClose, onSave, product }) {
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
 
-    onSave({
-      id: product?.id ?? Date.now(),
-      nom: form.nom.trim(),
-      description: form.description.trim(),
-      prix: Number(form.prix),
-      categorie: form.categorie,
-      tailles: form.tailles,
-      image: form.image.trim() || DEFAULT_IMAGE,
-      stock: Number(form.stock),
-      estNouveau: form.estNouveau,
-    })
+    // toProductPayload mappe « Unique » → « UNIQUE », trime les chaînes,
+    // convertit les nombres et met image à null si vide.
+    onSave(toProductPayload(form))
   }
 
   const hasTailleError = Boolean(touched.tailles && errors.tailles)
@@ -334,6 +323,15 @@ export default function ProductFormModal({ open, onClose, onSave, product }) {
             Marquer comme « Nouveau » (badge doré sur le site)
           </span>
         </label>
+
+        {serverError && (
+          <p
+            role="alert"
+            className="mt-4 rounded-xl border border-erreur/30 bg-erreur/10 px-4 py-2.5 text-sm font-medium text-erreur"
+          >
+            {serverError}
+          </p>
+        )}
       </form>
     </Modal>
   )
