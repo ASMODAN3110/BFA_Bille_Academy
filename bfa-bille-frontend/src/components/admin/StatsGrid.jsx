@@ -12,34 +12,56 @@ import StatCard from './StatCard'
    StatsGrid — Grille des statistiques récapitulatives (@EF50)
    ------------------------------------------------------------
    - 5 cartes : Joueurs, Articles, Demandes, Événements, Produits
-   - Les valeurs viennent de l'API GET /admin/dashboard
-     (objet `data` : joueur, article, demandeEssai, evenement,
-     produit, …) → prop `stats` passée par AdminDashboard.
+   - Les valeurs viennent de l'API GET /admin/dashboard (Module 9) :
+     l'objet `data` est GROUPÉ par module (players/articles/trials/
+     events/products avec compteurs imbriqués) → chaque carte lit
+     `s?.<module>?.<compteur>`. Aucun adapter nécessaire pour les
+     5 cartes.
    - 5 colonnes sur grand écran, responsive en dessous
    - Apparition en cascade (0,1 s d'écart entre chaque carte)
    ============================================================ */
 
 const CARDS = [
-  { key: 'joueur', label: 'Joueurs', icon: faUsers, accent: 'bg-vert' },
   {
-    key: 'article',
+    key: 'players',
+    label: 'Joueurs',
+    icon: faUsers,
+    accent: 'bg-vert',
+    value: (s) => s?.players?.total ?? 0,
+    subtitle: (s) => `${s?.players?.byCategory?.length ?? 0} catégorie(s)`,
+  },
+  {
+    key: 'articles',
     label: 'Articles',
     icon: faNewspaper,
     accent: 'bg-dore text-vert-dark',
+    value: (s) => s?.articles?.total ?? 0,
+    subtitle: (s) => `${s?.articles?.published ?? 0} publié(s)`,
   },
   {
-    key: 'demandeEssai',
+    key: 'trials',
     label: 'Demandes',
     icon: faClipboardList,
     accent: 'bg-vert-dark',
+    value: (s) => s?.trials?.total ?? 0,
+    subtitle: (s) => `${s?.trials?.pending ?? 0} en attente`,
   },
   {
-    key: 'evenement',
+    key: 'events',
     label: 'Événements',
     icon: faCalendarDays,
     accent: 'bg-dore-dark text-vert-dark',
+    value: (s) => s?.events?.total ?? 0,
+    subtitle: (s) => `${s?.events?.upcoming ?? 0} à venir`,
   },
-  { key: 'produit', label: 'Produits', icon: faBoxOpen, accent: 'bg-vert-light' },
+  {
+    key: 'products',
+    label: 'Produits',
+    icon: faBoxOpen,
+    accent: 'bg-vert-light',
+    value: (s) => s?.products?.total ?? 0,
+    subtitle: (s) => `${s?.products?.outOfStock ?? 0} en rupture`,
+  },
 ]
 
 /* Cascade d'apparition : 0,1 s entre chaque carte. */
@@ -60,7 +82,8 @@ export default function StatsGrid({ stats }) {
         <StatCard
           key={card.key}
           label={card.label}
-          value={stats?.[card.key] ?? 0}
+          value={card.value(stats)}
+          subtitle={card.subtitle(stats)}
           icon={card.icon}
           accent={card.accent}
         />

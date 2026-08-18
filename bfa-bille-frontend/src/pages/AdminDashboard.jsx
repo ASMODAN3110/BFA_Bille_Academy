@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import StatsGrid from '../components/admin/StatsGrid'
 import RecentRequests from '../components/admin/RecentRequests'
+import RecentArticles from '../components/admin/RecentArticles'
+import UpcomingEvents from '../components/admin/UpcomingEvents'
+import ActivityTimeline from '../components/admin/ActivityTimeline'
 import QuickActions from '../components/admin/QuickActions'
 import { api } from '../utils/api'
 import { fadeUp } from '../hooks/useScrollAnimation'
@@ -12,8 +15,12 @@ import { fadeUp } from '../hooks/useScrollAnimation'
    - Statistiques récapitulatives (@EF50) issues de l'API
      GET /admin/dashboard (protégée : Bearer token). Sur 401,
      le wrapper purge la session et redirige vers /admin.
-   - Demandes d'essai récentes
-   - Actions rapides (@EF51) + statut du système
+   - Module 9 : l'objet `data` est GROUPÉ par module
+     (players/articles/trials/events/products + recentTrials/
+     recentArticles/upcomingEvents). StatsGrid lit les compteurs
+     imbriqués ; les sections « récentes » viennent du même appel.
+   - Demandes d'essai récentes + derniers articles + prochains
+     événements + timeline d'activité + actions rapides (@EF51).
    ============================================================ */
 
 export default function AdminDashboard() {
@@ -62,10 +69,20 @@ export default function AdminDashboard() {
           Chargement des statistiques…
         </div>
       ) : (
-        <StatsGrid stats={stats} />
-      )}
+        <>
+          <StatsGrid stats={stats} />
 
-      <RecentRequests />
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+            <RecentRequests />
+            <RecentArticles articles={stats.recentArticles ?? []} />
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+            <UpcomingEvents events={stats.upcomingEvents ?? []} />
+            <ActivityTimeline />
+          </div>
+        </>
+      )}
 
       <QuickActions />
     </motion.div>
