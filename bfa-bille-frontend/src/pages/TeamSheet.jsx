@@ -155,7 +155,7 @@ export default function TeamSheet() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
-            className="mt-10 space-y-8"
+            className="mt-10 grid gap-6 md:grid-cols-2"
           >
             {/* Effectif */}
             <Card className="p-6 md:p-8">

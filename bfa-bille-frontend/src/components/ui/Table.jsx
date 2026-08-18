@@ -5,6 +5,9 @@
    - rows    : array d'objets (une ligne par élément)
    - En-tête vert, lignes alternées, survol gris clair
    - Scroll horizontal automatique sur écrans étroits
+   - `minWidth` : largeur minimale du <table> (px). Défaut 420 ;
+     passer 0 (ou une petite valeur) pour un tableau 2 colonnes
+     qui s'adapte sans scroll (RosterTable).
    ============================================================ */
 
 export default function Table({
@@ -12,10 +15,14 @@ export default function Table({
   rows = [],
   rowKey = 'id',
   className = '',
+  minWidth = 420,
 }) {
   return (
     <div className={`overflow-x-auto ${className}`}>
-      <table className="w-full min-w-[420px] text-left text-sm">
+      <table
+        className="w-full text-left text-sm"
+        style={{ minWidth: `${minWidth}px` }}
+      >
         <thead>
           <tr className="bg-vert text-white">
             {columns.map((col) => (

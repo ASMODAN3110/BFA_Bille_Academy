@@ -35,7 +35,7 @@ export default function PalmaresList({ palmares }) {
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-dore/15 text-dore-dark">
             <FontAwesomeIcon icon={faTrophy} className="h-6 w-6" />
           </span>
-          <p className="pt-3 font-bold text-sombre">{line}</p>
+          <p className="min-w-0 break-words pt-3 font-bold text-sombre">{line}</p>
         </motion.div>
       ))}
     </motion.div>

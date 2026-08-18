@@ -36,7 +36,9 @@ export default function StaffList({ staff }) {
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-vert text-white">
             <FontAwesomeIcon icon={faUserTie} className="h-5 w-5 text-dore" />
           </span>
-          <p className="pt-2.5 font-semibold text-sombre">{line}</p>
+          <p className="min-w-0 break-words pt-2.5 font-semibold text-sombre">
+            {line}
+          </p>
         </motion.div>
       ))}
     </motion.div>

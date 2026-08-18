@@ -29,7 +29,7 @@ export default function ObjectivesList({ objectifs }) {
           className="flex items-start gap-3"
         >
           <span className="mt-2.5 h-2.5 w-2.5 shrink-0 rounded-full bg-dore" />
-          <span className="text-sombre/80">{objectif}</span>
+          <span className="min-w-0 break-words text-sombre/80">{objectif}</span>
         </motion.li>
       ))}
     </motion.ul>

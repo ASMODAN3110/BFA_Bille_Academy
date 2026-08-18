@@ -355,6 +355,10 @@ export default function AdminTeamSheets() {
                       columns={EFFECTIF_COLUMNS}
                       rows={effectifRows}
                       rowKey="__index__"
+                      // 2 colonnes seulement → s'adapte sans scroll ; et dans
+                      // la grille du formulaire, min-width:0 empêche le
+                      // tableau d'étirer toute la piste sur mobile.
+                      minWidth={0}
                     />
                   ) : (
                     <p className="rounded-xl border border-dashed border-clair px-4 py-5 text-center text-sm text-sombre/60">

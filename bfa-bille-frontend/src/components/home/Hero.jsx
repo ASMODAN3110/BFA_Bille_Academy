@@ -11,11 +11,26 @@ import { fadeUp, fadeIn } from '../../hooks/useScrollAnimation'
    - Titre d'accroche en doré, sous-titre en blanc
    - CTA « Inscrire mon enfant » (vert sur fond doré)
    - Ballon de football qui rebondit (animation CSS pure)
+   - Image de fond (stade) + voile vert foncé pour la lisibilité
    ============================================================ */
+
+/** Image de fond du Hero (terrain/stade de football). */
+const HERO_BG =
+  'https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1920&q=80'
 
 export default function Hero() {
   return (
-    <section className="relative overflow-hidden bg-vert">
+    <section className="relative overflow-hidden bg-vert-dark">
+      {/* Image de fond (pleine, sans voile) */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url('${HERO_BG}')` }}
+      />
+      {/* Léger voile vert : garde les écritures (blanc/doré) lisibles
+          sur l'image tout en laissant la photo bien visible. */}
+      <div aria-hidden="true" className="absolute inset-0 bg-vert-dark/60" />
+
       {/* Décorations d'arrière-plan */}
       <div
         aria-hidden="true"

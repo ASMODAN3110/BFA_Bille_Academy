@@ -35,7 +35,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-vert-dark text-white">
-      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl mt-10 pl-4">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
           {/* Logo + description + réseaux */}
           <div className="lg:col-span-2 lg:pr-8">
@@ -80,7 +80,7 @@ export default function Footer() {
             <h3 className="text-sm font-bold uppercase tracking-wider text-dore">
               Liens rapides
             </h3>
-            <ul className="mt-5 space-y-3 text-sm">
+            <ul className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
               {navLinks.slice(0, 6).map((link) => (
                 <li key={link.to}>
                   <Link
@@ -138,7 +138,7 @@ export default function Footer() {
         </div>
 
         {/* Barre copyright */}
-        <div className="mt-12 border-t border-white/10 pt-6 text-center text-xs text-white/50">
+        <div className="border-t border-white/10 text-center text-xs text-white/50">
           <p>
             © {year} {club.name}. Tous droits réservés. — « {club.tagline} »
           </p>

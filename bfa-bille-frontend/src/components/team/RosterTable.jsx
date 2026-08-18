@@ -16,5 +16,9 @@ const COLUMNS = [
 
 export default function RosterTable({ effectif }) {
   // rowKey "__index__" (absent des lignes) → Table se rabat sur l'index.
-  return <Table columns={COLUMNS} rows={effectif} rowKey="__index__" />
+  // minWidth 0 : 2 colonnes seulement → le tableau s'adapte à la largeur
+  // de la carte (les textes se replient) au lieu de scroller sur mobile.
+  return (
+    <Table columns={COLUMNS} rows={effectif} rowKey="__index__" minWidth={0} />
+  )
 }
