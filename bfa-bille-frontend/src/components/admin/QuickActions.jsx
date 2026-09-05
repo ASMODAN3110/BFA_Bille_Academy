@@ -42,7 +42,7 @@ export default function QuickActions() {
             to={action.path}
             variant="secondary"
             size="md"
-            className="w-fit"
+            className="w-fit mx-2"
           >
             <FontAwesomeIcon
               icon={ACTION_ICONS[index] ?? faBagShopping}
