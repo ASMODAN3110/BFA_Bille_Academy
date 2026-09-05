@@ -41,7 +41,7 @@ const SIZE_STYLES = {
    --gh-bg / --gh-bg-hover suivent la charte (survol = teinte
    claire : vert-light pour le primary, dore-dark pour secondary). */
 const GLARE_DEFAULTS = {
-  '--gh-br': '9999px', // pill, comme rounded-full
+  '--gh-br': '0.5rem', // arrondi léger, comme rounded-lg
   '--gh-border': 'transparent', // pas de bordure de reflet
   '--gh-angle': '-45deg',
   '--gh-duration': '650ms',
@@ -81,7 +81,7 @@ export default function Button({
   const { style: extraStyle, ...rest } = props
 
   const classes = [
-    'inline-flex items-center justify-center gap-2 rounded-full font-semibold',
+    'inline-flex items-center justify-center gap-2 rounded-lg font-semibold',
     'transition-all duration-300 ease-out',
     'focus:outline-none focus-visible:ring-4 focus-visible:ring-dore/40',
     'active:scale-95',
