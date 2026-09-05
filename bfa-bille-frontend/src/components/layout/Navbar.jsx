@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { NavLink, Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faBars, faXmark, faUserTie } from '@fortawesome/free-solid-svg-icons'
+import { faBars, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { navLinks } from '../../config/site'
 import logo from '../../assets/logo-removebg-preview.png'
 
@@ -10,8 +10,6 @@ import logo from '../../assets/logo-removebg-preview.png'
    ------------------------------------------------------------
    - Logo + nom du club (lien vers l'accueil)
    - Liens de navigation (état actif en doré)
-   - Bouton Back-office (masqué en variante "public", ex : page
-     de connexion)
    - Menu burger pour mobile / tablette
    ============================================================ */
 
@@ -21,9 +19,8 @@ const linkClasses = ({ isActive }) =>
     isActive ? 'text-dore-dark' : 'text-sombre/80 hover:text-vert',
   ].join(' ')
 
-export default function Navbar({ variant = 'default' }) {
+export default function Navbar() {
   const [open, setOpen] = useState(false)
-  const isPublic = variant === 'public'
 
   const closeMenu = () => setOpen(false)
 
@@ -62,16 +59,6 @@ export default function Navbar({ variant = 'default' }) {
 
         {/* Actions */}
         <div className="flex items-center gap-3">
-          {!isPublic && (
-            <Link
-              to="/admin"
-              className="hidden items-center gap-2 rounded-full border-2 border-dore px-4 py-2 text-sm font-semibold text-dore-dark transition-all duration-300 hover:bg-dore hover:text-vert-dark md:inline-flex"
-            >
-              <FontAwesomeIcon icon={faUserTie} className="h-3.5 w-3.5" />
-              Back-office
-            </Link>
-          )}
-
           {/* Burger mobile */}
           <button
             type="button"
@@ -109,18 +96,6 @@ export default function Navbar({ variant = 'default' }) {
               </NavLink>
             </li>
           ))}
-          {!isPublic && (
-            <li className="mt-2 border-t border-clair pt-3">
-              <Link
-                to="/admin"
-                onClick={closeMenu}
-                className="flex items-center gap-2 rounded-lg bg-dore px-4 py-2.5 text-sm font-semibold text-vert-dark"
-              >
-                <FontAwesomeIcon icon={faUserTie} className="h-4 w-4" />
-                Back-office
-              </Link>
-            </li>
-          )}
         </ul>
       </div>
     </header>

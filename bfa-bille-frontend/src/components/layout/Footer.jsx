@@ -18,7 +18,8 @@ import logo from '../../assets/logo-removebg-preview.png'
    Footer — Pied de page
    ------------------------------------------------------------
    - Logo + description du club
-   - Liens rapides
+   - Liens rapides (dont le lien Back-office, masqué en variante
+     "public" ex : page de connexion)
    - Coordonnées (adresse, téléphone, email)
    - Réseaux sociaux
    ============================================================ */
@@ -30,8 +31,9 @@ const SOCIAL_ICONS = {
   youtube: faYoutube,
 }
 
-export default function Footer() {
+export default function Footer({ variant = 'default' }) {
   const year = new Date().getFullYear()
+  const isPublic = variant === 'public'
 
   return (
     <footer className="bg-vert-dark text-white">
@@ -91,14 +93,16 @@ export default function Footer() {
                   </Link>
                 </li>
               ))}
-              <li>
-                <Link
-                  to="/admin"
-                  className="text-white/70 transition-colors hover:text-dore"
-                >
-                  Back-office
-                </Link>
-              </li>
+              {!isPublic && (
+                <li>
+                  <Link
+                    to="/admin"
+                    className="text-white/70 transition-colors hover:text-dore"
+                  >
+                    Back-office
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
 

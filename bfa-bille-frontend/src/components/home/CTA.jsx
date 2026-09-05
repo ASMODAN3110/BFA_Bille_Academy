@@ -9,7 +9,7 @@ import { useScrollAnimation, scaleIn } from '../../hooks/useScrollAnimation'
    CTA — Appel à l'action final
    ------------------------------------------------------------
    Bannière « Rejoignez l'aventure » + bouton Contactez-nous
-   - Image de fond (terrain de football) + voile vert foncé
+   - Image de fond (terrain de football) + voile sombre neutre
    ============================================================ */
 
 /** Image de fond du CTA (terrain/ballon de football). */
@@ -20,13 +20,13 @@ export default function CTA() {
   const { ref, isInView } = useScrollAnimation({ amount: 0.3 })
 
   return (
-    <section className="bg-vert-dark">
+    <section>
       <motion.div
         ref={ref}
         variants={scaleIn}
         initial="hidden"
         animate={isInView ? 'visible' : 'hidden'}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-vert via-vert to-vert-dark px-6 py-16 text-center shadow-2xl shadow-vert/40 md:px-12 md:py-20"
+        className="relative overflow-hidden bg-gradient-to-br from-vert via-vert to-vert-dark px-6 py-16 text-center shadow-2xl shadow-vert/40 md:px-12 md:py-20"
       >
         {/* Image de fond (pleine, sans voile) */}
         <div
@@ -34,9 +34,9 @@ export default function CTA() {
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url('${CTA_BG}')` }}
         />
-        {/* Léger voile vert : garde les écritures (blanc/doré) lisibles
+        {/* Voile sombre neutre : garde les écritures (blanc/doré) lisibles
             sur l'image tout en laissant la photo bien visible. */}
-        <div aria-hidden="true" className="absolute inset-0 bg-vert-dark/60" />
+        <div aria-hidden="true" className="absolute inset-0 bg-black/60" />
 
         {/* Décorations */}
         <div

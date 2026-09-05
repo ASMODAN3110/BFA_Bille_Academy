@@ -51,8 +51,8 @@ function ProtectedRoute({ children }) {
    ------------------------------------------------------------
    Navbar / Footer rendus une seule fois autour des Routes
    (sauf dans la zone admin /admin/* qui a son propre layout).
-   Sur la page de connexion (/admin), la Navbar passe en variante
-   « public » (le lien Back-office y est masqué).
+   Sur la page de connexion (/admin), le Footer passe en variante
+   « public » (le bouton Back-office y est masqué).
    ============================================================ */
 function AppShell() {
   const { pathname } = useLocation()
@@ -62,7 +62,7 @@ function AppShell() {
   return (
     <div className="flex min-h-screen flex-col">
       {!isAdminArea && (
-        <Navbar variant={isAdminLogin ? 'public' : 'default'} />
+        <Navbar />
       )}
 
       <main className="flex-1">
@@ -123,7 +123,9 @@ function AppShell() {
         </Routes>
       </main>
 
-      {!isAdminArea && <Footer />}
+      {!isAdminArea && (
+        <Footer variant={isAdminLogin ? 'public' : 'default'} />
+      )}
     </div>
   )
 }
