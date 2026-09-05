@@ -40,8 +40,6 @@ export default function Gallery() {
       .then((res) => {
         if (cancelled) return
         const items = (res?.data?.items ?? []).map(normalizeAlbum)
-        // Diagnostic : nombre d'albums réellement reçus.
-        console.log(`[galerie] ${items.length} album(s) chargé(s)`)
         setAlbums(items)
       })
       .catch((err) => {

@@ -70,9 +70,6 @@ export async function api(path, { method = 'GET', body, auth = false } = {}) {
   if (body !== undefined && !isFormData) headers['Content-Type'] = 'application/json'
   if (auth && token) headers['Authorization'] = `Bearer ${token}`
 
-  /* --- Diagnostics (temporaires) : chaque requête API est journalisée.
-     Le token JWT n'est JAMAIS affiché. --- */
-  console.log(`[api] ${method} ${path}${auth ? ' (auth)' : ''}`)
   let res
   try {
     res = await fetch(`${import.meta.env.VITE_API_URL ?? ''}${path}`, {
@@ -92,14 +89,6 @@ export async function api(path, { method = 'GET', body, auth = false } = {}) {
   } catch {
     data = null
   }
-
-  // Journalise le statut + le corps, en masquant tout token JWT
-  // (login/renouvellement) pour ne pas exposer le jeton dans la console.
-  const redacted =
-    data && typeof data === 'object'
-      ? { ...data, ...(data.token ? { token: '***' } : {}), ...(data.data?.token ? { data: { ...data.data, token: '***' } } : {}) }
-      : data
-  console.log(`[api] ${method} ${path} → ${res.status}`, redacted ?? '(corps non-JSON)')
 
   // Session expirée sur une route protégée → déconnexion + login.
   if (res.status === 401 && auth) {

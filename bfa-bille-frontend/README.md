@@ -1,4 +1,4 @@
-# BFA Bille Football Academy — Site web
+# BFA Bille Football Academy — Frontend
 
 Site web de la **BFA Bille Football Academy** (académie de football amateur au Cameroun) : vitrine publique + back-office de gestion complet. L'interface est entièrement en français et respecte la charte graphique du club.
 
@@ -36,6 +36,8 @@ npm run preview    # prévisualisation du build
 npm run lint       # ESLint
 ```
 
+> Le frontend consomme une API backend dont l'URL est configurée via `VITE_API_URL` (défaut : `http://localhost:4000`). Voir le README backend pour le démarrage de l'API.
+
 ## Structure du projet
 
 ```
@@ -50,12 +52,12 @@ src/
 │   ├── blog/ gallery/ players/ results/ team/ trial/ shop/ calendar/ home/
 │   └── trial/           # FormInput, FormSelect, FormTextarea, FormStatus
 ├── config/site.js       # Config du site (navigation, contact, réseaux, devise)
-├── contexts/AuthContext.jsx   # Authentification (session)
+├── contexts/AuthContext.jsx   # Authentification (session JWT)
 ├── hooks/               # useAuth, useScrollAnimation, useCalendar…
 ├── layouts/AdminLayout.jsx    # Layout du back-office (sidebar fixe + contenu)
 ├── pages/               # Pages publiques (Home, Players, Blog…) + AdminX
 ├── styles/index.css     # Charte @theme + styles globaux (.prose-blog, animations)
-└── utils/               # dateUtils, validators
+└── utils/               # api.js (client HTTP), dateUtils, validators
 ```
 
 ## Pages publiques
@@ -63,10 +65,10 @@ src/
 | Route | Page |
 | --- | --- |
 | `/` | Accueil |
-| `/equipes` | Annuaire des joueurs (16 joueurs, filtres + recherche + fiche détail) |
+| `/equipes` | Annuaire des joueurs (filtres + recherche + fiche détail) |
 | `/equipes/technique/:categorie` | Fiches techniques U9 / U15 / U17 (effectif, staff, objectifs, palmarès) |
 | `/calendrier` | Calendrier interactif (grille mensuelle, filtres, détails d'événement) |
-| `/essais` | Inscription aux essais (formulaire validé, soumission simulée) |
+| `/essais` | Inscription aux essais (formulaire validé, soumission à l'API) |
 | `/galerie` | Galerie photos / vidéos (albums, lightbox, lecteur vidéo) |
 | `/blog` + `/blog/:id` | Blog d'actualités (filtres par catégorie, pagination, article détaillé) |
 | `/resultats` | Résultats & classements (U17 A, U15 Elite) |
@@ -75,9 +77,9 @@ src/
 
 ## Back-office
 
-Accessible sur `/admin` puis `/admin/dashboard`. Une seule route protégée (`ProtectedRoute`) embarque les **9 modules** de gestion, tous en français, avec une **sidebar fixe** (menu mobile coulissant sur mobile/tablette) et un bouton **Déconnexion**.
+Accessible sur `/admin` puis `/admin/dashboard`. Une route protégée (`ProtectedRoute`) embarque les **9 modules** de gestion, tous en français, avec une **sidebar fixe** (menu mobile coulissant sur mobile/tablettes) et un bouton **Déconnexion**.
 
-> **Identifiants de démonstration :** `admin@bfa-academy.com` / `Admin123!` (session simulée stockée dans `localStorage` sous `bfa_admin_token`).
+L'authentification est **réelle** : le frontend envoie les identifiants à `POST /api/auth/login`, reçoit un token JWT et le stocke dans `localStorage` (`bfa_admin_token`). Les requêtes authentifiées passent par `src/utils/api.js` qui injecte le header `Authorization: Bearer <token>` et purge la session en cas de 401.
 
 | Route | Module |
 | --- | --- |
@@ -89,13 +91,22 @@ Accessible sur `/admin` puis `/admin/dashboard`. Une seule route protégée (`Pr
 | `/admin/blog` (+ `/admin/blog/new`) | Blog : stats, filtres Publiés/Brouillons, recherche, éditeur WYSIWYG |
 | `/admin/results` | Résultats & classements : bilan, filtre par type, tableau des résultats |
 | `/admin/shop` (+ `/admin/products/add`) | Boutique : inventaire, filtres catégorie + stock, badges de stock, demandes de devis (réponse par e-mail) |
-| `/admin/settings` | Paramètres : profil administrateur, sauvegarde simulée |
+| `/admin/settings` | Paramètres : profil administrateur, changement de mot de passe |
 
-Composants UI réutilisables du back-office : `ui/Table` (tableaux génériques), `ui/Badge` (statuts), `ui/Modal`, `ui/ConfirmDialog`, `ui/Pagination`, `ui/FileUpload`, `admin/PageHeader`, `admin/StatCard`.
+Composants UI réutilisables du back-office : `ui/Table` (tableaux génériques), `ui/Badge` (statuts), `ui/Modal`, `ui/ConfirmDialog`, `ui/Pagination`, `ui/FileUpload`, `admin/PageHeader`, `admin/StatCard`, `admin/QuickActions`.
+
+## Connexion à l'API
+
+Le client HTTP est centralisé dans [src/utils/api.js](src/utils/api.js) :
+
+- Lit `VITE_API_URL` (défaut `http://localhost:4000`)
+- Injecte automatiquement `Authorization: Bearer <token>` pour les routes authentifiées
+- Gère les erreurs réseau, les 401 (déconnexion + redirection `/admin`) et les réponses non-JSON
+- Masque le token JWT dans les erreurs affichées
 
 ## Données
 
-Plus aucune donnée mock : `src/data/mockData.js` a été supprimé. Les modules **Joueurs** et **Calendrier** (public + back-office) sont branchés sur l'API backend ; les autres modules (galerie, blog, boutique, résultats, équipes…) démarrent en **état vide** et seront branchés à leur tour. L'identité du site (navigation, contact, réseaux sociaux, devise du club) est centralisée dans `src/config/site.js`. Les images restent des placeholders à remplacer par les visuels réels du club.
+Les modules **Joueurs** et **Calendrier** (public + back-office) sont branchés sur l'API backend. Les autres modules (galerie, blog, boutique, résultats, équipes…) démarrent en **état vide** et seront branchés à leur tour. L'identité du site (navigation, contact, réseaux sociaux, devise du club) est centralisée dans `src/config/site.js`. Les images restent des placeholders à remplacer par les visuels réels du club.
 
 ## Notes techniques
 
@@ -103,8 +114,9 @@ Plus aucune donnée mock : `src/data/mockData.js` a été supprimé. Les modules
 - **React Compiler** : la mémoïsation est automatique. Piège connu — ne jamais lire la propriété d'un objet possiblement null (`toDelete?.id`, `selectedProduct?.id`…) au premier niveau d'un handler : la lire uniquement à l'intérieur des callbacks `setState`.
 - **Tailwind v4** : la configuration passe par le fichier CSS (`@theme` dans `src/styles/index.css`), pas de `tailwind.config.js`.
 - **Zones horaires** : les dates sont parsées localement (`src/utils/dateUtils.js`) pour éviter les décalages de fuseau sur les événements du calendrier.
+- **Boutons** : le composant partagé `ui/Button` centralise le style (arrondi `rounded-lg`, effet glare). Il rend un `<a>` (React Router `<Link>`) si `to` est fourni, un `<a>` natif si `href` est fourni, sinon un `<button>`.
 
 ## À venir
 
+- Branchement des modules restants (galerie, blog, boutique, résultats, fiches techniques) sur l'API backend
 - Remplacement des images Unsplash et des vidéos par les médias réels du club
-- Branchement d'une véritable API (authentification, CRUD, upload) à la place des données simulées
