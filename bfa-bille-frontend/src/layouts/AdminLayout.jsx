@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Outlet, useLocation } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars } from '@fortawesome/free-solid-svg-icons'
 import Sidebar from '../components/admin/Sidebar'
@@ -11,10 +11,20 @@ import Sidebar from '../components/admin/Sidebar'
      tablette) + en-tête admin (titre, avatar, déconnexion)
    - Le contenu des pages admin s'affiche via <Outlet />
    - La route parente est protégée par <ProtectedRoute> (@EF48)
+   - Masquage d'URL : l'URL dans la barre d'adresse reste /admin
+     quelle que soit la page admin visitée. La navigation interne
+     du BrowserRouter n'est pas affectée (replaceState ne déclenche
+     pas de re-render du routeur).
    ============================================================ */
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const location = useLocation()
+
+  // À chaque changement de page admin, remplace l'URL affichée par /admin.
+  useEffect(() => {
+    window.history.replaceState({}, '', '/admin')
+  }, [location.pathname])
 
   return (
     <div className="flex min-h-screen bg-clair">
