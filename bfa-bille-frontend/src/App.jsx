@@ -1,10 +1,12 @@
 import {
   BrowserRouter,
+  MemoryRouter,
   Routes,
   Route,
   Navigate,
   useLocation,
 } from 'react-router-dom'
+import { useEffect } from 'react'
 import { AuthProvider } from './contexts/AuthContext'
 import useAuth from './hooks/useAuth'
 import Navbar from './components/layout/Navbar'
@@ -47,23 +49,79 @@ function ProtectedRoute({ children }) {
 }
 
 /* ============================================================
-   AppShell — Layout global + routes
+   AdminApp — Sous-application back-office (MemoryRouter)
    ------------------------------------------------------------
-   Navbar / Footer rendus une seule fois autour des Routes
-   (sauf dans la zone admin /admin/* qui a son propre layout).
-   Sur la page de connexion (/admin), le Footer passe en variante
-   « public » (le bouton Back-office y est masqué).
+   Toute la navigation admin se fait en mémoire : l'URL dans la
+   barre d'adresse reste /admin, les chemins /admin/calendar,
+   /admin/players, etc. ne sont JAMAIS visibles ni accessibles
+   directement. Au montage, on remplace l'URL navigateur par
+   /admin pour masquer le chemin d'entrée éventuel.
+   ============================================================ */
+function AdminApp() {
+  const { isAuthenticated } = useAuth()
+
+  // Au montage : remplace l'URL navigateur par /admin (sans recharger).
+  useEffect(() => {
+    window.history.replaceState({}, '', '/admin')
+  }, [])
+
+  // Point de départ : dashboard si déjà connecté, login sinon.
+  const initialPath = isAuthenticated ? '/admin/dashboard' : '/admin'
+
+  return (
+    <MemoryRouter initialEntries={[initialPath]}>
+      <Routes>
+        <Route path="/admin" element={<AdminLogin />} />
+        <Route
+          element={
+            <ProtectedRoute>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/players" element={<AdminPlayers />} />
+          <Route
+            path="/admin/players/add"
+            element={<AdminPlayers autoAdd />}
+          />
+          <Route path="/admin/calendar" element={<AdminCalendar />} />
+          <Route
+            path="/admin/events/add"
+            element={<AdminCalendar autoAdd />}
+          />
+          <Route path="/admin/trials" element={<AdminTrials />} />
+          <Route path="/admin/gallery" element={<AdminGallery />} />
+          <Route
+            path="/admin/team-sheets"
+            element={<AdminTeamSheets />}
+          />
+          <Route path="/admin/blog" element={<AdminBlog />} />
+          <Route path="/admin/blog/new" element={<AdminBlog autoAdd />} />
+          <Route path="/admin/results" element={<AdminResults />} />
+          <Route path="/admin/shop" element={<AdminShop />} />
+          <Route path="/admin/products/add" element={<AdminShop autoAdd />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
+        </Route>
+      </Routes>
+    </MemoryRouter>
+  )
+}
+
+/* ============================================================
+   AppShell — Layout global + routes publiques
+   ------------------------------------------------------------
+   Navbar / Footer rendus autour des routes publiques.
+   La zone /admin/* est gérée par AdminApp (MemoryRouter) qui
+   a son propre layout (AdminLayout) sans Navbar/Footer.
    ============================================================ */
 function AppShell() {
   const { pathname } = useLocation()
-  const isAdminLogin = pathname === '/admin'
-  const isAdminArea = pathname.startsWith('/admin/')
+  const isAdminSection = pathname.startsWith('/admin')
 
   return (
     <div className="flex min-h-screen flex-col">
-      {!isAdminArea && (
-        <Navbar />
-      )}
+      {!isAdminSection && <Navbar />}
 
       <main className="flex-1">
         <Routes>
@@ -84,48 +142,15 @@ function AppShell() {
           <Route path="/blog/:id" element={<BlogDetails />} />
           <Route path="/resultats" element={<Results />} />
           <Route path="/boutique" element={<Shop />} />
-          <Route path="/admin" element={<AdminLogin />} />
 
-          {/* Zone back-office : layout protégé (@EF48) */}
-          <Route
-            element={
-              <ProtectedRoute>
-                <AdminLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/players" element={<AdminPlayers />} />
-            <Route
-              path="/admin/players/add"
-              element={<AdminPlayers autoAdd />}
-            />
-            <Route path="/admin/calendar" element={<AdminCalendar />} />
-            <Route
-              path="/admin/events/add"
-              element={<AdminCalendar autoAdd />}
-            />
-            <Route path="/admin/trials" element={<AdminTrials />} />
-            <Route path="/admin/gallery" element={<AdminGallery />} />
-            <Route
-              path="/admin/team-sheets"
-              element={<AdminTeamSheets />}
-            />
-            <Route path="/admin/blog" element={<AdminBlog />} />
-            <Route path="/admin/blog/new" element={<AdminBlog autoAdd />} />
-            <Route path="/admin/results" element={<AdminResults />} />
-            <Route path="/admin/shop" element={<AdminShop />} />
-            <Route path="/admin/products/add" element={<AdminShop autoAdd />} />
-            <Route path="/admin/settings" element={<AdminSettings />} />
-          </Route>
+          {/* Zone back-office : MemoryRouter (URL masquée) */}
+          <Route path="/admin/*" element={<AdminApp />} />
 
           <Route path="*" element={<Placeholder page="/" />} />
         </Routes>
       </main>
 
-      {!isAdminArea && (
-        <Footer variant={isAdminLogin ? 'public' : 'default'} />
-      )}
+      {!isAdminSection && <Footer variant="default" />}
     </div>
   )
 }
