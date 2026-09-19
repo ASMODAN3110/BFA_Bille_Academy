@@ -83,11 +83,11 @@ export default function Hero() {
             transition={{ delay: 0.45 }}
             className="mt-9 flex flex-col items-center gap-4 sm:flex-row sm:justify-center lg:justify-start"
           >
-            <Button to="/essais" size="lg" glare>
+            <Button to="/essais" size="sm" glare>
               Inscrire mon enfant
               <span aria-hidden="true">→</span>
             </Button>
-            <Button to="/equipes" variant="outline" size="lg" glare>
+            <Button to="/equipes" variant="outline" size="sm" glare>
               Découvrir les équipes
             </Button>
           </motion.div>

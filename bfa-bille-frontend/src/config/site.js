@@ -11,9 +11,9 @@ export const club = {
   name: 'BFA Bille Academy',
   tagline: 'Former, Discipliner, Révéler',
   city: 'Bille, Cameroun',
-  email: 'contact@bfabilleacademy.com',
-  phone: '+237 690 00 00 00',
-  address: 'Douala — Cameroun',
+  email: 'bfabille.admin@gmail.com',
+  phone: '+237 6 90 50 32 83',
+  address: 'Douala - Cameroun',
   description:
     "Académie de football amateur située au Cameroun. Nous formons l'élite de demain grâce à un encadrement professionnel exigeant, dans le respect des valeurs du football.",
 }
@@ -31,7 +31,7 @@ export const navLinks = [
 
 export const socialLinks = [
   { name: 'Facebook', icon: 'facebook-f', url: 'https://facebook.com' },
-  { name: 'Instagram', icon: 'instagram', url: 'https://instagram.com' },
+  { name: 'Instagram', icon: 'instagram', url: 'https://www.instagram.com/bille.football/' },
   { name: 'X (Twitter)', icon: 'x-twitter', url: 'https://x.com' },
   { name: 'YouTube', icon: 'youtube', url: 'https://youtube.com' },
 ]

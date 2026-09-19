@@ -37,7 +37,7 @@ export default function Footer({ variant = 'default' }) {
 
   return (
     <footer className="bg-vert-dark text-white">
-      <div className="mx-auto max-w-7xl mt-10 pl-4">
+      <div className="mx-auto max-w-7xl mt-5 pl-4">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
           {/* Logo + description + réseaux */}
           <div className="lg:col-span-2 lg:pr-8">
@@ -83,7 +83,7 @@ export default function Footer({ variant = 'default' }) {
               Liens rapides
             </h3>
             <ul className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-              {navLinks.slice(0, 6).map((link) => (
+              {navLinks.slice(0, 7).map((link) => (
                 <li key={link.to}>
                   <Link
                     to={link.to}
