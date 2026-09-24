@@ -61,7 +61,7 @@ function AppShell() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      {!isAdminArea && !isAdminLogin && (
+      {!isAdminArea && (
         <Navbar />
       )}
 
@@ -123,7 +123,7 @@ function AppShell() {
         </Routes>
       </main>
 
-      {!isAdminArea && !isAdminLogin && (
+      {!isAdminArea && (
         <Footer variant="default" />
       )}
     </div>

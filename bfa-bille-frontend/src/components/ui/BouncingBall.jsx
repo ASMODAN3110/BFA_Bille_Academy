@@ -57,7 +57,7 @@ import ballonFootball from '../../assets/ballon-football.png'
 
 export default function BouncingBall({
   src = ballonFootball,
-  height = 'clamp(11rem, 20vw, 14rem)',
+  height = 'clamp(5.5rem, 10vw, 7rem)',
   speed = 1.8,
   bounceHeight = 140,
   shadowIntensity = 0.35,
