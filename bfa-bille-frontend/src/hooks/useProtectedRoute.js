@@ -1,3 +1,4 @@
+import { createElement } from 'react'
 import { Navigate } from 'react-router-dom'
 import useAuth from './useAuth'
 
@@ -15,7 +16,9 @@ export default function useProtectedRoute() {
   const { isAuthenticated } = useAuth()
 
   function Protected({ children }) {
-    return isAuthenticated ? children : <Navigate to="/admin" replace />
+    return isAuthenticated
+      ? children
+      : createElement(Navigate, { to: '/admin', replace: true })
   }
 
   return { isAuthenticated, Protected }
