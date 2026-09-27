@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Variables d'environnement (jamais versionnées — secrets)
+.env
+.env.*
+!.env.example
+
+# Couverture de tests
+coverage/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +30,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

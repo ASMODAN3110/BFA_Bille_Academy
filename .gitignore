@@ -1,0 +1,9 @@
+# Variables d'environnement (jamais versionnées — secrets)
+# .env.prod contient la config de déploiement : il reste local au VPS.
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
