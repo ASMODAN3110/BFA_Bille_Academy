@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import {
   BrowserRouter,
   Routes,
@@ -10,28 +11,33 @@ import useAuth from './hooks/useAuth'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
 import Home from './pages/Home'
-import Players from './pages/Players'
-import Calendar from './pages/Calendar'
-import Trials from './pages/Trials'
-import Gallery from './pages/Gallery'
-import TeamSheet from './pages/TeamSheet'
-import Blog from './pages/Blog'
-import BlogDetails from './pages/BlogDetails'
-import Results from './pages/Results'
-import Shop from './pages/Shop'
-import AdminLogin from './pages/AdminLogin'
-import AdminDashboard from './pages/AdminDashboard'
-import AdminPlayers from './pages/AdminPlayers'
-import AdminCalendar from './pages/AdminCalendar'
-import AdminTrials from './pages/AdminTrials'
-import AdminGallery from './pages/AdminGallery'
-import AdminTeamSheets from './pages/AdminTeamSheets'
-import AdminBlog from './pages/AdminBlog'
-import AdminResults from './pages/AdminResults'
-import AdminShop from './pages/AdminShop'
-import AdminSettings from './pages/AdminSettings'
-import AdminLayout from './layouts/AdminLayout'
-import Placeholder from './pages/Placeholder'
+
+/* Code-splitting par route (@ENF-ACC-05) : chaque page est chargée à la
+   demande via React.lazy — le bundle initial ne contient que le shell
+   (Navbar/Footer/Auth) + la page d'accueil. */
+const Players = lazy(() => import('./pages/Players'))
+const Calendar = lazy(() => import('./pages/Calendar'))
+const Trials = lazy(() => import('./pages/Trials'))
+const Gallery = lazy(() => import('./pages/Gallery'))
+const TeamSheet = lazy(() => import('./pages/TeamSheet'))
+const Blog = lazy(() => import('./pages/Blog'))
+const BlogDetails = lazy(() => import('./pages/BlogDetails'))
+const Results = lazy(() => import('./pages/Results'))
+const Shop = lazy(() => import('./pages/Shop'))
+const AdminLogin = lazy(() => import('./pages/AdminLogin'))
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
+const AdminPlayers = lazy(() => import('./pages/AdminPlayers'))
+const AdminCategories = lazy(() => import('./pages/AdminCategories'))
+const AdminCalendar = lazy(() => import('./pages/AdminCalendar'))
+const AdminTrials = lazy(() => import('./pages/AdminTrials'))
+const AdminGallery = lazy(() => import('./pages/AdminGallery'))
+const AdminTeamSheets = lazy(() => import('./pages/AdminTeamSheets'))
+const AdminBlog = lazy(() => import('./pages/AdminBlog'))
+const AdminResults = lazy(() => import('./pages/AdminResults'))
+const AdminShop = lazy(() => import('./pages/AdminShop'))
+const AdminSettings = lazy(() => import('./pages/AdminSettings'))
+const AdminLayout = lazy(() => import('./layouts/AdminLayout'))
+const Placeholder = lazy(() => import('./pages/Placeholder'))
 
 /* ============================================================
    ProtectedRoute — Garde-fou des pages back-office (@EF48)
@@ -66,7 +72,18 @@ function AppShell() {
       )}
 
       <main className="flex-1">
-        <Routes>
+        <Suspense
+          fallback={
+            <div
+              className="flex min-h-[50vh] items-center justify-center"
+              role="status"
+              aria-label="Chargement de la page"
+            >
+              <div className="h-10 w-10 animate-spin rounded-full border-4 border-vert/20 border-t-vert" />
+            </div>
+          }
+        >
+          <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/equipes" element={<Players />} />
           <Route
@@ -100,6 +117,7 @@ function AppShell() {
               path="/admin/players/add"
               element={<AdminPlayers autoAdd />}
             />
+            <Route path="/admin/categories" element={<AdminCategories />} />
             <Route path="/admin/calendar" element={<AdminCalendar />} />
             <Route
               path="/admin/events/add"
@@ -119,8 +137,9 @@ function AppShell() {
             <Route path="/admin/settings" element={<AdminSettings />} />
           </Route>
 
-          <Route path="*" element={<Placeholder page="/" />} />
-        </Routes>
+            <Route path="*" element={<Placeholder page="/" />} />
+          </Routes>
+        </Suspense>
       </main>
 
       {!isAdminArea && (
