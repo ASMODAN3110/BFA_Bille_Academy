@@ -28,7 +28,7 @@ export default function PlayerGrid({ players, onSelect }) {
         <p className="mt-4 font-semibold text-sombre">
           Aucun joueur dans cette catégorie.
         </p>
-        <p className="mt-1 text-sm text-sombre/60">
+        <p className="mt-1 text-sm text-sombre/75">
           Modifiez le filtre pour afficher d&rsquo;autres joueurs.
         </p>
       </div>

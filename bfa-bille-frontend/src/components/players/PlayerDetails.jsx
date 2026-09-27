@@ -87,6 +87,7 @@ export default function PlayerDetails({ player, onClose }) {
                   <img
                     src={player.photo}
                     alt={`Photo de ${player.nom}`}
+                    loading="lazy"
                     className="h-56 w-full object-cover sm:h-full sm:min-h-[300px]"
                   />
                 ) : (
@@ -110,13 +111,13 @@ export default function PlayerDetails({ player, onClose }) {
 
                 <div className="mt-5 grid grid-cols-2 gap-3">
                   <div className="rounded-xl bg-clair p-3">
-                    <p className="text-xs text-sombre/60">Âge</p>
+                    <p className="text-xs text-sombre/75">Âge</p>
                     <p className="mt-0.5 font-bold text-sombre">
                       {player.dateNaissance ? getAge(player.dateNaissance) : '—'} ans
                     </p>
                   </div>
                   <div className="rounded-xl bg-clair p-3">
-                    <p className="text-xs text-sombre/60">Arrivée au club</p>
+                    <p className="text-xs text-sombre/75">Arrivée au club</p>
                     <p className="mt-0.5 font-bold text-sombre">
                       {player.dateArrivee ? formatDate(player.dateArrivee) : '—'}
                     </p>

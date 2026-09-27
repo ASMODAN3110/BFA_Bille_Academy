@@ -20,7 +20,7 @@ const STATUS_VARIANT = {
 function Field({ label, value }) {
   return (
     <div>
-      <p className="text-xs font-bold uppercase tracking-wider text-sombre/50">
+      <p className="text-xs font-bold uppercase tracking-wider text-sombre/75">
         {label}
       </p>
       <p className="mt-1 text-sm font-semibold text-sombre">{value || '—'}</p>
@@ -84,7 +84,7 @@ export default function TrialDetailsModal({ open, onClose, trial }) {
       </div>
 
       <div className="mt-5 rounded-xl border border-clair bg-clair/40 p-4">
-        <p className="text-xs font-bold uppercase tracking-wider text-sombre/50">
+        <p className="text-xs font-bold uppercase tracking-wider text-sombre/75">
           Message du candidat
         </p>
         <p className="mt-1.5 text-sm text-sombre">

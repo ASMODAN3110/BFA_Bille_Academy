@@ -49,7 +49,7 @@ export default function ThemeFilter({
         ))}
       </div>
 
-      <p className="flex items-center gap-2 text-sm text-sombre/60">
+      <p className="flex items-center gap-2 text-sm text-sombre/75">
         <FontAwesomeIcon icon={faImages} className="h-4 w-4 text-vert" />
         <span>
           <span className="font-bold text-vert">{count}</span> album(s)

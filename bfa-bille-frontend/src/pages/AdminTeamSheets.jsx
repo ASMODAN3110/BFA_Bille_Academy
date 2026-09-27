@@ -55,7 +55,7 @@ function FormTextarea({ label, name, value, onChange, rows = 4, error, hint, pla
         placeholder={placeholder}
         aria-invalid={hasError}
         aria-describedby={hasError ? `${name}-error` : undefined}
-        className={`w-full resize-y rounded-xl border-2 bg-white px-4 py-3 text-sombre placeholder:text-sombre/40 transition-all duration-200 focus:outline-none focus:ring-2 ${
+        className={`w-full resize-y rounded-xl border-2 bg-white px-4 py-3 text-sombre placeholder:text-sombre/75 transition-all duration-200 focus:outline-none focus:ring-2 ${
           hasError
             ? 'border-erreur focus:border-erreur focus:ring-erreur/30'
             : 'border-clair focus:border-dore focus:ring-dore/40'
@@ -67,7 +67,7 @@ function FormTextarea({ label, name, value, onChange, rows = 4, error, hint, pla
         </p>
       )}
       {hint && !hasError && (
-        <p className="mt-1.5 text-xs text-sombre/50">{hint}</p>
+        <p className="mt-1.5 text-xs text-sombre/75">{hint}</p>
       )}
     </div>
   )
@@ -250,7 +250,7 @@ export default function AdminTeamSheets() {
       )}
 
       {categoriesLoading ? (
-        <p className="py-10 text-center text-sm text-sombre/60">
+        <p className="py-10 text-center text-sm text-sombre/75">
           Chargement des catégories…
         </p>
       ) : categoriesError ? (
@@ -272,7 +272,7 @@ export default function AdminTeamSheets() {
           />
 
           {loadingFiche ? (
-            <p className="py-10 text-center text-sm text-sombre/60">
+            <p className="py-10 text-center text-sm text-sombre/75">
               Chargement de la fiche…
             </p>
           ) : fetchError ? (
@@ -361,7 +361,7 @@ export default function AdminTeamSheets() {
                       minWidth={0}
                     />
                   ) : (
-                    <p className="rounded-xl border border-dashed border-clair px-4 py-5 text-center text-sm text-sombre/60">
+                    <p className="rounded-xl border border-dashed border-clair px-4 py-5 text-center text-sm text-sombre/75">
                       {fiche
                         ? "Aucun joueur dans l'effectif de cette catégorie."
                         : 'L\'effectif est géré depuis la page Équipes (Module 1) — créez la fiche pour la lier à la catégorie.'}

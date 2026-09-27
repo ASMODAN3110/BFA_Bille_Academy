@@ -101,7 +101,7 @@ export default function Gallery() {
         />
 
         {loading ? (
-          <p className="py-10 text-center text-sm text-sombre/60">
+          <p className="py-10 text-center text-sm text-sombre/75">
             Chargement de la galerie…
           </p>
         ) : error ? (
@@ -113,7 +113,7 @@ export default function Gallery() {
           </div>
         ) : (
           <>
-            <p className="mb-8 text-center text-sm text-sombre/60">
+            <p className="mb-8 text-center text-sm text-sombre/75">
               {filteredAlbums.length} album
               {filteredAlbums.length > 1 ? 's' : ''} affiché
               {filteredAlbums.length > 1 ? 's' : ''}

@@ -180,7 +180,7 @@ export default function AdminPlayers({ autoAdd = false }) {
       <PlayerStats players={players} />
 
       {loading ? (
-        <p className="text-center text-sm text-sombre/60">
+        <p className="text-center text-sm text-sombre/75">
           Chargement des joueurs…
         </p>
       ) : error ? (

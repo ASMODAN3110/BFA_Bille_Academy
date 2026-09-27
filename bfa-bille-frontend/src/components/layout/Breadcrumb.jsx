@@ -32,7 +32,7 @@ export default function Breadcrumb({ items = [], className = '' }) {
             {item.href && !isLast ? (
               <Link
                 to={item.href}
-                className="font-medium text-sombre/60 transition-colors hover:text-vert"
+                className="font-medium text-sombre/75 transition-colors hover:text-vert"
               >
                 {item.label}
               </Link>
@@ -42,7 +42,7 @@ export default function Breadcrumb({ items = [], className = '' }) {
                 className={
                   isLast
                     ? 'font-bold text-dore-dark'
-                    : 'font-medium text-sombre/60'
+                    : 'font-medium text-sombre/75'
                 }
               >
                 {item.label}

@@ -42,7 +42,7 @@ export default function TrialActions({
         onClick={() => onDetails(trial)}
         aria-label={`Voir les détails de ${name}`}
         title="Voir détails"
-        className={`${actionButtonClasses} text-sombre/50 hover:bg-vert/10 hover:text-vert`}
+        className={`${actionButtonClasses} text-sombre/75 hover:bg-vert/10 hover:text-vert`}
       >
         <FontAwesomeIcon icon={faEye} className="h-4 w-4" />
       </button>
@@ -71,7 +71,7 @@ export default function TrialActions({
         onClick={() => onDelete(trial)}
         aria-label={`Supprimer ${name}`}
         title="Supprimer"
-        className={`${actionButtonClasses} text-sombre/40 hover:bg-erreur/10 hover:text-erreur`}
+        className={`${actionButtonClasses} text-sombre/75 hover:bg-erreur/10 hover:text-erreur`}
       >
         <FontAwesomeIcon icon={faTrash} className="h-4 w-4" />
       </button>

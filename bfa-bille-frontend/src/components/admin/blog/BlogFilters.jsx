@@ -39,7 +39,7 @@ export default function BlogFilters({ selected, onSelect, articles }) {
             {f.key}
             <span
               className={`ml-1 rounded-full px-2 py-0.5 text-xs font-bold ${
-                active ? 'bg-white/20 text-white' : 'bg-clair text-sombre/60'
+                active ? 'bg-white/20 text-white' : 'bg-clair text-sombre/75'
               }`}
             >
               {countFor(f.key)}
@@ -48,7 +48,7 @@ export default function BlogFilters({ selected, onSelect, articles }) {
         )
       })}
 
-      <span className="ml-auto flex items-center gap-1.5 text-xs font-semibold text-sombre/50">
+      <span className="ml-auto flex items-center gap-1.5 text-xs font-semibold text-sombre/75">
         <FontAwesomeIcon icon={faLayerGroup} className="h-3.5 w-3.5" />
         {articles.length} article(s) au total
       </span>

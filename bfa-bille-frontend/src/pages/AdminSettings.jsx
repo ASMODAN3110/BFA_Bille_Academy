@@ -124,7 +124,7 @@ export default function AdminSettings() {
       {/* --- 1. Profil ------------------------------------------------- */}
       <Card className="p-5 md:p-6">
         <h2 className="text-lg font-bold text-sombre">Profil administrateur</h2>
-        <p className="mt-0.5 text-sm text-sombre/60">
+        <p className="mt-0.5 text-sm text-sombre/75">
           Nom et e-mail affichés dans le back-office.
         </p>
 
@@ -165,7 +165,7 @@ export default function AdminSettings() {
       {/* --- 2. Mot de passe ------------------------------------------- */}
       <Card className="p-5 md:p-6">
         <h2 className="text-lg font-bold text-sombre">Mot de passe</h2>
-        <p className="mt-0.5 text-sm text-sombre/60">
+        <p className="mt-0.5 text-sm text-sombre/75">
           Modifiez le mot de passe de votre compte.
         </p>
 

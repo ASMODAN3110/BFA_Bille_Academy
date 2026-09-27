@@ -37,7 +37,7 @@ export default function ResultsList({ results = [] }) {
         className="rounded-xl border border-dashed border-dore/40 px-6 py-12 text-center"
       >
         <FontAwesomeIcon icon={faCalendarDays} className="h-8 w-8 text-dore-dark" />
-        <p className="mt-3 text-sm text-sombre/60">
+        <p className="mt-3 text-sm text-sombre/75">
           Aucun résultat dans cette catégorie pour le moment.
         </p>
       </motion.div>

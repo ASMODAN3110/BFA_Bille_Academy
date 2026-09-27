@@ -56,7 +56,7 @@ export default function BlogCard({ post }) {
 
           {/* Contenu */}
           <div className="p-5 md:p-6">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-sombre/60">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-sombre/75">
               <span className="flex items-center gap-1.5">
                 <FontAwesomeIcon
                   icon={faCalendarDays}
@@ -77,7 +77,7 @@ export default function BlogCard({ post }) {
               {post.titre}
             </h3>
 
-            <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-sombre/70">
+            <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-sombre/75">
               {post.extrait}
             </p>
 

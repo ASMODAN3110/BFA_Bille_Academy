@@ -118,7 +118,7 @@ export default function TeamSheet() {
 
         {/* Contenu de la fiche */}
         {categoriesLoading ? (
-          <p className="mt-10 py-10 text-center text-sm text-sombre/60">
+          <p className="mt-10 py-10 text-center text-sm text-sombre/75">
             Chargement des catégories…
           </p>
         ) : categoriesError ? (
@@ -132,7 +132,7 @@ export default function TeamSheet() {
           /* Redirection en cours vers la 1re catégorie réelle. */
           null
         ) : loading ? (
-          <p className="mt-10 py-10 text-center text-sm text-sombre/60">
+          <p className="mt-10 py-10 text-center text-sm text-sombre/75">
             Chargement de la fiche…
           </p>
         ) : error || !fiche ? (
@@ -143,7 +143,7 @@ export default function TeamSheet() {
             <p className="mt-5 font-semibold text-sombre">
               {error ?? 'Fiche technique non disponible pour cette catégorie.'}
             </p>
-            <p className="mt-2 text-sm text-sombre/60">
+            <p className="mt-2 text-sm text-sombre/75">
               {error
                 ? 'Réessayez dans quelques instants.'
                 : 'Aucune fiche technique pour cette catégorie pour le moment.'}

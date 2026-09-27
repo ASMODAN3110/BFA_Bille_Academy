@@ -73,11 +73,11 @@ export default function MediaUploadModal({ open, onClose, album, onUpload }) {
     >
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-vert/5 px-4 py-3">
-          <p className="text-sm text-sombre/70">
+          <p className="text-sm text-sombre/75">
             Album :{' '}
             <span className="font-bold text-vert">{album?.titre}</span>
           </p>
-          <p className="text-sm text-sombre/60">
+          <p className="text-sm text-sombre/75">
             {album?.medias.length ?? 0} média(s) déjà présents
           </p>
         </div>

@@ -133,7 +133,7 @@ export default function Editor({
               aria-label={item.label}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => apply(item)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-sombre/60 transition hover:bg-vert/10 hover:text-vert active:scale-90"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-sombre/75 transition hover:bg-vert/10 hover:text-vert active:scale-90"
             >
               <FontAwesomeIcon icon={item.icon} className="h-3.5 w-3.5" />
             </button>
@@ -152,7 +152,7 @@ export default function Editor({
           required={required}
           aria-invalid={hasError}
           aria-describedby={hasError ? `${name}-error` : undefined}
-          className="w-full resize-y bg-white px-4 py-3 text-sombre placeholder:text-sombre/40 focus:outline-none"
+          className="w-full resize-y bg-white px-4 py-3 text-sombre placeholder:text-sombre/75 focus:outline-none"
         />
       </div>
 

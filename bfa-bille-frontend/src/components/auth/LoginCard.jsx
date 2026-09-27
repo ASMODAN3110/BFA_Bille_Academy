@@ -38,7 +38,7 @@ export default function LoginCard({ title, subtitle, children }) {
           </h1>
 
           {subtitle && (
-            <p className="mt-2 text-center text-sm leading-relaxed text-sombre/60">
+            <p className="mt-2 text-center text-sm leading-relaxed text-sombre/75">
               {subtitle}
             </p>
           )}

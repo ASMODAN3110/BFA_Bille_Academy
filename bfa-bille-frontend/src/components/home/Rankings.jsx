@@ -75,7 +75,7 @@ export default function Rankings() {
                       </span>
                       <span className="text-sm font-black text-dore-dark">
                         {team.points}
-                        <span className="ml-1 text-xs font-medium text-sombre/50">
+                        <span className="ml-1 text-xs font-medium text-sombre/75">
                           pts
                         </span>
                       </span>

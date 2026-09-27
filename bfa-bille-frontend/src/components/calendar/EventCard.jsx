@@ -53,11 +53,11 @@ export default function EventCard({ event, onSelect }) {
             <h3 className="truncate font-bold text-sombre transition-colors group-hover:text-vert">
               {event.titre}
             </h3>
-            <p className="mt-1 flex items-center gap-1.5 text-xs text-sombre/60">
+            <p className="mt-1 flex items-center gap-1.5 text-xs text-sombre/75">
               <FontAwesomeIcon icon={faClock} className="h-3.5 w-3.5 text-dore-dark" />
               {event.heure}
             </p>
-            <p className="mt-0.5 flex items-center gap-1.5 text-xs text-sombre/60">
+            <p className="mt-0.5 flex items-center gap-1.5 text-xs text-sombre/75">
               <FontAwesomeIcon
                 icon={faMapLocationDot}
                 className="h-3.5 w-3.5 text-dore-dark"

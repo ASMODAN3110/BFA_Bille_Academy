@@ -70,7 +70,7 @@ export default function UsersManager() {
             <FontAwesomeIcon icon={faUsers} className="h-4 w-4 text-vert" />
             Utilisateurs
           </h2>
-          <p className="mt-0.5 text-sm text-sombre/60">
+          <p className="mt-0.5 text-sm text-sombre/75">
             Comptes autorisés à accéder au back-office.
           </p>
         </div>
@@ -87,9 +87,9 @@ export default function UsersManager() {
       )}
 
       {loading ? (
-        <p className="mt-5 text-center text-sm text-sombre/50">Chargement…</p>
+        <p className="mt-5 text-center text-sm text-sombre/75">Chargement…</p>
       ) : admins.length === 0 ? (
-        <p className="mt-5 py-8 text-center text-sm text-sombre/50">
+        <p className="mt-5 py-8 text-center text-sm text-sombre/75">
           <FontAwesomeIcon icon={faUserPlus} className="mx-auto mb-2 block h-8 w-8 text-sombre/20" />
           Aucun utilisateur. Créez le premier compte.
         </p>
@@ -106,8 +106,8 @@ export default function UsersManager() {
                       <Badge variant="success">Vous</Badge>
                     )}
                   </p>
-                  <p className="mt-0.5 truncate text-sm text-sombre/60">{a.email}</p>
-                  <p className="text-xs text-sombre/50">
+                  <p className="mt-0.5 truncate text-sm text-sombre/75">{a.email}</p>
+                  <p className="text-xs text-sombre/75">
                     {a.roleLabel} · Créé le {a.dateCreationFr} · Dernière connexion {a.derniereConnexionFr}
                   </p>
                 </div>

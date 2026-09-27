@@ -196,7 +196,7 @@ export default function AdminResults() {
       </motion.div>
 
       <Card className="flex flex-wrap items-center justify-between gap-3 p-4 md:p-5">
-        <p className="text-sm text-sombre/60">
+        <p className="text-sm text-sombre/75">
           <span className="font-bold text-vert">{filtered.length}</span>{' '}
           rencontre(s) sur {results.length}
         </p>
@@ -214,7 +214,7 @@ export default function AdminResults() {
       </Card>
 
       {loading ? (
-        <p className="text-center text-sm text-sombre/60">
+        <p className="text-center text-sm text-sombre/75">
           Chargement des résultats…
         </p>
       ) : error ? (

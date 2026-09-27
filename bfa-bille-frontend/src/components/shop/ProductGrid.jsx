@@ -27,7 +27,7 @@ export default function ProductGrid({ products, onQuote }) {
         <h3 className="mt-5 text-lg font-bold text-sombre">
           Aucun produit dans cette catégorie
         </h3>
-        <p className="mt-2 text-sm text-sombre/60">
+        <p className="mt-2 text-sm text-sombre/75">
           De nouveaux produits dérivés arrivent bientôt dans la boutique.
         </p>
       </motion.div>

@@ -34,6 +34,7 @@ export default function PlayerTable({ players, onEdit, onDelete }) {
             <img
               src={row.photo}
               alt={row.nom}
+              loading="lazy"
               className="h-9 w-9 shrink-0 rounded-full object-cover"
             />
           ) : (
@@ -43,7 +44,7 @@ export default function PlayerTable({ players, onEdit, onDelete }) {
           )}
           <div className="min-w-0">
             <p className="truncate font-semibold text-sombre">{row.nom}</p>
-            <p className="truncate text-xs text-sombre/60">{row.prenom}</p>
+            <p className="truncate text-xs text-sombre/75">{row.prenom}</p>
           </div>
         </div>
       ),
@@ -95,10 +96,10 @@ export default function PlayerTable({ players, onEdit, onDelete }) {
           icon={faUsers}
           className="mx-auto h-10 w-10 text-sombre/20"
         />
-        <p className="mt-3 font-bold text-sombre/70">
+        <p className="mt-3 font-bold text-sombre/75">
           Aucun joueur pour le moment.
         </p>
-        <p className="mt-1 text-sm text-sombre/50">
+        <p className="mt-1 text-sm text-sombre/75">
           Ajoutez le premier joueur pour l'afficher ici.
         </p>
       </Card>

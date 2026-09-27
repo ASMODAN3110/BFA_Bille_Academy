@@ -44,10 +44,10 @@ export default function ProductCard({ product, onQuote }) {
           <h3 className="text-lg font-bold text-sombre transition-colors duration-300 group-hover:text-vert">
             {product.nom}
           </h3>
-          <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-sombre/70">
+          <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-sombre/75">
             {product.description}
           </p>
-          <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-sombre/50">
+          <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-sombre/75">
             Taille : {product.tailles.join(', ')}
           </p>
 

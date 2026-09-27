@@ -20,10 +20,10 @@ export default function MediaGrid({ album, onPreview, onDeleteMedia }) {
     return (
       <div className="rounded-2xl border border-dashed border-clair p-10 text-center">
         <FontAwesomeIcon icon={faVideo} className="mx-auto h-10 w-10 text-sombre/20" />
-        <p className="mt-3 font-bold text-sombre/70">
+        <p className="mt-3 font-bold text-sombre/75">
           Aucun média dans cet album.
         </p>
-        <p className="mt-1 text-sm text-sombre/50">
+        <p className="mt-1 text-sm text-sombre/75">
           Utilisez « Ajouter des médias » pour importer des photos ou vidéos.
         </p>
       </div>

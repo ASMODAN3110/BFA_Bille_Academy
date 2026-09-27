@@ -90,7 +90,7 @@ export default function Calendar() {
         />
 
         {loading ? (
-          <p className="mb-8 text-center text-sm text-sombre/60">
+          <p className="mb-8 text-center text-sm text-sombre/75">
             Chargement des événements…
           </p>
         ) : error ? (

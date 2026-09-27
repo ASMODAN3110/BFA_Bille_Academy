@@ -36,17 +36,17 @@ export default function ResultsTable({ results, onEdit, onDelete }) {
             className={`rounded-full px-2.5 py-1 text-xs font-bold ${
               row.equipeA.includes('BFA')
                 ? 'bg-vert/10 text-vert'
-                : 'bg-clair text-sombre/70'
+                : 'bg-clair text-sombre/75'
             }`}
           >
             {row.equipeA}
           </span>
-          <span className="text-xs text-sombre/50">contre</span>
+          <span className="text-xs text-sombre/75">contre</span>
           <span
             className={`rounded-full px-2.5 py-1 text-xs font-bold ${
               row.equipeB.includes('BFA')
                 ? 'bg-vert/10 text-vert'
-                : 'bg-clair text-sombre/70'
+                : 'bg-clair text-sombre/75'
             }`}
           >
             {row.equipeB}
@@ -108,10 +108,10 @@ export default function ResultsTable({ results, onEdit, onDelete }) {
           icon={faFutbol}
           className="mx-auto h-10 w-10 text-sombre/20"
         />
-        <p className="mt-3 font-bold text-sombre/70">
+        <p className="mt-3 font-bold text-sombre/75">
           Aucun résultat pour le moment.
         </p>
-        <p className="mt-1 text-sm text-sombre/50">
+        <p className="mt-1 text-sm text-sombre/75">
           Les résultats seront chargés depuis le backend.
         </p>
       </Card>

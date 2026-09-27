@@ -145,7 +145,7 @@ export default function AdminCalendar({ autoAdd = false }) {
       />
 
       {loading ? (
-        <p className="text-center text-sm text-sombre/60">
+        <p className="text-center text-sm text-sombre/75">
           Chargement des événements…
         </p>
       ) : error ? (

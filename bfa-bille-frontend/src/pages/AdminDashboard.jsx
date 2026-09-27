@@ -53,7 +53,7 @@ export default function AdminDashboard() {
         <h1 className="text-2xl font-extrabold tracking-tight text-vert md:text-3xl">
           Tableau de bord
         </h1>
-        <p className="mt-1 text-sm text-sombre/60">
+        <p className="mt-1 text-sm text-sombre/75">
           Aperçu de l'activité de l'académie : effectifs, contenus et demandes
           récentes.
         </p>
@@ -65,7 +65,7 @@ export default function AdminDashboard() {
           Impossible de charger les statistiques — {error}
         </div>
       ) : stats === null ? (
-        <div className="rounded-2xl border border-clair bg-white px-4 py-8 text-center text-sm text-sombre/50">
+        <div className="rounded-2xl border border-clair bg-white px-4 py-8 text-center text-sm text-sombre/75">
           Chargement des statistiques…
         </div>
       ) : (

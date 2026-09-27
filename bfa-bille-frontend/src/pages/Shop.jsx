@@ -70,7 +70,7 @@ export default function Shop() {
           onChange={setSelectedCategory}
         />
 
-        <p className="mb-8 text-center text-sm text-sombre/60">
+        <p className="mb-8 text-center text-sm text-sombre/75">
           {filteredProducts.length} produit
           {filteredProducts.length > 1 ? 's' : ''}
           {selectedCategory !== 'Tous' && ` · ${selectedCategory}`}

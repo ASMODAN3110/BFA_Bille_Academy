@@ -103,7 +103,7 @@ export default function CalendarGrid({
           {DAY_NAMES.map((name) => (
             <div
               key={name}
-              className="py-2 text-center text-xs font-bold uppercase tracking-wider text-sombre/50"
+              className="py-2 text-center text-xs font-bold uppercase tracking-wider text-sombre/75"
             >
               {name}
             </div>
@@ -129,8 +129,9 @@ export default function CalendarGrid({
                       ? 'bg-vert font-bold text-white shadow-md'
                       : cell.current
                         ? 'text-sombre hover:bg-clair'
-                        : 'text-sombre/25'
+                        : 'text-sombre/40'
                   }`}
+                  aria-disabled={cell.current ? undefined : 'true'}
                 >
                   {cell.day}
                 </div>

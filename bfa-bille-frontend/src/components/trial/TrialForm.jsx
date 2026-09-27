@@ -96,7 +96,7 @@ export default function TrialForm() {
               touched={touched.age}
             />
             {loading ? (
-              <p className="text-sm text-sombre/60">
+              <p className="text-sm text-sombre/75">
                 Chargement des catégories…
               </p>
             ) : error ? (
@@ -218,7 +218,7 @@ export default function TrialForm() {
             )}
 
             {submitStatus !== 'success' && (
-              <p className="text-xs text-sombre/50">
+              <p className="text-xs text-sombre/75">
                 Les champs marqués d'un <span className="text-erreur">*</span>{' '}
                 sont obligatoires.
               </p>

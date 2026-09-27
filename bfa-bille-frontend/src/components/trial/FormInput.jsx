@@ -59,7 +59,7 @@ export default function FormInput({
           required={required}
           aria-invalid={hasError}
           aria-describedby={hasError ? `${name}-error` : undefined}
-          className={`w-full rounded-xl border-2 bg-white px-4 py-3 text-sombre placeholder:text-sombre/40 transition-all duration-200 focus:outline-none focus:ring-2 ${hasError ? 'animate-shake' : ''} ${STATUS_BORDER[status]}`}
+          className={`w-full rounded-xl border-2 bg-white px-4 py-3 text-sombre placeholder:text-sombre/75 transition-all duration-200 focus:outline-none focus:ring-2 ${hasError ? 'animate-shake' : ''} ${STATUS_BORDER[status]}`}
           {...props}
         />
 

@@ -22,7 +22,6 @@ export default function TeamSelector({ categories, active, onChange }) {
             type="button"
             variant={isActive ? 'filter-active' : 'filter'}
             onClick={() => onChange(category)}
-            aria-pressed={isActive}
             role="tab"
             aria-selected={isActive}
             className="min-w-20 rounded-full px-8"

@@ -7,6 +7,7 @@ import {
   faGaugeHigh,
   faGear,
   faImages,
+  faLayerGroup,
   faNewspaper,
   faRightFromBracket,
   faTrophy,
@@ -30,6 +31,7 @@ import logo from '../../assets/logo-removebg-preview.png'
 const NAV_ITEMS = [
   { to: '/admin/dashboard', label: 'Tableau de bord', icon: faGaugeHigh },
   { to: '/admin/players', label: 'Équipes', icon: faUsers },
+  { to: '/admin/categories', label: 'Catégories', icon: faLayerGroup },
   { to: '/admin/calendar', label: 'Calendrier', icon: faCalendarDays },
   { to: '/admin/trials', label: 'Essais', icon: faUserCheck },
   { to: '/admin/gallery', label: 'Galerie', icon: faImages },
@@ -45,7 +47,7 @@ const linkClasses = ({ isActive }) =>
     'flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors duration-200',
     isActive
       ? 'bg-vert text-dore'
-      : 'text-sombre/60 hover:bg-clair hover:text-vert',
+      : 'text-sombre/75 hover:bg-clair hover:text-vert',
   ].join(' ')
 
 export default function Sidebar({ open, onClose }) {
@@ -82,7 +84,7 @@ export default function Sidebar({ open, onClose }) {
             />
             <span className="flex flex-col leading-tight">
               <span className="text-base font-extrabold text-vert">BFA Admin</span>
-              <span className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-sombre/50">
+              <span className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-sombre/75">
                 Back-office
               </span>
             </span>
@@ -91,7 +93,7 @@ export default function Sidebar({ open, onClose }) {
             type="button"
             onClick={onClose}
             aria-label="Fermer le menu"
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-sombre/60 transition hover:bg-clair hover:text-vert lg:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-sombre/75 transition hover:bg-clair hover:text-vert lg:hidden"
           >
             <FontAwesomeIcon icon={faXmark} className="h-5 w-5" />
           </button>

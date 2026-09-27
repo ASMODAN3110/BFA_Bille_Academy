@@ -40,7 +40,7 @@ export default function Placeholder({ page }) {
         <h1 className="mt-6 text-3xl font-extrabold text-vert md:text-4xl">
           {title}
         </h1>
-        <p className="mt-4 text-sombre/70">
+        <p className="mt-4 text-sombre/75">
           Cette page est en cours de construction. Revenez bientôt pour
           découvrir tout le contenu du club !
         </p>

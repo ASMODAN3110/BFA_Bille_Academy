@@ -48,7 +48,7 @@ export default function QuoteRequests({ quotes, onToggleTraite }) {
           <h2 className="text-lg font-bold text-vert">
             Demandes de devis
           </h2>
-          <p className="text-sm text-sombre/60">
+          <p className="text-sm text-sombre/75">
             {quotes.length} demande(s) —{' '}
             <span className="font-semibold text-dore">{pending}</span> en attente
           </p>
@@ -62,7 +62,7 @@ export default function QuoteRequests({ quotes, onToggleTraite }) {
               icon={faEnvelopeOpenText}
               className="mx-auto h-10 w-10 text-sombre/20"
             />
-            <p className="mt-3 font-bold text-sombre/70">
+            <p className="mt-3 font-bold text-sombre/75">
               Aucune demande de devis.
             </p>
           </div>
@@ -88,19 +88,19 @@ export default function QuoteRequests({ quotes, onToggleTraite }) {
                   )}
                 </div>
 
-                <p className="mt-1 text-xs text-sombre/50">
+                <p className="mt-1 text-xs text-sombre/75">
                   {quote.email} · {formatQuoteDate(quote.dateDemande)}
                 </p>
 
                 <p className="mt-2 text-sm">
                   <span className="font-semibold text-vert">{quote.produit}</span>
-                  <span className="text-sombre/60"> × {quote.quantite}</span>
+                  <span className="text-sombre/75"> × {quote.quantite}</span>
                   {quote.taille && (
-                    <span className="text-sombre/60"> — {quote.taille}</span>
+                    <span className="text-sombre/75"> — {quote.taille}</span>
                   )}
                 </p>
 
-                <p className="mt-1 line-clamp-2 text-sm text-sombre/70">
+                <p className="mt-1 line-clamp-2 text-sm text-sombre/75">
                   {quote.message}
                 </p>
               </div>

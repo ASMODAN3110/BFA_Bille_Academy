@@ -70,6 +70,7 @@ export default function MediaUploadField({
           <img
             src={value}
             alt={`Aperçu de ${label}`}
+            loading="lazy"
             className="h-24 w-24 shrink-0 rounded-xl border border-clair object-cover"
           />
         ) : (
@@ -106,7 +107,7 @@ export default function MediaUploadField({
               </>
             )}
           </label>
-          <p className="mt-1.5 text-xs text-sombre/50">{helper}</p>
+          <p className="mt-1.5 text-xs text-sombre/75">{helper}</p>
         </div>
       </div>
 

@@ -73,7 +73,7 @@ export default function Testimonials() {
                   />
                   <div>
                     <p className="font-bold text-vert">{t.name}</p>
-                    <p className="text-xs text-sombre/60">{t.role}</p>
+                    <p className="text-xs text-sombre/75">{t.role}</p>
                   </div>
                 </div>
               </Card>

@@ -100,7 +100,7 @@ export default function AlbumDetails({ album, onClose }) {
           <h3 className="mt-2 text-xl font-extrabold text-vert md:text-2xl">
             {album?.titre}
           </h3>
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-sombre/60">
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-sombre/75">
             {album && (
               <>
                 <span className="flex items-center gap-1.5">
@@ -185,7 +185,7 @@ export default function AlbumDetails({ album, onClose }) {
             ))}
           </div>
 
-          <p className="mt-4 text-center text-xs text-sombre/50">
+          <p className="mt-4 text-center text-xs text-sombre/75">
             Cliquez sur une photo pour l&rsquo;afficher en plein écran.
           </p>
         </div>

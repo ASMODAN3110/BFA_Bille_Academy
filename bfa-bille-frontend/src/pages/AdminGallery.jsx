@@ -287,7 +287,7 @@ export default function AdminGallery() {
 
       {currentView === 'grid' ? (
         loading ? (
-          <p className="py-10 text-center text-sm text-sombre/60">
+          <p className="py-10 text-center text-sm text-sombre/75">
             Chargement des albums…
           </p>
         ) : error ? (
@@ -312,7 +312,7 @@ export default function AdminGallery() {
                   icon={faImages}
                   className="mx-auto h-10 w-10 text-sombre/20"
                 />
-                <p className="mt-3 font-bold text-sombre/70">
+                <p className="mt-3 font-bold text-sombre/75">
                   Aucun album dans ce thème.
                 </p>
               </Card>
@@ -355,7 +355,7 @@ export default function AdminGallery() {
                 <h2 className="truncate text-lg font-bold text-vert">
                   {selectedAlbum?.titre}
                 </h2>
-                <p className="truncate text-xs text-sombre/60">
+                <p className="truncate text-xs text-sombre/75">
                   {selectedAlbum?.description}
                 </p>
               </div>
@@ -449,6 +449,7 @@ export default function AdminGallery() {
           <img
             src={previewMedia?.url}
             alt={previewMedia?.nom ?? 'Photo de l’album'}
+            loading="lazy"
             className="w-full rounded-xl"
           />
         )}

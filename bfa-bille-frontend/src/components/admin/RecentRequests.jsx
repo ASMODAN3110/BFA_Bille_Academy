@@ -99,7 +99,7 @@ export default function RecentRequests() {
             <p className="truncate font-semibold text-sombre">
               {displayName(row)}
             </p>
-            <p className="truncate text-xs text-sombre/60">
+            <p className="truncate text-xs text-sombre/75">
               {row.email ?? row.telephone ?? '—'}
             </p>
           </div>
@@ -137,7 +137,7 @@ export default function RecentRequests() {
           <h2 className="text-lg font-bold text-sombre">
             Demandes d'essai récentes
           </h2>
-          <p className="mt-0.5 text-sm text-sombre/60">
+          <p className="mt-0.5 text-sm text-sombre/75">
             Les dernières candidatures reçues pour les essais.
           </p>
         </div>
@@ -157,16 +157,16 @@ export default function RecentRequests() {
           Impossible de charger les dernières demandes — {error}
         </div>
       ) : loading ? (
-        <p className="py-8 text-center text-sm text-sombre/50">
+        <p className="py-8 text-center text-sm text-sombre/75">
           Chargement des demandes…
         </p>
       ) : requests.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
           <FontAwesomeIcon icon={faInbox} className="h-10 w-10 text-sombre/20" />
-          <p className="font-bold text-sombre/70">
+          <p className="font-bold text-sombre/75">
             Aucune demande récente pour le moment.
           </p>
-          <p className="text-sm text-sombre/50">
+          <p className="text-sm text-sombre/75">
             Les candidatures du formulaire public apparaîtront ici.
           </p>
         </div>

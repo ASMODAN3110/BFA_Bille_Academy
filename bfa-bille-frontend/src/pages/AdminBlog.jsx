@@ -200,7 +200,7 @@ export default function AdminBlog({ autoAdd = false }) {
       <BlogStats articles={articles} />
 
       {loading ? (
-        <p className="text-center text-sm text-sombre/60">
+        <p className="text-center text-sm text-sombre/75">
           Chargement des articles…
         </p>
       ) : error ? (
@@ -232,7 +232,7 @@ export default function AdminBlog({ autoAdd = false }) {
           />
 
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm text-sombre/60" role="status">
+            <p className="text-sm text-sombre/75" role="status">
               {filtered.length === 0 ? (
                 'Aucun résultat.'
               ) : (

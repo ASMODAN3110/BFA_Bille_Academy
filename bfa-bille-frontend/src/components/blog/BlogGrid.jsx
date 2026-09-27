@@ -27,7 +27,7 @@ export default function BlogGrid({ posts }) {
         <h3 className="mt-5 text-lg font-bold text-sombre">
           Aucun article dans cette catégorie
         </h3>
-        <p className="mt-2 text-sm text-sombre/60">
+        <p className="mt-2 text-sm text-sombre/75">
           Le club publiera prochainement de nouveaux articles. Revenez bientôt !
         </p>
       </motion.div>

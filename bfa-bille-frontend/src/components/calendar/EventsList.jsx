@@ -28,7 +28,7 @@ export default function EventsList({ events, monthLabel, onSelect }) {
           {events.length}
         </span>
       </div>
-      <p className="-mt-2 mb-4 text-sm text-sombre/50">{monthLabel}</p>
+      <p className="-mt-2 mb-4 text-sm text-sombre/75">{monthLabel}</p>
 
       {events.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-dore/40 bg-white p-10 text-center">
@@ -39,7 +39,7 @@ export default function EventsList({ events, monthLabel, onSelect }) {
           <p className="mt-4 font-semibold text-sombre">
             Aucun événement pour ce mois
           </p>
-          <p className="mt-1 text-sm text-sombre/60">
+          <p className="mt-1 text-sm text-sombre/75">
             Modifiez les filtres ou changez de mois.
           </p>
         </div>

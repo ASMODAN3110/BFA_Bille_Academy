@@ -16,13 +16,13 @@ export default function StatCard({ label, value, subtitle, icon, accent }) {
     <motion.div variants={staggerItem} className="h-full">
       <Card className="flex h-full items-start justify-between gap-4 p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-vert/15">
         <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-wider text-sombre/50">
+          <p className="text-xs font-bold uppercase tracking-wider text-sombre/75">
             {label}
           </p>
           <p className="mt-2 text-3xl font-extrabold tabular-nums text-vert">
             {value}
           </p>
-          <p className="mt-1 truncate text-xs text-sombre/60">{subtitle}</p>
+          <p className="mt-1 truncate text-xs text-sombre/75">{subtitle}</p>
         </div>
 
         <div

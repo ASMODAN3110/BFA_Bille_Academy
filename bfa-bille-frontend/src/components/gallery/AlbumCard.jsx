@@ -61,7 +61,7 @@ export default function AlbumCard({ album, onSelect }) {
           )}
 
           {/* Badge de thème */}
-          <span className="absolute left-3 top-3 rounded-full bg-vert/90 px-3 py-1 text-xs font-bold text-white shadow backdrop-blur-sm">
+          <span className="absolute left-3 top-3 rounded-full bg-vert px-3 py-1 text-xs font-bold text-white shadow backdrop-blur-sm">
             {album.theme}
           </span>
 
@@ -85,14 +85,14 @@ export default function AlbumCard({ album, onSelect }) {
             {album.titre}
           </h3>
           <div className="mt-2 flex items-center justify-between text-sm">
-            <span className="flex items-center gap-2 text-sombre/60">
+            <span className="flex items-center gap-2 text-sombre/75">
               <FontAwesomeIcon
                 icon={faCalendarDays}
                 className="h-3.5 w-3.5 text-dore-dark"
               />
               {formatDateCard(parseLocalDate(album.dateCreation))}
             </span>
-            <span className="font-semibold text-vert opacity-80 transition-opacity group-hover:opacity-100">
+            <span className="font-semibold text-vert">
               Voir →
             </span>
           </div>

@@ -63,7 +63,7 @@ export default function TrialTable({
             <p className="truncate font-semibold text-sombre">
               {displayName(row)}
             </p>
-            <p className="truncate text-xs text-sombre/60">
+            <p className="truncate text-xs text-sombre/75">
               {row.email ?? row.telephone ?? row.message}
             </p>
           </div>
@@ -76,7 +76,7 @@ export default function TrialTable({
       render: (row) => (
         <div>
           <p className="font-semibold text-sombre">{row.age} ans</p>
-          <p className="text-xs text-sombre/60">{row.poste ?? '—'}</p>
+          <p className="text-xs text-sombre/75">{row.poste ?? '—'}</p>
         </div>
       ),
     },
@@ -126,10 +126,10 @@ export default function TrialTable({
           icon={faClipboardList}
           className="mx-auto h-10 w-10 text-sombre/20"
         />
-        <p className="mt-3 font-bold text-sombre/70">
+        <p className="mt-3 font-bold text-sombre/75">
           Aucune demande d'essai pour le moment.
         </p>
-        <p className="mt-1 text-sm text-sombre/50">
+        <p className="mt-1 text-sm text-sombre/75">
           Les candidatures du formulaire public apparaîtront ici.
         </p>
       </Card>

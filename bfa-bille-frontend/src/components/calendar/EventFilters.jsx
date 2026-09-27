@@ -11,7 +11,7 @@ import Button from '../ui/Button'
 function FilterGroup({ label, options, active, onChange }) {
   return (
     <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-center">
-      <span className="w-24 text-sm font-bold uppercase tracking-wider text-sombre/50">
+      <span className="w-24 text-sm font-bold uppercase tracking-wider text-sombre/75">
         {label}
       </span>
       <div className="flex flex-wrap items-center justify-center gap-2">

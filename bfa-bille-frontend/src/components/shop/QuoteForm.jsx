@@ -231,7 +231,7 @@ export default function QuoteForm({ product, onClose }) {
               <h3 className="mt-1 text-2xl font-extrabold text-vert">
                 {product.nom}
               </h3>
-              <p className="mt-1 text-sm text-sombre/60">
+              <p className="mt-1 text-sm text-sombre/75">
                 Renseignez vos coordonnées : notre équipe vous recontactera
                 rapidement pour finaliser votre commande.
               </p>

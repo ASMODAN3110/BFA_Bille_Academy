@@ -31,7 +31,7 @@ export default function QuickActions() {
   return (
     <Card className="p-5 md:p-6">
       <h2 className="text-lg font-bold text-sombre">Actions rapides</h2>
-      <p className="mt-0.5 text-sm text-sombre/60">
+      <p className="mt-0.5 text-sm text-sombre/75">
         Accès rapides aux principales créations.
       </p>
 

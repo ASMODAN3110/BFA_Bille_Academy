@@ -24,7 +24,6 @@ export default function CategoryFilter({ categories, active, onChange }) {
             size="sm"
             variant={isActive ? 'filter-active' : 'filter'}
             onClick={() => onChange(category)}
-            aria-pressed={isActive}
             role="tab"
             aria-selected={isActive}
             className="rounded-full px-6"

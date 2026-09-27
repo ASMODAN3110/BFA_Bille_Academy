@@ -70,7 +70,7 @@ export default function News() {
                   <h3 className="mt-2 text-lg font-bold leading-snug text-sombre">
                     {article.title}
                   </h3>
-                  <p className="mt-3 flex-1 text-sm leading-relaxed text-sombre/70">
+                  <p className="mt-3 flex-1 text-sm leading-relaxed text-sombre/75">
                     {article.excerpt}
                   </p>
                   <Link

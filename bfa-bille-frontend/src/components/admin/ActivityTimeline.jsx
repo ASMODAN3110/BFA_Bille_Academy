@@ -62,7 +62,7 @@ export default function ActivityTimeline() {
   return (
     <Card className="p-5 md:p-6">
       <h2 className="text-lg font-bold text-sombre">Activité récente</h2>
-      <p className="mt-0.5 text-sm text-sombre/60">
+      <p className="mt-0.5 text-sm text-sombre/75">
         Les derniers changements sur la plateforme.
       </p>
 
@@ -72,9 +72,9 @@ export default function ActivityTimeline() {
             {error}
           </p>
         ) : loading ? (
-          <p className="py-8 text-center text-sm text-sombre/50">Chargement…</p>
+          <p className="py-8 text-center text-sm text-sombre/75">Chargement…</p>
         ) : items.length === 0 ? (
-          <p className="py-8 text-center text-sm text-sombre/50">
+          <p className="py-8 text-center text-sm text-sombre/75">
             Aucune activité récente.
           </p>
         ) : (
@@ -92,8 +92,8 @@ export default function ActivityTimeline() {
                 </span>
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-sombre">{it.label}</p>
-                  <p className="truncate text-sm text-sombre/70">{it.titre}</p>
-                  <p className="text-xs text-sombre/50">{formatDateFr(it.date)}</p>
+                  <p className="truncate text-sm text-sombre/75">{it.titre}</p>
+                  <p className="text-xs text-sombre/75">{formatDateFr(it.date)}</p>
                 </div>
               </li>
             ))}

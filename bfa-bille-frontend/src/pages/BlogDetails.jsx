@@ -74,7 +74,7 @@ export default function BlogDetails() {
     return (
       <section className="bg-clair py-16 md:py-24">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
-          <p className="text-sm text-sombre/60">Chargement de l’article…</p>
+          <p className="text-sm text-sombre/75">Chargement de l’article…</p>
         </div>
       </section>
     )
@@ -113,7 +113,7 @@ export default function BlogDetails() {
             <h1 className="text-3xl font-extrabold text-vert md:text-4xl">
               Article introuvable
             </h1>
-            <p className="mt-4 text-sombre/70">
+            <p className="mt-4 text-sombre/75">
               Cet article n'existe pas ou n'est pas encore publié.
             </p>
             <div className="mt-8">
@@ -152,6 +152,7 @@ export default function BlogDetails() {
               <img
                 src={post.image}
                 alt={`Illustration de l'article : ${post.titre}`}
+                loading="lazy"
                 className="aspect-[16/7] w-full object-cover"
               />
               <span
@@ -163,7 +164,7 @@ export default function BlogDetails() {
 
             {/* Corps de l'article */}
             <div className="p-6 md:p-10">
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-sombre/60">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-sombre/75">
                 <span className="flex items-center gap-1.5">
                   <FontAwesomeIcon
                     icon={faCalendarDays}

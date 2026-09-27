@@ -83,10 +83,10 @@ export default function EventsTable({ events, onEdit, onDelete }) {
           icon={faCalendarDays}
           className="mx-auto h-10 w-10 text-sombre/20"
         />
-        <p className="mt-3 font-bold text-sombre/70">
+        <p className="mt-3 font-bold text-sombre/75">
           Aucun événement pour le moment.
         </p>
-        <p className="mt-1 text-sm text-sombre/50">
+        <p className="mt-1 text-sm text-sombre/75">
           Créer le premier événement pour l'afficher ici.
         </p>
       </Card>

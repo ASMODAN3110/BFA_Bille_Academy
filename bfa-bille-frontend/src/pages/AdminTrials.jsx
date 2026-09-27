@@ -354,7 +354,7 @@ export default function AdminTrials() {
       )}
 
       {loading ? (
-        <p className="py-10 text-center text-sm text-sombre/60">
+        <p className="py-10 text-center text-sm text-sombre/75">
           Chargement des demandes…
         </p>
       ) : error ? (

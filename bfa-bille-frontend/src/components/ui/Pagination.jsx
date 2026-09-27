@@ -28,8 +28,8 @@ export default function Pagination({
       'inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold',
       'transition-all duration-300 ease-out focus:outline-none focus-visible:ring-4 focus-visible:ring-dore/40 active:scale-95',
       disabled
-        ? 'cursor-not-allowed bg-white text-sombre/40 border border-clair'
-        : 'border-2 border-dore text-dore hover:bg-dore hover:text-vert-dark',
+        ? 'cursor-not-allowed bg-white text-sombre/75 border border-clair'
+        : 'border-2 border-dore text-dore-dark hover:bg-dore hover:text-vert-dark',
     ].join(' ')
 
   const pageButtonClasses = (active) =>

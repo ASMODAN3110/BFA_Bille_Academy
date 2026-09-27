@@ -11,7 +11,9 @@
   --color-vert-dark: #004d00;
   --color-vert-light: #0a7a0a;
   --color-dore: #d4af37;
-  --color-dore-dark: #b8972f;
+  /* dore-dark assombri pour WCAG AA : #7d6116 → 5.9:1 sur blanc,
+     4.9:1 sur bg-dore/15 (l'ancien #b8972f ne faisait que 2.8:1). */
+  --color-dore-dark: #7d6116;
   --color-clair: #f5f5f5;
   --color-sombre: #333333;
   /* Formulaires : validation */

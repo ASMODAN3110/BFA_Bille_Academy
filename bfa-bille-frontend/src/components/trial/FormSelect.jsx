@@ -63,7 +63,7 @@ export default function FormSelect({
           required={required}
           aria-invalid={hasError}
           aria-describedby={hasError ? `${name}-error` : undefined}
-          className={`w-full cursor-pointer appearance-none rounded-xl border-2 bg-white py-3 pl-4 pr-11 transition-all duration-200 focus:outline-none focus:ring-2 ${isEmpty ? 'text-sombre/40' : 'text-sombre'} ${hasError ? 'animate-shake' : ''} ${STATUS_BORDER[status]}`}
+          className={`w-full cursor-pointer appearance-none rounded-xl border-2 bg-white py-3 pl-4 pr-11 transition-all duration-200 focus:outline-none focus:ring-2 ${isEmpty ? 'text-sombre/75' : 'text-sombre'} ${hasError ? 'animate-shake' : ''} ${STATUS_BORDER[status]}`}
           {...props}
         >
           <option value="" disabled>
@@ -81,7 +81,7 @@ export default function FormSelect({
 
         <FontAwesomeIcon
           icon={faChevronDown}
-          className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sombre/40"
+          className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sombre/75"
         />
 
         {hasError ? (

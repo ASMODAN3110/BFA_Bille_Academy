@@ -21,7 +21,7 @@ export default function UpcomingEvents({ events }) {
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold text-sombre">Prochains événements</h2>
-          <p className="mt-0.5 text-sm text-sombre/60">
+          <p className="mt-0.5 text-sm text-sombre/75">
             Les prochaines dates au calendrier.
           </p>
         </div>
@@ -36,7 +36,7 @@ export default function UpcomingEvents({ events }) {
       {items.length === 0 ? (
         <div className="py-8 text-center">
           <FontAwesomeIcon icon={faCalendarDays} className="mx-auto h-10 w-10 text-sombre/20" />
-          <p className="mt-3 font-bold text-sombre/70">Aucun événement à venir.</p>
+          <p className="mt-3 font-bold text-sombre/75">Aucun événement à venir.</p>
         </div>
       ) : (
         <ul className="divide-y divide-clair">
@@ -44,7 +44,7 @@ export default function UpcomingEvents({ events }) {
             <li key={ev.id} className="flex items-center justify-between gap-3 py-3">
               <div className="min-w-0">
                 <p className="truncate font-semibold text-sombre">{ev.titre}</p>
-                <p className="mt-0.5 text-xs text-sombre/60">
+                <p className="mt-0.5 text-xs text-sombre/75">
                   {ev.categorie} · {ev.lieu}
                 </p>
               </div>
@@ -52,7 +52,7 @@ export default function UpcomingEvents({ events }) {
                 <p className="text-xs font-bold text-vert">
                   {formatDateCard(parseLocalDate(ev.date))}
                 </p>
-                <p className="text-xs text-sombre/50">{ev.heure}</p>
+                <p className="text-xs text-sombre/75">{ev.heure}</p>
               </div>
             </li>
           ))}

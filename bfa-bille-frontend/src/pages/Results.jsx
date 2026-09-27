@@ -149,7 +149,7 @@ export default function Results() {
           <Card className="p-6 md:p-8">
             <h3 className="mb-5 text-xl font-extrabold text-vert">Résultats</h3>
             {loadingResults ? (
-              <p className="text-center text-sm text-sombre/60">
+              <p className="text-center text-sm text-sombre/75">
                 Chargement des résultats…
               </p>
             ) : errorResults ? (
@@ -171,7 +171,7 @@ export default function Results() {
                 Classements
               </h3>
               {loadingRankings ? (
-                <p className="text-center text-sm text-sombre/60">
+                <p className="text-center text-sm text-sombre/75">
                   Chargement des classements…
                 </p>
               ) : errorRankings ? (

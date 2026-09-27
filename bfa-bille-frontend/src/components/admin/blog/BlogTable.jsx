@@ -69,7 +69,7 @@ const COLUMNS = (handlers) => [
       <div>
         <p className="font-semibold text-sombre">{dateLabel(row)}</p>
         {hasBeenModified(row) && (
-          <p className="mt-0.5 text-xs text-sombre/50">
+          <p className="mt-0.5 text-xs text-sombre/75">
             Modifié : {formatDateCard(parseLocalDate(row.dateModification))}
           </p>
         )}
@@ -81,7 +81,7 @@ const COLUMNS = (handlers) => [
     label: 'Performance',
     render: (row) =>
       row.estPublie ? (
-        <div className="flex items-center gap-3 text-xs font-semibold text-sombre/60">
+        <div className="flex items-center gap-3 text-xs font-semibold text-sombre/75">
           <span className="flex items-center gap-1.5">
             <FontAwesomeIcon icon={faEye} className="h-3.5 w-3.5 text-vert" />
             {row.vues ?? 0}
@@ -95,7 +95,7 @@ const COLUMNS = (handlers) => [
           </span>
         </div>
       ) : (
-        <span className="text-sombre/40">—</span>
+        <span className="text-sombre/75">—</span>
       ),
   },
   {
@@ -115,10 +115,10 @@ export default function BlogTable({ posts, onEdit, onTogglePublish, onDelete }) 
           icon={faFilePen}
           className="mx-auto h-10 w-10 text-sombre/20"
         />
-        <p className="mt-3 font-bold text-sombre/70">
+        <p className="mt-3 font-bold text-sombre/75">
           Aucun article ne correspond à cette recherche.
         </p>
-        <p className="mt-1 text-sm text-sombre/50">
+        <p className="mt-1 text-sm text-sombre/75">
           Modifiez les filtres ou la recherche, ou créez un nouvel article.
         </p>
       </Card>

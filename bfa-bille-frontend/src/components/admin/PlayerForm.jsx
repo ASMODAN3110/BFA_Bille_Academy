@@ -252,7 +252,7 @@ export default function PlayerForm({
               touched={touched.dateNaissance}
             />
             {age != null && (
-              <p className="mt-1.5 text-xs text-sombre/60">
+              <p className="mt-1.5 text-xs text-sombre/75">
                 Âge calculé : <span className="font-bold text-vert">{age} ans</span>
                 {ageTrou && (
                   <span className="mt-1 block text-erreur">

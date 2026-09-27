@@ -45,6 +45,7 @@ export default function Footer({ variant = 'default' }) {
               <img
                 src={logo}
                 alt="Logo BFA Bille Academy"
+                loading="lazy"
                 className="h-14 w-14 object-contain"
               />
               <span className="flex flex-col leading-tight">
@@ -142,7 +143,7 @@ export default function Footer({ variant = 'default' }) {
         </div>
 
         {/* Barre copyright */}
-        <div className="border-t border-white/10 text-center text-xs text-white/50">
+        <div className="border-t border-white/10 text-center text-xs text-white/75">
           <p>
             © {year} {club.name}. Tous droits réservés. — « {club.tagline} »
           </p>

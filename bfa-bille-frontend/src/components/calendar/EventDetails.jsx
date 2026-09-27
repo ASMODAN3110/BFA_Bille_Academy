@@ -96,7 +96,7 @@ export default function EventDetails({ event, onClose }) {
             {/* Détails */}
             <div className="grid gap-4 p-6 md:grid-cols-2 md:p-8">
               <div className="rounded-xl bg-clair p-4">
-                <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sombre/50">
+                <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sombre/75">
                   <FontAwesomeIcon icon={faCalendar} className="h-4 w-4 text-dore-dark" />
                   Date
                 </p>
@@ -106,7 +106,7 @@ export default function EventDetails({ event, onClose }) {
               </div>
 
               <div className="rounded-xl bg-clair p-4">
-                <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sombre/50">
+                <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sombre/75">
                   <FontAwesomeIcon icon={faClock} className="h-4 w-4 text-dore-dark" />
                   Horaire
                 </p>
@@ -114,7 +114,7 @@ export default function EventDetails({ event, onClose }) {
               </div>
 
               <div className="rounded-xl bg-clair p-4">
-                <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sombre/50">
+                <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sombre/75">
                   <FontAwesomeIcon icon={faMapLocationDot} className="h-4 w-4 text-dore-dark" />
                   Lieu
                 </p>
@@ -122,7 +122,7 @@ export default function EventDetails({ event, onClose }) {
               </div>
 
               <div className="rounded-xl bg-clair p-4">
-                <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sombre/50">
+                <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sombre/75">
                   <FontAwesomeIcon icon={faLayerGroup} className="h-4 w-4 text-dore-dark" />
                   Catégorie
                 </p>
@@ -132,7 +132,7 @@ export default function EventDetails({ event, onClose }) {
               {/* Détails selon le type : MATCH → équipes, ENTRAINEMENT → objectif */}
               {event.type === 'Match' && (
                 <div className="rounded-xl bg-dore/10 p-4 md:col-span-2">
-                  <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sombre/50">
+                  <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sombre/75">
                     <FontAwesomeIcon icon={faShieldHalved} className="h-4 w-4 text-dore-dark" />
                     Rencontre
                   </p>
@@ -162,7 +162,7 @@ export default function EventDetails({ event, onClose }) {
 
               {event.type === 'Entraînement' && (
                 <div className="rounded-xl bg-vert/10 p-4 md:col-span-2">
-                  <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sombre/50">
+                  <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sombre/75">
                     <FontAwesomeIcon icon={faBullseye} className="h-4 w-4 text-vert" />
                     Entraînement
                   </p>
@@ -171,7 +171,7 @@ export default function EventDetails({ event, onClose }) {
                       {event.objectif}
                     </p>
                   ) : (
-                    <p className="mt-2 text-sm text-sombre/60">
+                    <p className="mt-2 text-sm text-sombre/75">
                       Objectif non précisé.
                     </p>
                   )}

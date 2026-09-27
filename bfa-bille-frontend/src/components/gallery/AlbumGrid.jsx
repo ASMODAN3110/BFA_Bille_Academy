@@ -28,7 +28,7 @@ export default function AlbumGrid({ albums, onSelect }) {
         <p className="mt-4 font-semibold text-sombre">
           Aucun album dans ce thème.
         </p>
-        <p className="mt-1 text-sm text-sombre/60">
+        <p className="mt-1 text-sm text-sombre/75">
           Modifiez le filtre pour afficher d&rsquo;autres albums.
         </p>
       </div>

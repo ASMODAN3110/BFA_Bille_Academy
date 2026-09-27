@@ -191,6 +191,7 @@ export default function FileUpload({
                   <img
                     src={item.url}
                     alt={`Aperçu de ${item.nom}`}
+                    loading="lazy"
                     className="h-12 w-16 shrink-0 rounded-lg border border-clair object-cover"
                   />
                 )}
@@ -198,7 +199,7 @@ export default function FileUpload({
                   <p className="truncate text-sm font-semibold text-sombre">
                     {item.nom}
                   </p>
-                  <p className="mt-0.5 flex items-center gap-1.5 text-xs text-sombre/50">
+                  <p className="mt-0.5 flex items-center gap-1.5 text-xs text-sombre/75">
                     <FontAwesomeIcon icon={faCircleCheck} className="h-3.5 w-3.5 text-succes" />
                     {item.type === 'video' ? 'Vidéo' : 'Image'} · {formatSize(item.file.size)}
                   </p>
@@ -209,7 +210,7 @@ export default function FileUpload({
                 onClick={() => removePending(item.id)}
                 aria-label={`Retirer ${item.nom} de la sélection`}
                 title="Retirer"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sombre/40 transition hover:bg-erreur/10 hover:text-erreur active:scale-95"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sombre/75 transition hover:bg-erreur/10 hover:text-erreur active:scale-95"
               >
                 <FontAwesomeIcon icon={faXmark} className="h-4 w-4" />
               </button>

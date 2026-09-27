@@ -90,6 +90,7 @@ export default function MediaLightbox({
                       <img
                         src={media.url}
                         alt={`Média ${index + 1}`}
+                        loading="lazy"
                         className="max-h-[68vh] w-auto max-w-full rounded-xl object-contain shadow-2xl"
                       />
                     )

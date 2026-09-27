@@ -70,7 +70,7 @@ export default function TrialRefuseModal({ open, onClose, trial, onConfirm }) {
       }
     >
       <form id="refuse-form" onSubmit={handleSubmit} noValidate>
-        <p className="mb-4 text-sm text-sombre/70">
+        <p className="mb-4 text-sm text-sombre/75">
           Cette action passera la candidature en statut « Refusé ». Indiquez un
           motif : il sera enregistré avec la demande et pourra servir à
           informer le candidat.

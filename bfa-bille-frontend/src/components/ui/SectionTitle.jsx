@@ -45,7 +45,7 @@ export default function SectionTitle({
       {subtitle && (
         <p
           className={`mt-4 text-base md:text-lg ${
-            light ? 'text-white/80' : 'text-sombre/70'
+            light ? 'text-white/80' : 'text-sombre/75'
           }`}
         >
           {subtitle}

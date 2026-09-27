@@ -23,7 +23,7 @@ const VARIANT_STYLES = {
   secondary:
     'bg-dore text-vert-dark hover:bg-dore-dark shadow-lg shadow-dore/30',
   outline:
-    'border-2 border-dore text-dore hover:bg-dore hover:text-vert-dark',
+    'border-2 border-dore text-dore-dark hover:bg-dore hover:text-vert-dark',
   danger: 'bg-erreur text-white hover:opacity-90 shadow-lg shadow-erreur/25',
   filter:
     'bg-white text-sombre border border-clair shadow-sm hover:border-dore hover:text-vert',

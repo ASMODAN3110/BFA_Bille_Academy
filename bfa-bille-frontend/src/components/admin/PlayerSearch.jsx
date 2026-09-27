@@ -34,7 +34,7 @@ export default function PlayerSearch({
         <div className="relative flex-1">
           <FontAwesomeIcon
             icon={faMagnifyingGlass}
-            className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sombre/40"
+            className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sombre/75"
           />
           <input
             type="search"
@@ -42,7 +42,7 @@ export default function PlayerSearch({
             onChange={(e) => onQueryChange(e.target.value)}
             placeholder="Rechercher un joueur ou un poste…"
             aria-label="Rechercher un joueur"
-            className="w-full rounded-xl border-2 border-clair bg-white py-2.5 pl-11 pr-4 text-sm text-sombre placeholder:text-sombre/40 transition focus:border-dore focus:outline-none focus:ring-2 focus:ring-dore/40"
+            className="w-full rounded-xl border-2 border-clair bg-white py-2.5 pl-11 pr-4 text-sm text-sombre placeholder:text-sombre/75 transition focus:border-dore focus:outline-none focus:ring-2 focus:ring-dore/40"
           />
         </div>
 
@@ -74,7 +74,7 @@ export default function PlayerSearch({
         </div>
       </div>
 
-      <p className="mt-3 text-xs text-sombre/60">
+      <p className="mt-3 text-xs text-sombre/75">
         {resultCount} joueur{resultCount > 1 ? 's' : ''} affiché
         {resultCount > 1 ? 's' : ''} sur {totalCount}
       </p>

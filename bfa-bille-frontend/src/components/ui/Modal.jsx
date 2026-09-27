@@ -73,14 +73,14 @@ export default function Modal({
               <div>
                 <h2 className="text-lg font-bold text-sombre">{title}</h2>
                 {subtitle && (
-                  <p className="mt-0.5 text-sm text-sombre/60">{subtitle}</p>
+                  <p className="mt-0.5 text-sm text-sombre/75">{subtitle}</p>
                 )}
               </div>
               <button
                 type="button"
                 onClick={onClose}
                 aria-label="Fermer la fenêtre"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sombre/60 transition hover:bg-clair hover:text-vert"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sombre/75 transition hover:bg-clair hover:text-vert"
               >
                 <FontAwesomeIcon icon={faXmark} className="h-5 w-5" />
               </button>

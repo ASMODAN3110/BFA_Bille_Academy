@@ -66,7 +66,7 @@ export default function DragDropZone({
         }`}
       />
       <p className="text-sm font-bold text-sombre">{label}</p>
-      <p className="text-xs text-sombre/50">{helper}</p>
+      <p className="text-xs text-sombre/75">{helper}</p>
       <input
         ref={inputRef}
         type="file"

@@ -57,7 +57,7 @@ export default function AdminCalendarGrid({ events, currentMonth, onPrev, onNext
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-center text-[0.65rem] font-bold uppercase tracking-wider text-sombre/50">
+      <div className="grid grid-cols-7 gap-1 text-center text-[0.65rem] font-bold uppercase tracking-wider text-sombre/75">
         {WEEKDAYS.map((day) => (
           <div key={day} className="py-1">
             {day}
@@ -80,7 +80,7 @@ export default function AdminCalendarGrid({ events, currentMonth, onPrev, onNext
             >
               <span
                 className={`text-xs font-bold ${
-                  eventMap[d] ? 'text-dore-dark' : 'text-sombre/60'
+                  eventMap[d] ? 'text-dore-dark' : 'text-sombre/75'
                 }`}
               >
                 {d}
@@ -96,7 +96,7 @@ export default function AdminCalendarGrid({ events, currentMonth, onPrev, onNext
                   </span>
                 ))}
                 {(eventMap[d]?.length ?? 0) > 2 && (
-                  <span className="block px-1 text-[0.55rem] font-bold text-sombre/50">
+                  <span className="block px-1 text-[0.55rem] font-bold text-sombre/75">
                     +{eventMap[d].length - 2} autres
                   </span>
                 )}

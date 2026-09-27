@@ -94,7 +94,7 @@ export default function Players() {
         />
 
         {loading ? (
-          <p className="mb-8 text-center text-sm text-sombre/60">
+          <p className="mb-8 text-center text-sm text-sombre/75">
             Chargement des joueurs…
           </p>
         ) : error ? (
@@ -105,7 +105,7 @@ export default function Players() {
             {error}
           </div>
         ) : (
-          <p className="mb-8 text-center text-sm text-sombre/60">
+          <p className="mb-8 text-center text-sm text-sombre/75">
             {filteredPlayers.length} joueur{filteredPlayers.length > 1 ? 's' : ''}{' '}
             affiché{filteredPlayers.length > 1 ? 's' : ''}
             {activeLabel && ` · catégorie ${activeLabel}`}
@@ -114,7 +114,7 @@ export default function Players() {
 
         {/* Lien vers les fiches techniques */}
         <div className="mb-10 flex flex-col items-center justify-center gap-3 rounded-2xl border border-dore/30 bg-white p-5 sm:flex-row sm:gap-6">
-          <p className="text-center text-sm text-sombre/70 sm:text-left">
+          <p className="text-center text-sm text-sombre/75 sm:text-left">
             Consultez l'effectif complet, le staff et le palmarès de chaque
             catégorie.
           </p>

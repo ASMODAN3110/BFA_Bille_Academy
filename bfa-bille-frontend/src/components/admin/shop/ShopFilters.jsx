@@ -40,7 +40,7 @@ export default function ShopFilters({
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="mr-1 text-xs font-bold uppercase tracking-wider text-sombre/50">
+        <span className="mr-1 text-xs font-bold uppercase tracking-wider text-sombre/75">
           Catégorie
         </span>
         <Button
@@ -56,7 +56,7 @@ export default function ShopFilters({
             className={`ml-1 rounded-full px-2 py-0.5 text-xs font-bold ${
               categoryFilter === 'Tous'
                 ? 'bg-white/20 text-white'
-                : 'bg-clair text-sombre/60'
+                : 'bg-clair text-sombre/75'
             }`}
           >
             {products.length}
@@ -83,7 +83,7 @@ export default function ShopFilters({
               {categorie}
               <span
                 className={`ml-1 rounded-full px-2 py-0.5 text-xs font-bold ${
-                  active ? 'bg-white/20 text-white' : 'bg-clair text-sombre/60'
+                  active ? 'bg-white/20 text-white' : 'bg-clair text-sombre/75'
                 }`}
               >
                 {count}
@@ -94,7 +94,7 @@ export default function ShopFilters({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <span className="mr-1 text-xs font-bold uppercase tracking-wider text-sombre/50">
+        <span className="mr-1 text-xs font-bold uppercase tracking-wider text-sombre/75">
           Stock
         </span>
         {STOCK_FILTERS.map((filter) => {
@@ -112,7 +112,7 @@ export default function ShopFilters({
               {filter}
               <span
                 className={`ml-1 rounded-full px-2 py-0.5 text-xs font-bold ${
-                  active ? 'bg-white/20 text-white' : 'bg-clair text-sombre/60'
+                  active ? 'bg-white/20 text-white' : 'bg-clair text-sombre/75'
                 }`}
               >
                 {countByStock(products, filter)}

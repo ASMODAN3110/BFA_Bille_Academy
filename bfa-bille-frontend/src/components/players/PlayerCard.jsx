@@ -46,7 +46,7 @@ export default function PlayerCard({ player, onSelect }) {
               {initials(player)}
             </div>
           )}
-          <span className="absolute right-3 top-3 rounded-full bg-vert/90 px-3 py-1 text-xs font-bold text-white shadow">
+          <span className="absolute right-3 top-3 rounded-full bg-vert px-3 py-1 text-xs font-bold text-white shadow">
             {player.categorie?.nom ?? player.categorie}
           </span>
         </div>
@@ -60,10 +60,10 @@ export default function PlayerCard({ player, onSelect }) {
             {player.poste}
           </p>
           <div className="mt-4 flex items-center justify-between border-t border-clair pt-3 text-sm">
-            <span className="text-sombre/70">
+            <span className="text-sombre/75">
               {player.dateNaissance ? getAge(player.dateNaissance) : '—'} ans
             </span>
-            <span className="font-semibold text-vert opacity-80 transition-opacity group-hover:opacity-100">
+            <span className="font-semibold text-vert">
               Voir la fiche →
             </span>
           </div>

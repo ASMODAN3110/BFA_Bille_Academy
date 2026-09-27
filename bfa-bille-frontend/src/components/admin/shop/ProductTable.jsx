@@ -53,7 +53,7 @@ const COLUMNS = (handlers) => [
             {row.nom}
             {row.estNouveau && <Badge variant="mvp">Nouveau</Badge>}
           </p>
-          <p className="mt-0.5 line-clamp-1 text-xs text-sombre/50">
+          <p className="mt-0.5 line-clamp-1 text-xs text-sombre/75">
             {row.description}
           </p>
         </div>
@@ -94,10 +94,10 @@ export default function ProductTable({ products, onEdit, onDelete }) {
           icon={faBoxesStacked}
           className="mx-auto h-10 w-10 text-sombre/20"
         />
-        <p className="mt-3 font-bold text-sombre/70">
+        <p className="mt-3 font-bold text-sombre/75">
           Aucun produit ne correspond à ces filtres.
         </p>
-        <p className="mt-1 text-sm text-sombre/50">
+        <p className="mt-1 text-sm text-sombre/75">
           Modifiez les filtres ou ajoutez un nouveau produit.
         </p>
       </Card>

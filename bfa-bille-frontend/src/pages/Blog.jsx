@@ -110,7 +110,7 @@ export default function Blog() {
         </motion.div>
 
         {loading ? (
-          <p className="mb-8 text-center text-sm text-sombre/60">
+          <p className="mb-8 text-center text-sm text-sombre/75">
             Chargement des articles…
           </p>
         ) : error ? (
@@ -129,7 +129,7 @@ export default function Blog() {
               onChange={handleCategoryChange}
             />
 
-            <p className="mb-8 text-center text-sm text-sombre/60">
+            <p className="mb-8 text-center text-sm text-sombre/75">
               {filteredPosts.length} article{filteredPosts.length > 1 ? 's' : ''}{' '}
               publié{filteredPosts.length > 1 ? 's' : ''}
               {selectedCategory !== 'Tous' && ` · catégorie ${selectedCategory}`}

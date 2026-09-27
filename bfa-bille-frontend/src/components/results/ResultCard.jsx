@@ -42,7 +42,7 @@ export default function ResultCard({ result }) {
           {/* Type + catégorie */}
           <div className="flex items-center justify-between gap-3 md:justify-end md:gap-4">
             <Badge variant={badgeVariant}>{result.type}</Badge>
-            <span className="text-xs font-semibold uppercase tracking-wider text-sombre/50">
+            <span className="text-xs font-semibold uppercase tracking-wider text-sombre/75">
               {result.categorie}
             </span>
           </div>

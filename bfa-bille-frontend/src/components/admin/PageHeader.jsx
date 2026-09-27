@@ -11,7 +11,7 @@ export default function PageHeader({ title, subtitle, action }) {
         <h1 className="text-2xl font-extrabold tracking-tight text-vert md:text-3xl">
           {title}
         </h1>
-        {subtitle && <p className="mt-1 text-sm text-sombre/60">{subtitle}</p>}
+        {subtitle && <p className="mt-1 text-sm text-sombre/75">{subtitle}</p>}
       </div>
       {action}
     </div>

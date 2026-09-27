@@ -100,11 +100,11 @@ export default function AlbumGrid({ albums, onOpen, onAddMedia, onEdit, onDelete
                   {album.titre}
                 </h3>
                 {album.description && (
-                  <p className="mt-1 line-clamp-2 text-sm text-sombre/60">
+                  <p className="mt-1 line-clamp-2 text-sm text-sombre/75">
                     {album.description}
                   </p>
                 )}
-                <p className="mt-1 text-xs text-sombre/50">
+                <p className="mt-1 text-xs text-sombre/75">
                   {formatDateCard(parseLocalDate(album.dateCreation))}
                 </p>
 
