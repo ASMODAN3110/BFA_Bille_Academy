@@ -87,7 +87,7 @@ export default function Hero() {
               Inscrire mon enfant
               <span aria-hidden="true">→</span>
             </Button>
-            <Button to="/equipes" variant="outline" size="sm" glare>
+            <Button to="/equipes" variant="outline" size="sm" glare className="text-dore! hover:text-vert-dark!">
               Découvrir les équipes
             </Button>
           </motion.div>
