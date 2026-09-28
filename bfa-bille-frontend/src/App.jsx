@@ -45,7 +45,18 @@ const Placeholder = lazy(() => import('./pages/Placeholder'))
    Redirige vers /admin si l'utilisateur n'est pas authentifié.
    ============================================================ */
 function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, checking } = useAuth()
+  if (checking) {
+    return (
+      <div
+        className="flex min-h-[50vh] items-center justify-center"
+        role="status"
+        aria-label="Vérification de la session"
+      >
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-vert/20 border-t-vert" />
+      </div>
+    )
+  }
   if (!isAuthenticated) {
     return <Navigate to="/admin" replace />
   }

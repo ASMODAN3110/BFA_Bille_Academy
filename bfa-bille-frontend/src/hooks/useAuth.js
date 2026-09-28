@@ -4,7 +4,7 @@ import { AuthContext } from '../contexts/AuthContext'
 /* ============================================================
    useAuth — Hook d'accès au contexte d'authentification
    ------------------------------------------------------------
-   Retourne { user, isAuthenticated, login, logout }.
+   Retourne { user, isAuthenticated, checking, login, logout }.
    Lève une erreur claire si le hook est utilisé hors du
    <AuthProvider>.
    ============================================================ */
