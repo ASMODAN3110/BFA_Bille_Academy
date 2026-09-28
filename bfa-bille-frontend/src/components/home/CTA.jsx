@@ -79,7 +79,7 @@ export default function CTA() {
             >
               Contactez-nous
             </Button>
-            <Button to="/essais" variant="outline" size="lg" glare>
+            <Button to="/essais" variant="outline" size="lg" glare className="text-dore! hover:text-vert-dark!">
               Voir les essais
             </Button>
           </div>

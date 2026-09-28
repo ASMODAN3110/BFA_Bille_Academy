@@ -9,9 +9,12 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 
-# URL de l'API backend, injectée au build via Vite (VITE_API_URL).
+# URLs injectées au build via Vite.
 ARG VITE_API_URL
+ARG VITE_MEDIA_URL
+
 ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_MEDIA_URL=$VITE_MEDIA_URL
 
 # Dépendances d'abord (meilleur cache Docker)
 COPY package.json package-lock.json ./
