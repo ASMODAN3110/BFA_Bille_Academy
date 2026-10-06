@@ -8,6 +8,7 @@ import Button from '../components/ui/Button'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import { fadeUp } from '../hooks/useScrollAnimation'
 import { api } from '../utils/api'
+import { invalidateCategoriesCache } from '../hooks/useCategories'
 
 /* ============================================================
    AdminCategories — Gestion des catégories (/admin/categories)
@@ -131,6 +132,7 @@ export default function AdminCategories() {
         })
       }
       setFormOpen(false)
+      invalidateCategoriesCache()
       await loadCategories()
     } catch (err) {
       setServerError(err?.message || 'Erreur lors de l\'enregistrement.')
@@ -144,6 +146,7 @@ export default function AdminCategories() {
     try {
       await api(`/admin/categories/${toDelete.id}`, { method: 'DELETE', auth: true })
       setToDelete(null)
+      invalidateCategoriesCache()
       await loadCategories()
     } catch (err) {
       setError(err?.message || 'Erreur lors de la suppression.')

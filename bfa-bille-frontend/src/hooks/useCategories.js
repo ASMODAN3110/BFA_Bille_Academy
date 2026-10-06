@@ -14,6 +14,16 @@ import { api } from '../utils/api'
 let cached = null
 let inflight = null
 
+/**
+ * Invalide le cache des catégories — à appeler après toute création,
+ * modification ou suppression dans le module Catégories, sinon les
+ * formulaires (joueur, essai, événement) garderaient l'ancienne liste.
+ */
+export function invalidateCategoriesCache() {
+  cached = null
+  inflight = null
+}
+
 /** Récupère les catégories (promesse partagée + cache). */
 export async function fetchCategories() {
   if (cached) return cached

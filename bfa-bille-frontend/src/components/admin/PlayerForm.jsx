@@ -16,7 +16,8 @@ import { getAge } from '../../utils/ageUtils'
      statut, de stats ni de dateArrivee (le backend les ignore).
    - Validation miroir du backend (âge 9-17, tranche de
      catégorie [ageMin, ageMax], prénom obligatoire ≥2).
-   - ⚠️ Trou : 11-12 ans n'appartient à aucune catégorie.
+   - Alerte si l'âge calculé n'est couvert par aucune catégorie
+     existante (trou de tranches, calculé dynamiquement).
    - Props : open, onClose, onSave(playerData), player (ou null),
      serverError (message d'erreur renvoyé par le backend).
    ============================================================ */
@@ -132,7 +133,13 @@ export default function PlayerForm({
     (age < selectedCategory.ageMin || age > selectedCategory.ageMax)
       ? "L'âge du joueur ne correspond pas à la catégorie sélectionnée."
       : null
-  const ageTrou = age === 11 || age === 12
+  const ageTrou =
+    age != null &&
+    categories.length > 0 &&
+    !categories.some((c) => age >= c.ageMin && age <= c.ageMax)
+  const tranches = categories
+    .map((c) => `${c.ageMin}-${c.ageMax} (${c.nom})`)
+    .join(' · ')
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -256,8 +263,8 @@ export default function PlayerForm({
                 Âge calculé : <span className="font-bold text-vert">{age} ans</span>
                 {ageTrou && (
                   <span className="mt-1 block text-erreur">
-                    ⚠️ Les 11-12 ans ne correspondent à aucune catégorie (U9 9-10
-                    · U15 13-15 · U17 16-17).
+                    ⚠️ Cet âge ne correspond à aucune catégorie existante
+                    (tranches : {tranches}).
                   </span>
                 )}
               </p>
