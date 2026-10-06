@@ -60,8 +60,8 @@ export default function AlbumCard({ album, onSelect }) {
             </div>
           )}
 
-          {/* Badge de thème */}
-          <span className="absolute left-3 top-3 rounded-full bg-vert px-3 py-1 text-xs font-bold text-white shadow backdrop-blur-sm">
+          {/* Badge de thème (doré : visible sur les photos de terrain) */}
+          <span className="absolute left-3 top-3 rounded-full bg-dore px-3 py-1 text-xs font-bold text-vert-dark shadow">
             {album.theme}
           </span>
 

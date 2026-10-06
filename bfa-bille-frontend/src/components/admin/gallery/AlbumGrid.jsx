@@ -5,7 +5,6 @@ import {
   faImages,
   faVideo,
 } from '@fortawesome/free-solid-svg-icons'
-import Badge from '../../ui/Badge'
 import AlbumActions from './AlbumActions'
 import { parseLocalDate, formatDateCard } from '../../../utils/dateUtils'
 import { staggerContainer, staggerItem } from '../../../hooks/useScrollAnimation'
@@ -42,12 +41,8 @@ function AlbumCover({ cover, title }) {
    - Actions : ajouter des médias / modifier / supprimer
    ============================================================ */
 
-const THEME_BADGE = {
-  Entraînements: 'selected',
-  Matchs: 'mvp',
-  Événements: 'success',
-  Portraits: 'default',
-}
+/* Badge doré plein comme sur la page publique — lisible sur
+   n'importe quelle couverture (variantes translucides illisibles). */
 
 export default function AlbumGrid({ albums, onOpen, onAddMedia, onEdit, onDelete }) {
   if (!albums || albums.length === 0) return null
@@ -75,10 +70,8 @@ export default function AlbumGrid({ albums, onOpen, onAddMedia, onEdit, onDelete
               >
                 <AlbumCover cover={cover} title={album.titre} />
                 <span className="absolute inset-0 bg-gradient-to-t from-vert-dark/70 via-transparent to-transparent" />
-                <span className="absolute bottom-3 left-3">
-                  <Badge variant={THEME_BADGE[album.theme] ?? 'default'}>
-                    {album.theme}
-                  </Badge>
+                <span className="absolute bottom-3 left-3 rounded-full bg-dore px-2.5 py-0.5 text-xs font-bold text-vert-dark shadow">
+                  {album.theme}
                 </span>
                 <span className="absolute right-3 top-3 flex items-center gap-2">
                   {videoCount > 0 && (
