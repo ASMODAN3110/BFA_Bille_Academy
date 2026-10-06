@@ -227,15 +227,15 @@ export default function ProductFormModal({
             className="sm:col-span-2"
           />
           <FormInput
-            label="Prix (€)"
+            label="Prix (FCFA)"
             name="prix"
             type="number"
             min="0"
-            step="0.5"
+            step="1"
             value={form.prix}
             onChange={handleChange}
             onBlur={handleBlur}
-            placeholder="Ex : 35"
+            placeholder="Ex : 15000"
             required
             error={touched.prix ? errors.prix : undefined}
             touched={touched.prix}

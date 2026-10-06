@@ -13,11 +13,11 @@ import { CATEGORY_COLORS } from './ShopFilters'
    - Colonnes : Produit / Catégorie / Stock / Prix / Actions
    - S'appuie sur le composant réutilisable <Table /> (ui/Table)
    - Badge catégorie coloré, badge « Nouveau » si estNouveau
-   - Prix au format français (45,00 €)
+   - Prix en FCFA (45 000 FCFA)
    ============================================================ */
 
 const prixFr = (prix) =>
-  prix.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' €'
+  prix.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + ' FCFA'
 
 const categorieBadge = (categorie) => {
   const color = CATEGORY_COLORS[categorie] ?? '#006400'

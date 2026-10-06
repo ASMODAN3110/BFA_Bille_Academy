@@ -3,12 +3,9 @@ import Card from '../ui/Card'
 import Button from '../ui/Button'
 import { staggerItem } from '../../hooks/useScrollAnimation'
 
-/* Formate un prix au format français : 35,00 € */
+/* Formate un prix en FCFA : 25 000 FCFA */
 const formatPrice = (value) =>
-  value.toLocaleString('fr-FR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }) + ' €'
+  value.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + ' FCFA'
 
 /* ============================================================
    ProductCard — Carte d'un produit dérivé
