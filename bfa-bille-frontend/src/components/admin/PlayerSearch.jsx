@@ -1,15 +1,13 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faFileExport, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
+import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 import Card from '../ui/Card'
-import Button from '../ui/Button'
 import { useCategories } from '../../hooks/useCategories'
 
 /* ============================================================
-   PlayerSearch — Recherche, filtres et export des joueurs
+   PlayerSearch — Recherche et filtres des joueurs
    ------------------------------------------------------------
    - Champ de recherche (nom / prénom / poste)
    - Filtre catégorie (GET /api/categories, valeur = id)
-   - Bouton Exporter (CSV)
    - Compteur de résultats
    ============================================================ */
 
@@ -21,7 +19,6 @@ export default function PlayerSearch({
   onQueryChange,
   category,
   onCategoryChange,
-  onExport,
   resultCount,
   totalCount,
 }) {
@@ -60,17 +57,6 @@ export default function PlayerSearch({
               </option>
             ))}
           </select>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onExport}
-            className="shrink-0"
-          >
-            <FontAwesomeIcon icon={faFileExport} className="h-3.5 w-3.5" />
-            Exporter
-          </Button>
         </div>
       </div>
 

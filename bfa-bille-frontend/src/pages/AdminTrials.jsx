@@ -12,7 +12,6 @@ import TrialSearch from '../components/admin/trials/TrialSearch'
 import TrialTable from '../components/admin/trials/TrialTable'
 import TrialDetailsModal from '../components/admin/trials/TrialDetailsModal'
 import TrialRefuseModal from '../components/admin/trials/TrialRefuseModal'
-import TrialExport from '../components/admin/trials/TrialExport'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import Button from '../components/ui/Button'
 import Pagination from '../components/ui/Pagination'
@@ -35,7 +34,7 @@ import { fadeUp } from '../hooks/useScrollAnimation'
      (formulaire public avant module 3) sont rejouées une seule fois
      vers POST /api/trials, puis la clé est nettoyée.
    - Statistiques (@EF20), recherche + filtres (statut, catégorie,
-     date), pagination client, export CSV : inchangés.
+     date), pagination client : inchangés.
    ============================================================ */
 
 const PAGE_SIZE = 10
@@ -330,7 +329,6 @@ export default function AdminTrials() {
       <PageHeader
         title="Demandes d'essai"
         subtitle="Consultez, validez ou refusez les candidatures des futurs académiciens."
-        action={<TrialExport trials={filtered} />}
       />
 
       <TrialStats trials={trials} />

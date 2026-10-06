@@ -12,7 +12,6 @@ import Button from '../components/ui/Button'
 import Pagination from '../components/ui/Pagination'
 import { fadeUp } from '../hooks/useScrollAnimation'
 import { api } from '../utils/api'
-import { getAge } from '../utils/ageUtils'
 
 /* ============================================================
    AdminPlayers — Gestion des joueurs (/admin/players)
@@ -136,29 +135,6 @@ export default function AdminPlayers({ autoAdd = false }) {
       )
   }
 
-  const handleExport = () => {
-    const header = 'Nom;Prénom;Poste;Âge;Catégorie'
-    const rows = filtered.map((p) =>
-      [
-        p.nom,
-        p.prenom ?? '',
-        p.poste,
-        p.dateNaissance ? getAge(p.dateNaissance) : '',
-        p.categorie?.nom ?? '',
-      ].join(';'),
-    )
-    const csv = [header, ...rows].join('\n')
-    const blob = new Blob([`﻿${csv}`], {
-      type: 'text/csv;charset=utf-8;',
-    })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'joueurs.csv'
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
   return (
     <motion.div
       variants={fadeUp}
@@ -168,7 +144,7 @@ export default function AdminPlayers({ autoAdd = false }) {
     >
       <PageHeader
         title="Gestion des joueurs"
-        subtitle="Effectif complet de l'académie : ajout, modification, suppression et export."
+        subtitle="Effectif complet de l'académie : ajout, modification et suppression."
         action={
           <Button type="button" onClick={openAdd} className="shrink-0">
             <FontAwesomeIcon icon={faUserPlus} className="h-4 w-4" />
@@ -197,7 +173,6 @@ export default function AdminPlayers({ autoAdd = false }) {
             onQueryChange={setQuery}
             category={category}
             onCategoryChange={setCategory}
-            onExport={handleExport}
             resultCount={filtered.length}
             totalCount={players.length}
           />
