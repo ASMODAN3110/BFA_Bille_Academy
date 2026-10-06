@@ -1,6 +1,8 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
+  faFilePdf,
   faPenToSquare,
+  faSpinner,
   faTrash,
   faUsers,
 } from '@fortawesome/free-solid-svg-icons'
@@ -23,7 +25,7 @@ const actionButtonClasses =
 const initials = (row) =>
   `${row.prenom?.[0] ?? ''}${row.nom?.[0] ?? ''}`.toUpperCase() || '?'
 
-export default function PlayerTable({ players, onEdit, onDelete }) {
+export default function PlayerTable({ players, onEdit, onDelete, onExportPdf, exportingId }) {
   const columns = [
     {
       key: 'nom',
@@ -68,6 +70,19 @@ export default function PlayerTable({ players, onEdit, onDelete }) {
       label: 'Actions',
       render: (row) => (
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onExportPdf(row)}
+            disabled={exportingId === row.id}
+            aria-label={`Exporter la fiche de ${row.nom}`}
+            className={`${actionButtonClasses} text-dore-dark hover:bg-dore/10 disabled:opacity-50`}
+          >
+            <FontAwesomeIcon
+              icon={exportingId === row.id ? faSpinner : faFilePdf}
+              spin={exportingId === row.id}
+              className="h-4 w-4"
+            />
+          </button>
           <button
             type="button"
             onClick={() => onEdit(row)}

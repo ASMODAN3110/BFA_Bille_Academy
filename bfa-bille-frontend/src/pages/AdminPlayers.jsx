@@ -11,7 +11,7 @@ import ConfirmDialog from '../components/ui/ConfirmDialog'
 import Button from '../components/ui/Button'
 import Pagination from '../components/ui/Pagination'
 import { fadeUp } from '../hooks/useScrollAnimation'
-import { api } from '../utils/api'
+import { api, clearSession, getToken } from '../utils/api'
 
 /* ============================================================
    AdminPlayers — Gestion des joueurs (/admin/players)
@@ -37,6 +37,7 @@ export default function AdminPlayers({ autoAdd = false }) {
   const [editing, setEditing] = useState(null)
   const [toDelete, setToDelete] = useState(null)
   const [serverError, setServerError] = useState(null)
+  const [exportingId, setExportingId] = useState(null)
 
   /* Recharge l'effectif depuis le backend (liste re-triée par le serveur). */
   const loadPlayers = useCallback(async () => {
@@ -123,6 +124,43 @@ export default function AdminPlayers({ autoAdd = false }) {
     }
   }
 
+  /* Export PDF de la fiche joueur : fetch binaire (le helper api() ne
+     gère que le JSON), puis téléchargement via un <a download> temporaire. */
+  const handleExportPdf = async (player) => {
+    setExportingId(player.id)
+    setError(null)
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL ?? ''}/admin/players/${player.id}/export-pdf`,
+        { headers: { Authorization: `Bearer ${getToken()}` } },
+      )
+      if (res.status === 401) {
+        clearSession()
+        window.location.assign('/admin')
+        return
+      }
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        throw new Error(data?.message || `Erreur ${res.status}.`)
+      }
+      const blob = await res.blob()
+      const filename =
+        res.headers
+          .get('Content-Disposition')
+          ?.match(/filename="([^"]+)"/)?.[1] ?? `fiche-joueur-${player.id}.pdf`
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      setError(err?.message || "L'export PDF a échoué.")
+    } finally {
+      setExportingId(null)
+    }
+  }
+
   /* Suppression (DELETE) — puis rechargement serveur. */
   const handleDelete = () => {
     const id = toDelete?.id
@@ -181,6 +219,8 @@ export default function AdminPlayers({ autoAdd = false }) {
             players={pageItems}
             onEdit={openEdit}
             onDelete={setToDelete}
+            onExportPdf={handleExportPdf}
+            exportingId={exportingId}
           />
 
           <div className="flex justify-center">
