@@ -8,7 +8,9 @@ import { api } from '../utils/api'
    - État local : formData, errors, touched, isSubmitting,
      submitStatus ("idle" | "success" | "error"), submitError
    - Validation en temps réel (onChange si erreur déjà affichée,
-     onBlur pour marquer le champ comme « touché »)
+     onBlur pour marquer le champ comme « touché »). Un champ laissé
+     VIDE n'est pas signalé à la perte de focus : l'erreur « obligatoire »
+     n'apparaît qu'à l'envoi (ou si le champ a déjà été renseigné).
    - Soumission réelle : POST /api/trials (public, sans token) —
      plus de localStorage ni de setTimeout simulé
    - Catégories transmises en paramètre (objets { id, nom, ageMin,
@@ -198,6 +200,11 @@ export default function useTrialForm(categories = []) {
      focus ou à la soumission). */
   const handleBlur = (e) => {
     const { name, value } = e.target
+
+    // Champ jamais renseigné et laissé vide : pas d'erreur « obligatoire »
+    // avant l'envoi (sinon cliquer d'un champ à l'autre déclenche des erreurs).
+    if (!String(value ?? '').trim() && !touched[name]) return
+
     setTouched((prev) => ({ ...prev, [name]: true }))
     setErrors((prev) => ({
       ...prev,

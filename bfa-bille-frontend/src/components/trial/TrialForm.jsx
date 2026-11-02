@@ -1,10 +1,8 @@
-import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faCircleNotch,
   faPaperPlane,
 } from '@fortawesome/free-solid-svg-icons'
-import Card from '../ui/Card'
 import Button from '../ui/Button'
 import FormInput from './FormInput'
 import FormSelect from './FormSelect'
@@ -12,10 +10,10 @@ import FormTextarea from './FormTextarea'
 import FormStatus from './FormStatus'
 import useTrialForm, { todayISO } from '../../hooks/useTrialForm'
 import { useCategories } from '../../hooks/useCategories'
-import { useScrollAnimation, fadeUp } from '../../hooks/useScrollAnimation'
 
 /* ============================================================
-   TrialForm — Formulaire d'inscription aux essais
+   TrialForm — Formulaire d'inscription aux essais (maquette Claude Design :
+   carte blanche à bord fin, titre « Votre demande »)
    ------------------------------------------------------------
    - 2 colonnes en desktop (pleine largeur : date, message, bouton)
    - 1 colonne en tablette / mobile
@@ -25,7 +23,6 @@ import { useScrollAnimation, fadeUp } from '../../hooks/useScrollAnimation'
    ============================================================ */
 
 export default function TrialForm() {
-  const { ref, isInView } = useScrollAnimation({ amount: 0.1 })
   // Catégories chargées depuis l'API (GET /api/categories) : objets
   // { id, nom, ageMin, ageMax } → cohérence âge/catégorie dans le hook.
   const { categories, loading, error } = useCategories()
@@ -44,14 +41,11 @@ export default function TrialForm() {
   } = useTrialForm(categories)
 
   return (
-    <motion.div
-      ref={ref}
-      variants={fadeUp}
-      initial="hidden"
-      animate={isInView ? 'visible' : 'hidden'}
-      className="mx-auto max-w-4xl"
-    >
-      <Card className="overflow-hidden border-t-4 border-t-dore p-6 shadow-lg shadow-vert/10 md:p-10">
+    <div className="rounded-[20px] border border-[#e3ede6] bg-white p-6 md:p-8">
+      <h2 className="mb-6 font-display text-3xl font-bold leading-none text-[#14231a] md:text-4xl">
+        Votre demande
+      </h2>
+      <div>
         <form onSubmit={handleSubmit} noValidate aria-busy={isSubmitting}>
           {/* Ligne 1 : Nom | Prénom */}
           <div className="grid gap-5 md:grid-cols-2">
@@ -63,7 +57,6 @@ export default function TrialForm() {
               onBlur={handleBlur}
               placeholder="Votre nom"
               required
-              autoFocus
               error={errors.nom}
               touched={touched.nom}
             />
@@ -211,7 +204,7 @@ export default function TrialForm() {
                 ) : (
                   <>
                     <FontAwesomeIcon icon={faPaperPlane} />
-                    Envoyer
+                    Envoyer ma demande
                   </>
                 )}
               </Button>
@@ -225,7 +218,7 @@ export default function TrialForm() {
             )}
           </div>
         </form>
-      </Card>
-    </motion.div>
+      </div>
+    </div>
   )
 }

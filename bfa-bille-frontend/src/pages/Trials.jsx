@@ -1,37 +1,36 @@
-import { motion } from 'framer-motion'
-import SectionTitle from '../components/ui/SectionTitle'
+import PageHero from '../components/layout/PageHero'
 import TrialForm from '../components/trial/TrialForm'
-import { useScrollAnimation, fadeUp } from '../hooks/useScrollAnimation'
+import TrialSteps from '../components/trial/TrialSteps'
 
 /* ============================================================
-   Trials — Page « Inscription aux essais » (/essais)
+   Trials — Page « Inscription aux essais » (/essais), maquette Claude Design
    ------------------------------------------------------------
-   - Titre + sous-titre
-   - Formulaire de prise de rendez-vous (TrialForm) :
-     validation en temps réel, soumission simulée et message
-     de confirmation.
+   - Bandeau de titre
+   - Deux colonnes : « Comment ça se passe » (3 étapes) à gauche,
+     formulaire de prise de rendez-vous (TrialForm) à droite :
+     validation en temps réel et message de confirmation.
+   Sur mobile les colonnes s'empilent.
    ============================================================ */
 
 export default function Trials() {
-  const { ref, isInView } = useScrollAnimation({ amount: 0.1 })
-
   return (
-    <section id="essais" className="bg-clair py-16 md:py-24">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          ref={ref}
-          variants={fadeUp}
-          initial="hidden"
-          animate={isInView ? 'visible' : 'hidden'}
-        >
-          <SectionTitle
-            title="Inscription aux essais"
-            subtitle="Rejoignez la BFA Academy. Remplissez le formulaire ci-dessous et notre équipe reviendra vers vous pour confirmer la date de votre essai."
-          />
-        </motion.div>
+    <>
+      <PageHero
+        crumbs={[{ label: 'Accueil', to: '/' }, { label: "Inscription aux essais" }]}
+        title="Inscription aux essais"
+        lead="Remplissez le formulaire : l'équipe technique vous recontacte pour confirmer la date et le lieu."
+      />
 
-        <TrialForm />
-      </div>
-    </section>
+      <section id="essais" className="bg-[#fafcfa] py-10 md:py-14">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-start gap-10 px-4 sm:px-6 lg:px-8">
+          <div className="min-w-0 flex-[1_1_320px]">
+            <TrialSteps />
+          </div>
+          <div className="min-w-0 flex-[2_1_520px]">
+            <TrialForm />
+          </div>
+        </div>
+      </section>
+    </>
   )
 }
