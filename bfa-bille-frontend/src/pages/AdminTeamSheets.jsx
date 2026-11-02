@@ -1,31 +1,30 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrashCan, faXmark } from '@fortawesome/free-solid-svg-icons'
 import PageHeader from '../components/admin/PageHeader'
-import TeamSelector from '../components/team/TeamSelector'
-import FormInput from '../components/trial/FormInput'
-import Button from '../components/ui/Button'
-import Card from '../components/ui/Card'
-import Table from '../components/ui/Table'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import { api } from '../utils/api'
 import { useCategories } from '../hooks/useCategories'
 import { fullName } from '../utils/teamSheetAdapter'
+import { relativeDate } from '../utils/dateUtils'
 import { fadeUp } from '../hooks/useScrollAnimation'
 
 /* ============================================================
    AdminTeamSheets — Fiches techniques (/admin/team-sheets)
    ------------------------------------------------------------
    Module 5 — CRUD back-office des fiches par catégorie :
-   - Onglets de catégories via useCategories() (ids réels : 13/14/15).
+   - Pastilles de catégories via useCategories() (ids réels).
    - GET /admin/team-sheets/categorie/:id (Bearer) → fiche ; un 404
      « …non disponible… » = aucune fiche → formulaire vierge.
+   - Mise en page de la maquette : carte principale (saison,
+     effectif, staff) + colonne latérale (objectifs, palmarès).
    - staff / palmares / objectifs = TEXTES multilignes (textarea) ;
      saison au format AAAA-AAAA (validation locale miroir).
    - effectif = lecture seule (gestion des joueurs = Module 1).
    - Enregistrement : POST (création) ou PUT (mise à jour) ; DELETE.
-   - Erreurs backend (400 / 404 / 409) affichées dans le formulaire.
+   - Erreurs backend (400 / 404 / 409) affichées au-dessus de la fiche.
    ============================================================ */
 
 const SAISON_RE = /^\d{4}-\d{4}$/
@@ -33,42 +32,48 @@ const SAISON_ERROR = 'La saison doit être au format AAAA-AAAA (ex : 2025-2026).
 
 const EMPTY_FORM = { saison: '', staff: '', palmares: '', objectifs: '' }
 
-const EFFECTIF_COLUMNS = [
-  { key: 'nom', label: 'Joueur' },
-  { key: 'poste', label: 'Poste' },
-]
+const EFFECTIF_PREVIEW = 3
 
-/* Textarea réutilisable (même style que FormInput). */
-function FormTextarea({ label, name, value, onChange, rows = 4, error, hint, placeholder, className = '' }) {
-  const hasError = Boolean(error)
+const fieldClasses =
+  'w-full rounded-[10px] border bg-white px-3 text-sm text-sombre placeholder:text-sombre/50 transition focus:outline-none focus:ring-2 focus:ring-vert/25'
+
+/* Champ libellé + saisie (input ou textarea) au style de la maquette. */
+function Field({ label, name, value, onChange, rows, error, hint, placeholder, className = '' }) {
+  const border = error ? 'border-erreur' : 'border-[#cfe0d4] focus:border-vert'
   return (
     <div className={className}>
-      <label htmlFor={name} className="mb-2 block text-sm font-bold text-vert">
+      <label htmlFor={name} className="mb-1.5 block text-[13px] font-semibold">
         {label}
       </label>
-      <textarea
-        id={name}
-        name={name}
-        value={value}
-        onChange={onChange}
-        rows={rows}
-        placeholder={placeholder}
-        aria-invalid={hasError}
-        aria-describedby={hasError ? `${name}-error` : undefined}
-        className={`w-full resize-y rounded-xl border-2 bg-white px-4 py-3 text-sombre placeholder:text-sombre/75 transition-all duration-200 focus:outline-none focus:ring-2 ${
-          hasError
-            ? 'border-erreur focus:border-erreur focus:ring-erreur/30'
-            : 'border-clair focus:border-dore focus:ring-dore/40'
-        }`}
-      />
-      {hasError && (
+      {rows ? (
+        <textarea
+          id={name}
+          name={name}
+          value={value}
+          onChange={onChange}
+          rows={rows}
+          placeholder={placeholder}
+          aria-invalid={Boolean(error)}
+          className={`${fieldClasses} ${border} resize-y py-2.5`}
+        />
+      ) : (
+        <input
+          id={name}
+          name={name}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? `${name}-error` : undefined}
+          className={`${fieldClasses} ${border} h-11`}
+        />
+      )}
+      {error && (
         <p id={`${name}-error`} role="alert" className="mt-1.5 text-sm font-medium text-erreur">
           {error}
         </p>
       )}
-      {hint && !hasError && (
-        <p className="mt-1.5 text-xs text-sombre/75">{hint}</p>
-      )}
+      {hint && !error && <p className="mt-1.5 text-xs text-sombre/70">{hint}</p>}
     </div>
   )
 }
@@ -86,13 +91,14 @@ export default function AdminTeamSheets() {
   const [saveError, setSaveError] = useState(null)
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [showAll, setShowAll] = useState(false)
 
   const activeName = useMemo(
     () => categories.find((c) => c.id === activeId)?.nom ?? '',
     [categories, activeId],
   )
 
-  /* Onglet par défaut : première catégorie (U9). */
+  /* Onglet par défaut : première catégorie. */
   useEffect(() => {
     if (categories.length > 0 && activeId == null) {
       setActiveId(categories[0].id)
@@ -107,6 +113,7 @@ export default function AdminTeamSheets() {
     setFetchError(null)
     setSaveError(null)
     setSaveSuccess(false)
+    setShowAll(false)
     api(`/admin/team-sheets/categorie/${activeId}`, { auth: true })
       .then((res) => {
         if (cancelled) return
@@ -203,26 +210,47 @@ export default function AdminTeamSheets() {
       )
   }
 
-  const effectifRows = (fiche?.effectif ?? []).map((j) => ({
+  const effectif = (fiche?.effectif ?? []).map((j) => ({
     nom: fullName(j),
     poste: j.poste,
   }))
-
-  const categoryNames = categories.map((c) => c.nom)
+  const effectifShown = showAll ? effectif : effectif.slice(0, EFFECTIF_PREVIEW)
+  const saisonLabel = (fiche?.saison ?? form.saison).replace('-', '/')
 
   return (
     <motion.div
       variants={fadeUp}
       initial="hidden"
       animate="visible"
-      className="space-y-6"
+      className="space-y-5 sm:space-y-6"
     >
       <PageHeader
         title="Fiches techniques"
-        subtitle="Profils techniques par catégorie : effectif, staff, objectifs et palmarès."
+        subtitle="Une fiche par catégorie : effectif, staff, objectifs, palmarès."
+        action={
+          <span className="inline-flex flex-wrap gap-2.5">
+            {activeName && (
+              <Link
+                to={`/equipes/technique/${encodeURIComponent(activeName)}`}
+                target="_blank"
+                className="inline-flex h-11 items-center rounded-xl border border-[#cfe0d4] bg-white px-4 text-sm font-semibold text-vert-dark transition hover:bg-[#f4f9f6]"
+              >
+                Aperçu public
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving || loadingFiche || Boolean(fetchError)}
+              className="inline-flex h-11 items-center rounded-xl bg-vert px-[18px] text-sm font-semibold text-white transition hover:bg-vert-dark disabled:opacity-60"
+            >
+              {saving ? 'Enregistrement…' : fiche ? 'Enregistrer' : 'Créer la fiche'}
+            </button>
+          </span>
+        }
       />
 
-      {/* Erreur d'enregistrement / suppression — bandeau au-dessus du formulaire. */}
+      {/* Erreur d'enregistrement / suppression — bandeau au-dessus de la fiche. */}
       {saveError && (
         <div
           role="alert"
@@ -262,14 +290,24 @@ export default function AdminTeamSheets() {
         </div>
       ) : (
         <>
-          <TeamSelector
-            categories={categoryNames}
-            active={activeName}
-            onChange={(name) => {
-              const next = categories.find((c) => c.nom === name)
-              if (next) setActiveId(next.id)
-            }}
-          />
+          <div className="flex flex-wrap gap-2" role="tablist" aria-label="Choisir une catégorie">
+            {categories.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                role="tab"
+                aria-selected={c.id === activeId}
+                onClick={() => setActiveId(c.id)}
+                className={`inline-flex h-10 items-center rounded-[10px] border px-3.5 text-[13px] transition ${
+                  c.id === activeId
+                    ? 'border-vert bg-menthe font-semibold text-vert-dark'
+                    : 'border-[#e3ede6] bg-white font-medium text-[#3b4d42] hover:border-vert/50'
+                }`}
+              >
+                {c.nom}
+              </button>
+            ))}
+          </div>
 
           {loadingFiche ? (
             <p className="py-10 text-center text-sm text-sombre/75">
@@ -283,109 +321,121 @@ export default function AdminTeamSheets() {
               {fetchError}
             </div>
           ) : (
-            <Card className="p-6 md:p-8">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-lg font-extrabold text-vert">
-                  {fiche
-                    ? `Fiche ${activeName} — ${fiche.saison}`
-                    : `Fiche ${activeName}`}
-                </h2>
-                {fiche && (
-                  <Button
-                    type="button"
-                    variant="danger"
-                    size="sm"
-                    onClick={() => setConfirmDelete(true)}
-                  >
-                    <FontAwesomeIcon icon={faTrashCan} className="h-4 w-4" />
-                    Supprimer la fiche
-                  </Button>
-                )}
-              </div>
+            <div className="flex flex-wrap items-start gap-4">
+              <section className="min-w-0 flex-[999_1_35rem] overflow-hidden rounded-2xl border border-[#e3ede6] bg-white">
+                <div className="flex flex-wrap items-start justify-between gap-3 px-5 py-[18px]">
+                  <div>
+                    <h2 className="text-lg font-bold">
+                      {activeName}
+                      {saisonLabel && ` — Saison ${saisonLabel}`}
+                    </h2>
+                    {(fiche?.updatedAt || !fiche) && (
+                      <span className="text-[13px] text-sombre/75">
+                        {fiche
+                          ? `Dernière modification : ${relativeDate(fiche.updatedAt).toLowerCase()}`
+                          : "Cette catégorie n'a pas encore de fiche."}
+                      </span>
+                    )}
+                  </div>
+                  {fiche && (
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDelete(true)}
+                      className="inline-flex min-h-9 items-center gap-2 text-xs font-medium text-erreur hover:underline"
+                    >
+                      <FontAwesomeIcon icon={faTrashCan} className="h-3 w-3" />
+                      Supprimer la fiche
+                    </button>
+                  )}
+                </div>
 
-              <div className="mt-6 grid gap-5">
-                <div className="max-w-xs">
-                  <FormInput
+                <div className="border-t border-[#eef3ef] px-5 py-[18px]">
+                  <Field
                     label="Saison"
                     name="saison"
                     value={form.saison}
                     onChange={updateField('saison')}
-                    placeholder="2025-2026"
+                    placeholder="2026-2027"
                     error={formErrors.saison}
-                    touched={Boolean(formErrors.saison)}
-                    required
+                    className="max-w-xs"
                   />
                 </div>
 
-                <FormTextarea
-                  label="Staff technique"
-                  name="staff"
-                  value={form.staff}
-                  onChange={updateField('staff')}
-                  rows={4}
-                  placeholder="Entraîneur : Nom Prénom&#10;Adjoint : Nom Prénom"
-                  hint="Une personne par ligne (ex : « Entraîneur : Paul Biya »)."
-                />
-
-                <FormTextarea
-                  label="Objectifs de la saison"
-                  name="objectifs"
-                  value={form.objectifs}
-                  onChange={updateField('objectifs')}
-                  rows={4}
-                  placeholder="Développement des fondamentaux&#10;Initiation au jeu collectif"
-                  hint="Une ligne par objectif."
-                />
-
-                <FormTextarea
-                  label="Palmarès"
-                  name="palmares"
-                  value={form.palmares}
-                  onChange={updateField('palmares')}
-                  rows={4}
-                  placeholder="Champion du tournoi jeunes 2025"
-                  hint="Une ligne par titre ; sauvegardez pour enregistrer."
-                />
-
-                {/* Effectif — lecture seule (gestion des joueurs = Module 1). */}
-                <div>
-                  <h3 className="mb-2 text-sm font-bold text-vert">Effectif</h3>
-                  {effectifRows.length > 0 ? (
-                    <Table
-                      columns={EFFECTIF_COLUMNS}
-                      rows={effectifRows}
-                      rowKey="__index__"
-                      // 2 colonnes seulement → s'adapte sans scroll ; et dans
-                      // la grille du formulaire, min-width:0 empêche le
-                      // tableau d'étirer toute la piste sur mobile.
-                      minWidth={0}
-                      cards={false}
-                    />
+                <div className="border-t border-[#eef3ef] px-5 py-[18px]">
+                  <h3 className="mb-2.5 text-sm font-bold">Effectif ({effectif.length})</h3>
+                  {effectif.length > 0 ? (
+                    <>
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="text-left text-xs uppercase text-sombre/70">
+                            <th scope="col" className="py-2 pr-3 font-semibold">Joueur</th>
+                            <th scope="col" className="py-2 font-semibold">Poste</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {effectifShown.map((j, i) => (
+                            <tr key={`${j.nom}-${i}`} className="border-t border-[#f1f5f2]">
+                              <td className="py-2 pr-3">{j.nom}</td>
+                              <td className="py-2">{j.poste}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {effectif.length > EFFECTIF_PREVIEW && (
+                        <button
+                          type="button"
+                          onClick={() => setShowAll((v) => !v)}
+                          className="mt-2 min-h-9 text-[13px] font-semibold text-vert-dark hover:underline"
+                        >
+                          {showAll ? 'Réduire la liste' : `Voir les ${effectif.length} joueurs →`}
+                        </button>
+                      )}
+                    </>
                   ) : (
-                    <p className="rounded-xl border border-dashed border-clair px-4 py-5 text-center text-sm text-sombre/75">
-                      {fiche
-                        ? "Aucun joueur dans l'effectif de cette catégorie."
-                        : 'L\'effectif est géré depuis la page Équipes (Module 1) — créez la fiche pour la lier à la catégorie.'}
+                    <p className="rounded-xl border border-dashed border-[#e3ede6] px-4 py-5 text-center text-sm text-sombre/75">
+                      Aucun joueur dans cette catégorie. L'effectif est géré depuis la page Joueurs.
                     </p>
                   )}
                 </div>
-              </div>
 
-              <div className="mt-6 flex justify-end">
-                <Button
-                  type="button"
-                  variant="primary"
-                  onClick={handleSave}
-                  disabled={saving}
-                >
-                  {saving
-                    ? 'Enregistrement…'
-                    : fiche
-                      ? 'Enregistrer la fiche'
-                      : 'Créer la fiche'}
-                </Button>
-              </div>
-            </Card>
+                <div className="border-t border-[#eef3ef] px-5 py-[18px]">
+                  <Field
+                    label="Staff technique"
+                    name="staff"
+                    value={form.staff}
+                    onChange={updateField('staff')}
+                    rows={4}
+                    placeholder={'M. Essomba — Entraîneur principal\nMme Ngo — Préparatrice physique'}
+                    hint="Une personne par ligne."
+                  />
+                </div>
+              </section>
+
+              <aside className="flex min-w-0 flex-1 basis-72 flex-col gap-4">
+                <section className="rounded-2xl border border-[#e3ede6] bg-white p-5">
+                  <Field
+                    label="Objectifs de la saison"
+                    name="objectifs"
+                    value={form.objectifs}
+                    onChange={updateField('objectifs')}
+                    rows={5}
+                    placeholder={'Finir dans le top 2\nIntégrer 3 joueurs en U17'}
+                    hint="Une ligne par objectif."
+                  />
+                </section>
+                <section className="rounded-2xl border border-[#e3ede6] bg-white p-5">
+                  <Field
+                    label="Palmarès"
+                    name="palmares"
+                    value={form.palmares}
+                    onChange={updateField('palmares')}
+                    rows={5}
+                    placeholder={'2025 — Vainqueur coupe régionale\n2024 — Finaliste championnat'}
+                    hint="Une ligne par titre."
+                  />
+                </section>
+              </aside>
+            </div>
           )}
         </>
       )}
