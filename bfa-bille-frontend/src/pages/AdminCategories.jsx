@@ -13,7 +13,8 @@ import { invalidateCategoriesCache } from '../hooks/useCategories'
 /* ============================================================
    AdminCategories — Gestion des catégories (/admin/categories)
    ------------------------------------------------------------
-   - Données : GET /api/categories (public)
+   - Données : GET /api/categories (public) + effectifs via
+     GET /admin/dashboard (players.byCategory) → cartes façon maquette
    - CRUD : POST/PUT/DELETE /admin/categories (protégés, auth: true)
    - Champs : nom, ageMin (9-17), ageMax (9-17)
    - Validation miroir du backend (nom ≥ 2, ageMin <= ageMax,
@@ -60,6 +61,7 @@ export default function AdminCategories() {
   const [serverError, setServerError] = useState(null)
   const [saving, setSaving] = useState(false)
   const [toDelete, setToDelete] = useState(null)
+  const [counts, setCounts] = useState({})
 
   const loadCategories = useCallback(async () => {
     setLoading(true)
@@ -67,6 +69,13 @@ export default function AdminCategories() {
     try {
       const data = await api('/api/categories')
       setCategories(data?.data ?? [])
+      try {
+        const dash = await api('/admin/dashboard', { auth: true })
+        const byCat = dash?.data?.players?.byCategory ?? []
+        setCounts(Object.fromEntries(byCat.map((c) => [c.categorieId, c.count])))
+      } catch {
+        setCounts({})
+      }
     } catch (err) {
       setError(err?.message || 'Impossible de charger les catégories.')
     } finally {
@@ -77,6 +86,8 @@ export default function AdminCategories() {
   useEffect(() => {
     loadCategories()
   }, [loadCategories])
+
+  const totalPlayers = Object.values(counts).reduce((n, c) => n + c, 0)
 
   const openCreate = () => {
     setEditing(null)
@@ -162,12 +173,12 @@ export default function AdminCategories() {
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="visible" className="space-y-6">
       <PageHeader
-        title="Catégories"
-        subtitle="Gérez les catégories d'âge de l'académie et leurs règles (tranche d'âge)."
+        title="Catégories d'âge"
+        subtitle="Définissent les tranches d'âge qui valident l'inscription d'un joueur."
         action={
           <Button onClick={openCreate} size="sm">
             <FontAwesomeIcon icon={faPlus} className="h-4 w-4" />
-            Ajouter une catégorie
+            Nouvelle catégorie
           </Button>
         }
       />
@@ -186,51 +197,64 @@ export default function AdminCategories() {
         <div className="rounded-xl border border-clair bg-white px-6 py-12 text-center">
           <FontAwesomeIcon icon={faLayerGroup} className="mx-auto mb-3 h-10 w-10 text-sombre/30" />
           <p className="text-sm font-medium text-sombre/75">
-            Aucune catégorie. Cliquez sur « Ajouter une catégorie » pour commencer.
+            Aucune catégorie. Cliquez sur « Nouvelle catégorie » pour commencer.
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-clair bg-white shadow-sm">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-clair bg-clair/50">
-              <tr>
-                <th className="px-3 py-3 sm:px-6 font-semibold text-sombre/75">Nom</th>
-                <th className="px-3 py-3 sm:px-6 font-semibold text-sombre/75">Âge min.</th>
-                <th className="px-3 py-3 sm:px-6 font-semibold text-sombre/75">Âge max.</th>
-                <th className="px-3 py-3 sm:px-6 text-right font-semibold text-sombre/75">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-clair">
-              {categories.map((cat) => (
-                <tr key={cat.id} className="transition hover:bg-clair/30">
-                  <td className="px-3 py-4 sm:px-6 font-semibold text-vert">{cat.nom}</td>
-                  <td className="px-3 py-4 sm:px-6 text-sombre/75">{cat.ageMin} ans</td>
-                  <td className="px-3 py-4 sm:px-6 text-sombre/75">{cat.ageMax} ans</td>
-                  <td className="px-3 py-4 sm:px-6">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => openEdit(cat)}
-                        className="flex h-9 w-9 items-center justify-center rounded-lg text-vert transition hover:bg-vert/10"
-                        aria-label="Modifier"
-                      >
-                        <FontAwesomeIcon icon={faPencil} className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setToDelete(cat)}
-                        className="flex h-9 w-9 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-50"
-                        aria-label="Supprimer"
-                      >
-                        <FontAwesomeIcon icon={faTrash} className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {categories.map((cat) => {
+            const count = counts[cat.id] ?? 0
+            const pct = totalPlayers ? Math.round((count / totalPlayers) * 100) : 0
+            return (
+              <article
+                key={cat.id}
+                className="flex flex-col gap-3.5 rounded-2xl border border-[#e3ede6] bg-white p-5"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <h2 className="font-display text-4xl font-bold leading-none text-vert-dark">
+                    {cat.nom}
+                  </h2>
+                  <div className="-mr-2 flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => openEdit(cat)}
+                      className="flex h-9 w-9 items-center justify-center rounded-lg text-vert transition hover:bg-vert/10"
+                      aria-label={`Modifier ${cat.nom}`}
+                    >
+                      <FontAwesomeIcon icon={faPencil} className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setToDelete(cat)}
+                      className="flex h-9 w-9 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-50"
+                      aria-label={`Supprimer ${cat.nom}`}
+                    >
+                      <FontAwesomeIcon icon={faTrash} className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+                <p className="text-sm text-sombre/75">
+                  {cat.ageMin} à {cat.ageMax} ans
+                </p>
+                <div>
+                  <div className="mb-1.5 flex justify-between gap-2 text-[13px]">
+                    <b className="font-semibold">
+                      {count} joueur{count > 1 ? 's' : ''}
+                    </b>
+                    <span className="text-sombre/75">{pct} % de l'effectif</span>
+                  </div>
+                  <div
+                    className="h-2 rounded-full bg-menthe"
+                    role="img"
+                    aria-label={`${pct} % de l'effectif`}
+                  >
+                    <div className="h-2 rounded-full bg-vert" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              </article>
+            )
+          })}
+        </section>
       )}
 
       {/* Modale formulaire */}
