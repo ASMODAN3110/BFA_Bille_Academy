@@ -20,7 +20,7 @@ const prixFr = (prix) =>
   prix.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + ' FCFA'
 
 const categorieBadge = (categorie) => {
-  const color = CATEGORY_COLORS[categorie] ?? '#006400'
+  const color = CATEGORY_COLORS[categorie] ?? '#15803d'
   return (
     <span
       className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-bold"

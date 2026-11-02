@@ -1,35 +1,37 @@
-import Button from '../ui/Button'
-
 /* ============================================================
-   ProductFilters — Filtres du catalogue (boutique)
+   ProductFilters — Filtres du catalogue (maquette Claude Design)
    ------------------------------------------------------------
-   Boutons `Button` (variantes filter / filter-active) pour
-   choisir entre « Tous », « Nouveautés », « Vêtements » et
-   « Accessoires ».
+   Pastilles arrondies : Tous les produits | Nouveautés | catégories.
+   La pastille active est pleine verte.
    ============================================================ */
+
+const chipClasses = (active) =>
+  `inline-flex min-h-10 items-center rounded-full border px-4 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-dore/40 ${
+    active
+      ? 'border-vert bg-vert text-white'
+      : 'border-[#cfe6d6] bg-white text-sombre/80 hover:border-vert hover:text-vert'
+  }`
 
 export default function ProductFilters({ categories, active, onChange }) {
   return (
     <div
       role="tablist"
       aria-label="Filtrer les produits par catégorie"
-      className="mb-8 flex flex-wrap items-center justify-center gap-3"
+      className="flex flex-wrap items-center gap-2"
     >
       {categories.map((category) => {
         const isActive = active === category
         return (
-          <Button
+          <button
             key={category}
             type="button"
-            size="sm"
-            variant={isActive ? 'filter-active' : 'filter'}
-            onClick={() => onChange(category)}
             role="tab"
             aria-selected={isActive}
-            className="rounded-full px-5"
+            onClick={() => onChange(category)}
+            className={chipClasses(isActive)}
           >
-            {category}
-          </Button>
+            {category === 'Tous' ? 'Tous les produits' : category}
+          </button>
         )
       })}
     </div>

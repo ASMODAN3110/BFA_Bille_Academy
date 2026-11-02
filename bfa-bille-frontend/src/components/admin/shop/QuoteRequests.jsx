@@ -8,8 +8,8 @@ import { staggerItem } from '../../../hooks/useScrollAnimation'
 /* ============================================================
    QuoteRequests — Demandes de devis de la boutique
    ------------------------------------------------------------
-   - Liste : demandeur (avatar initiales), e-mail, date, produit,
-     quantité / taille, message (extrait)
+   - Liste : demandeur (avatar initiales), e-mail, date, articles
+     (une ligne par produit : quantité / taille), message (extrait)
    - Badge « Nouveau » sur les demandes non traitées
    - Actions : Répondre (mailto) / Marquer comme traité
    - Desktop : lignes en colonne · Mobile : cartes empilées
@@ -92,13 +92,17 @@ export default function QuoteRequests({ quotes, onToggleTraite }) {
                   {quote.email} · {formatQuoteDate(quote.dateDemande)}
                 </p>
 
-                <p className="mt-2 text-sm">
-                  <span className="font-semibold text-vert">{quote.produit}</span>
-                  <span className="text-sombre/75"> × {quote.quantite}</span>
-                  {quote.taille && (
-                    <span className="text-sombre/75"> — {quote.taille}</span>
-                  )}
-                </p>
+                <ul className="mt-2 space-y-0.5 text-sm">
+                  {quote.lignes.map((ligne) => (
+                    <li key={ligne.id}>
+                      <span className="font-semibold text-vert">{ligne.produit}</span>
+                      <span className="text-sombre/75"> × {ligne.quantite}</span>
+                      {ligne.taille && (
+                        <span className="text-sombre/75"> — {ligne.taille}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
 
                 <p className="mt-1 line-clamp-2 text-sm text-sombre/75">
                   {quote.message}

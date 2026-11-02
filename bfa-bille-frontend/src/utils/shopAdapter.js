@@ -56,32 +56,51 @@ export function toProductPayload(form) {
   }
 }
 
-/** Normalise une demande de devis pour l'administration. */
+/** Normalise une demande de devis (une ou plusieurs lignes) pour l'administration. */
 export function normalizeQuote(q) {
+  const lignes = (q.lignes ?? []).map((l) => ({
+    id: l.id,
+    produit: l.produitNom ?? '—',
+    quantite: l.quantite,
+    taille: l.taille ? toTailleLabel(l.taille) : null,
+  }))
+  const premiere = lignes[0]
   return {
     id: q.id,
     nomComplet: q.nomComplet,
     email: q.email,
     telephone: q.telephone,
-    quantite: q.quantite,
-    taille: q.taille ? toTailleLabel(q.taille) : null,
     message: q.message ?? '',
     dateDemande: q.dateDemande,
     estTraite: q.estTraite,
-    produit: q.produit?.nom ?? '—',
-    produitId: q.produitId,
+    lignes,
+    // Résumé pour les listes et l'objet des e-mails : « Maillot BFA » ou « Maillot BFA (+2 autres articles) »
+    produit: !premiere
+      ? '—'
+      : lignes.length > 1
+        ? `${premiere.produit} (+${lignes.length - 1} autre${lignes.length > 2 ? 's' : ''} article${lignes.length > 2 ? 's' : ''})`
+        : premiere.produit,
+    quantite: lignes.reduce((total, l) => total + (Number(l.quantite) || 0), 0),
   }
 }
 
-/** Payload envoyé au backend (POST /api/quotes) depuis le formulaire. */
-export function toQuotePayload(form, produitId) {
+/** Nombre maximal d'articles (lignes) dans une demande de devis (miroir du backend). */
+export const MAX_LIGNES_DEVIS = 20
+
+/**
+ * Payload envoyé au backend (POST /api/quotes) : le client et la liste des articles
+ * du devis (`items` : { productId, quantite, taille }).
+ */
+export function toQuotePayload(form, items) {
   return {
     nomComplet: String(form.nom ?? '').trim(),
     email: String(form.email ?? '').trim(),
     telephone: String(form.telephone ?? '').trim(),
-    produitId,
-    quantite: Number(form.quantite),
-    taille: form.taille ? toTailleEnum(form.taille) : null,
     message: String(form.message ?? '').trim() || undefined,
+    lignes: items.map((item) => ({
+      produitId: item.productId,
+      quantite: Number(item.quantite),
+      taille: item.taille ? toTailleEnum(item.taille) : null,
+    })),
   }
 }
