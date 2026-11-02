@@ -29,9 +29,10 @@ export default function ResultsTable({ results, onEdit, onDelete }) {
     },
     {
       key: 'match',
+      wide: true,
       label: 'Match',
       render: (row) => (
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <span
             className={`rounded-full px-2.5 py-1 text-xs font-bold ${
               row.equipeA.includes('BFA')

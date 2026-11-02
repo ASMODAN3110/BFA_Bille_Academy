@@ -194,19 +194,19 @@ export default function AdminCategories() {
           <table className="w-full text-left text-sm">
             <thead className="border-b border-clair bg-clair/50">
               <tr>
-                <th className="px-6 py-3 font-semibold text-sombre/75">Nom</th>
-                <th className="px-6 py-3 font-semibold text-sombre/75">Âge minimum</th>
-                <th className="px-6 py-3 font-semibold text-sombre/75">Âge maximum</th>
-                <th className="px-6 py-3 text-right font-semibold text-sombre/75">Actions</th>
+                <th className="px-3 py-3 sm:px-6 font-semibold text-sombre/75">Nom</th>
+                <th className="px-3 py-3 sm:px-6 font-semibold text-sombre/75">Âge min.</th>
+                <th className="px-3 py-3 sm:px-6 font-semibold text-sombre/75">Âge max.</th>
+                <th className="px-3 py-3 sm:px-6 text-right font-semibold text-sombre/75">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-clair">
               {categories.map((cat) => (
                 <tr key={cat.id} className="transition hover:bg-clair/30">
-                  <td className="px-6 py-4 font-semibold text-vert">{cat.nom}</td>
-                  <td className="px-6 py-4 text-sombre/75">{cat.ageMin} ans</td>
-                  <td className="px-6 py-4 text-sombre/75">{cat.ageMax} ans</td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-4 sm:px-6 font-semibold text-vert">{cat.nom}</td>
+                  <td className="px-3 py-4 sm:px-6 text-sombre/75">{cat.ageMin} ans</td>
+                  <td className="px-3 py-4 sm:px-6 text-sombre/75">{cat.ageMax} ans</td>
+                  <td className="px-3 py-4 sm:px-6">
                     <div className="flex justify-end gap-2">
                       <button
                         type="button"

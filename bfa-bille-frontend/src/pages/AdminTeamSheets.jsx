@@ -359,6 +359,7 @@ export default function AdminTeamSheets() {
                       // la grille du formulaire, min-width:0 empêche le
                       // tableau d'étirer toute la piste sur mobile.
                       minWidth={0}
+                      cards={false}
                     />
                   ) : (
                     <p className="rounded-xl border border-dashed border-clair px-4 py-5 text-center text-sm text-sombre/75">
