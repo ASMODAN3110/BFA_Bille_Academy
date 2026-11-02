@@ -1,136 +1,157 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faComments, faEye, faFilePen } from '@fortawesome/free-solid-svg-icons'
-import Table from '../../ui/Table'
-import Card from '../../ui/Card'
+import {
+  faEllipsis,
+  faFilePen,
+  faMagnifyingGlass,
+} from '@fortawesome/free-solid-svg-icons'
 import BlogStatusBadge from './BlogStatusBadge'
-import BlogActions from './BlogActions'
-import { formatDateCard, parseLocalDate } from '../../../utils/dateUtils'
+import Pagination from '../../ui/Pagination'
+import { parseLocalDate } from '../../../utils/dateUtils'
 
 /* ============================================================
-   BlogTable — Tableau des articles du blog
+   BlogTable — Liste des articles (admin)
    ------------------------------------------------------------
-   - Colonnes : Article / Auteur / Statut / Date / Performance /
-     Actions
-   - S'appuie sur le composant réutilisable <Table /> (ui/Table)
-   - Clic « modifier » → onEdit, « publier/dépublier » →
-     onTogglePublish, « supprimer » → onDelete
+   - Onglets Tous / Publiés / Brouillons (avec compteurs) + recherche
+   - Une ligne par article : vignette, titre, « Catégorie · date »,
+     pastille de statut, menu « ⋯ » ; clic = édition rapide à droite
+   - Pied : « 1–10 sur N » + pagination carrée
    ============================================================ */
 
-const dateLabel = (row) => {
-  const date = row.datePublication || row.dateModification
-  if (!date) return '—'
-  return formatDateCard(parseLocalDate(date))
-}
-
-const hasBeenModified = (row) =>
-  Boolean(
-    row.dateModification && row.dateModification !== row.datePublication,
-  )
-
-const COLUMNS = (handlers) => [
-  {
-    key: 'article',
-    label: 'Article',
-    render: (row) => (
-      <div className="flex items-center gap-3">
-        <img
-          src={row.image}
-          alt=""
-          loading="lazy"
-          className="h-12 w-16 shrink-0 rounded-lg object-cover"
-        />
-        <div className="min-w-0">
-          <p className="line-clamp-2 font-semibold leading-snug text-sombre">
-            {row.titre}
-          </p>
-          <p className="mt-0.5 text-xs font-semibold uppercase tracking-wide text-dore">
-            {row.categorie}
-          </p>
-        </div>
-      </div>
-    ),
-  },
-  {
-    key: 'auteur',
-    label: 'Auteur',
-    render: (row) => (
-      <span className="font-medium text-sombre/80">{row.auteur}</span>
-    ),
-  },
-  {
-    key: 'statut',
-    label: 'Statut',
-    render: (row) => <BlogStatusBadge statut={row.statut} />,
-  },
-  {
-    key: 'date',
-    label: 'Date',
-    render: (row) => (
-      <div>
-        <p className="font-semibold text-sombre">{dateLabel(row)}</p>
-        {hasBeenModified(row) && (
-          <p className="mt-0.5 text-xs text-sombre/75">
-            Modifié : {formatDateCard(parseLocalDate(row.dateModification))}
-          </p>
-        )}
-      </div>
-    ),
-  },
-  {
-    key: 'performance',
-    label: 'Performance',
-    render: (row) =>
-      row.estPublie ? (
-        <div className="flex items-center gap-3 text-xs font-semibold text-sombre/75">
-          <span className="flex items-center gap-1.5">
-            <FontAwesomeIcon icon={faEye} className="h-3.5 w-3.5 text-vert" />
-            {row.vues ?? 0}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <FontAwesomeIcon
-              icon={faComments}
-              className="h-3.5 w-3.5 text-dore"
-            />
-            {row.commentaires ?? 0}
-          </span>
-        </div>
-      ) : (
-        <span className="text-sombre/75">—</span>
-      ),
-  },
-  {
-    key: 'actions',
-    label: 'Actions',
-    render: (row) => <BlogActions {...handlers} post={row} />,
-  },
+const TABS = [
+  { value: 'Tous', label: 'Tous' },
+  { value: 'Publiés', label: 'Publiés' },
+  { value: 'Brouillons', label: 'Brouillons' },
 ]
 
-export default function BlogTable({ posts, onEdit, onTogglePublish, onDelete }) {
-  const handlers = { onEdit, onTogglePublish, onDelete }
+const formatDate = (iso) =>
+  parseLocalDate(iso).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
 
-  if (posts.length === 0) {
-    return (
-      <Card className="p-10 text-center">
-        <FontAwesomeIcon
-          icon={faFilePen}
-          className="mx-auto h-10 w-10 text-sombre/20"
-        />
-        <p className="mt-3 font-bold text-sombre/75">
-          Aucun article ne correspond à cette recherche.
-        </p>
-        <p className="mt-1 text-sm text-sombre/75">
-          Modifiez les filtres ou la recherche, ou créez un nouvel article.
-        </p>
-      </Card>
-    )
-  }
+const subtitle = (post) =>
+  `${post.categorie} · ${
+    post.estPublie && post.datePublication ? formatDate(post.datePublication) : 'brouillon'
+  }`
+
+export default function BlogTable({
+  posts,
+  counts,
+  total,
+  page,
+  pageSize,
+  onPageChange,
+  statusFilter,
+  onStatusChange,
+  searchTerm,
+  onSearchChange,
+  activeId,
+  onSelect,
+  onMenu,
+}) {
+  const from = total === 0 ? 0 : (page - 1) * pageSize + 1
+  const to = Math.min(page * pageSize, total)
 
   return (
-    <Table
-      columns={COLUMNS(handlers)}
-      rows={posts}
-      rowKey="id"
-      className="rounded-2xl border border-clair bg-white shadow-sm"
-    />
+    <section className="min-w-0 flex-[999_1_35rem] overflow-hidden rounded-2xl border border-[#e3ede6] bg-white">
+      <div className="flex flex-wrap items-center gap-x-2 border-b border-[#e3ede6] px-2">
+        <div role="tablist" aria-label="Statut" className="flex max-w-full overflow-x-auto">
+          {TABS.map((t) => {
+            const on = statusFilter === t.value
+            return (
+              <button
+                key={t.value}
+                type="button"
+                role="tab"
+                aria-selected={on}
+                onClick={() => onStatusChange(t.value)}
+                className={`min-h-11 shrink-0 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-semibold transition ${
+                  on
+                    ? 'border-vert text-vert-dark'
+                    : 'border-transparent text-sombre/70 hover:text-sombre'
+                }`}
+              >
+                {t.label} · {counts[t.value]}
+              </button>
+            )
+          })}
+        </div>
+        <label className="relative mx-2 my-1.5 min-w-48 flex-1 sm:ml-auto sm:flex-none">
+          <FontAwesomeIcon
+            icon={faMagnifyingGlass}
+            className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sombre/60"
+          />
+          <span className="sr-only">Rechercher un article</span>
+          <input
+            type="search"
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Rechercher un article…"
+            className="h-[38px] w-full rounded-[10px] border border-[#e3ede6] bg-[#f4f7f5] pl-9 pr-3 text-[13px] outline-none focus:border-vert sm:w-60"
+          />
+        </label>
+      </div>
+
+      {posts.length === 0 ? (
+        <div className="px-6 py-10 text-center">
+          <FontAwesomeIcon icon={faFilePen} className="mx-auto h-10 w-10 text-sombre/20" />
+          <p className="mt-3 text-sm font-bold text-sombre/75">
+            Aucun article ne correspond à cette sélection.
+          </p>
+        </div>
+      ) : (
+        <ul>
+          {posts.map((post) => (
+            <li
+              key={post.id}
+              className={`flex items-center gap-1 border-t border-[#eef3ef] pr-2 transition first:border-t-0 hover:bg-[#f4f9f6] ${
+                post.id === activeId ? 'bg-[#f1f8f3]' : ''
+              }`}
+            >
+              <button
+                type="button"
+                onClick={() => onSelect(post.id)}
+                aria-current={post.id === activeId}
+                className="flex min-h-[84px] min-w-0 flex-1 flex-wrap items-center gap-x-3.5 gap-y-2 py-3 pl-3 text-left text-sm sm:pl-[18px]"
+              >
+                <img
+                  src={post.image}
+                  alt=""
+                  loading="lazy"
+                  className="h-14 w-[84px] shrink-0 rounded-[10px] bg-gradient-to-br from-[#dcefe2] to-[#fff3c9] object-cover"
+                />
+                <span className="min-w-0 flex-1 basis-40">
+                  <b className="line-clamp-2 font-semibold leading-snug">{post.titre}</b>
+                  <span className="block text-xs text-sombre/75">{subtitle(post)}</span>
+                </span>
+                <BlogStatusBadge statut={post.statut} />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => onMenu(post, e.currentTarget.getBoundingClientRect())}
+                aria-label={`Plus d'actions pour ${post.titre}`}
+                aria-haspopup="menu"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sombre/70 transition hover:bg-[#f4f7f5]"
+              >
+                <FontAwesomeIcon icon={faEllipsis} className="h-4 w-4" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="flex flex-wrap items-center justify-between gap-2.5 border-t border-[#eef3ef] px-4 py-3 text-[13px] text-sombre/75">
+        <span role="status">
+          {total === 0 ? 'Aucun résultat' : `${from}–${to} sur ${total}`}
+        </span>
+        <Pagination
+          currentPage={page}
+          totalPages={Math.max(1, Math.ceil(total / pageSize))}
+          onPageChange={onPageChange}
+          variant="square"
+        />
+      </div>
+    </section>
   )
 }

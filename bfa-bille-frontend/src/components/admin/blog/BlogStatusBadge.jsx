@@ -1,8 +1,8 @@
 /* ============================================================
    BlogStatusBadge — Pastille de statut d'un article
    ------------------------------------------------------------
-   - Publié  : texte + point vert (#4CAF50)
-   - Brouillon : texte + point orange (#FF9800)
+   - Publié    : fond vert pâle, texte vert foncé
+   - Brouillon : fond gris, texte gris foncé
    - Props : statut ('Publié' | 'Brouillon')
    ============================================================ */
 
@@ -11,14 +11,10 @@ export default function BlogStatusBadge({ statut }) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${
-        isPublie ? 'bg-succes/10 text-succes' : 'bg-orange-500/10 text-orange-500'
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+        isPublie ? 'bg-[#dcefe2] text-vert-dark' : 'bg-[#eceff0] text-[#4a5750]'
       }`}
     >
-      <span
-        className={`h-2 w-2 rounded-full ${isPublie ? 'bg-succes' : 'bg-orange-500'}`}
-        aria-hidden="true"
-      />
       {isPublie ? 'Publié' : 'Brouillon'}
     </span>
   )
