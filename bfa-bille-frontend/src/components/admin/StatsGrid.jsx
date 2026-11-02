@@ -15,10 +15,10 @@ import StatCard from './StatCard'
    - Les valeurs viennent de l'API GET /admin/dashboard (Module 9) :
      l'objet `data` est GROUPÉ par module (players/articles/trials/
      events/products avec compteurs imbriqués) → chaque carte lit
-     `s?.<module>?.<compteur>`. Aucun adapter nécessaire pour les
-     5 cartes.
-   - 5 colonnes sur grand écran, responsive en dessous
-   - Apparition en cascade (0,1 s d'écart entre chaque carte)
+     `s?.<module>?.<compteur>`.
+   - `tone` colore la pastille de détail : « warn » s'il y a quelque
+     chose à traiter, « bad » pour les ruptures de stock
+   - 2 colonnes sur mobile, 5 sur grand écran ; cascade d'apparition
    ============================================================ */
 
 const CARDS = [
@@ -26,7 +26,6 @@ const CARDS = [
     key: 'players',
     label: 'Joueurs',
     icon: faUsers,
-    accent: 'bg-vert',
     value: (s) => s?.players?.total ?? 0,
     subtitle: (s) => `${s?.players?.byCategory?.length ?? 0} catégorie(s)`,
   },
@@ -34,7 +33,6 @@ const CARDS = [
     key: 'articles',
     label: 'Articles',
     icon: faNewspaper,
-    accent: 'bg-dore text-vert-dark',
     value: (s) => s?.articles?.total ?? 0,
     subtitle: (s) => `${s?.articles?.published ?? 0} publié(s)`,
   },
@@ -42,15 +40,14 @@ const CARDS = [
     key: 'trials',
     label: 'Demandes',
     icon: faClipboardList,
-    accent: 'bg-vert-dark',
     value: (s) => s?.trials?.total ?? 0,
     subtitle: (s) => `${s?.trials?.pending ?? 0} en attente`,
+    tone: (s) => ((s?.trials?.pending ?? 0) > 0 ? 'warn' : 'default'),
   },
   {
     key: 'events',
     label: 'Événements',
     icon: faCalendarDays,
-    accent: 'bg-dore-dark text-vert-dark',
     value: (s) => s?.events?.total ?? 0,
     subtitle: (s) => `${s?.events?.upcoming ?? 0} à venir`,
   },
@@ -58,9 +55,9 @@ const CARDS = [
     key: 'products',
     label: 'Produits',
     icon: faBoxOpen,
-    accent: 'bg-vert-light',
     value: (s) => s?.products?.total ?? 0,
     subtitle: (s) => `${s?.products?.outOfStock ?? 0} en rupture`,
+    tone: (s) => ((s?.products?.outOfStock ?? 0) > 0 ? 'bad' : 'default'),
   },
 ]
 
@@ -76,7 +73,7 @@ export default function StatsGrid({ stats }) {
       variants={statsContainer}
       initial="hidden"
       animate="visible"
-      className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
+      className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-5"
     >
       {CARDS.map((card) => (
         <StatCard
@@ -85,7 +82,7 @@ export default function StatsGrid({ stats }) {
           value={card.value(stats)}
           subtitle={card.subtitle(stats)}
           icon={card.icon}
-          accent={card.accent}
+          tone={card.tone?.(stats)}
         />
       ))}
     </motion.div>

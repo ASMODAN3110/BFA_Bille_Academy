@@ -44,7 +44,7 @@ export default function PlayerStats({ players }) {
       variants={statsContainer}
       initial="hidden"
       animate="visible"
-      className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4"
+      className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4"
     >
       {cards.map((card) => (
         <StatCard key={card.label} {...card} />

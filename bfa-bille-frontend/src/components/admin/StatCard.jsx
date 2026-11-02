@@ -1,36 +1,39 @@
 import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import Card from '../ui/Card'
 import { staggerItem } from '../../hooks/useScrollAnimation'
 
 /* ============================================================
-   StatCard — Carte de statistique du tableau de bord
+   StatCard — Carte de chiffre clé du tableau de bord
    ------------------------------------------------------------
-   - Libellé (uppercase), valeur (vert foncé), sous-titre
-   - Pastille d'icône colorée (accent passé en prop)
-   - Survol : scale 1.02 + ombre renforcée
+   - Libellé, grande valeur (Barlow Condensed), pastille de détail
+   - Petite icône sur fond menthe (accent passé en prop)
    ============================================================ */
 
-export default function StatCard({ label, value, subtitle, icon, accent }) {
-  return (
-    <motion.div variants={staggerItem} className="h-full">
-      <Card className="flex h-full items-start justify-between gap-4 p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-vert/15">
-        <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-wider text-sombre/75">
-            {label}
-          </p>
-          <p className="mt-2 text-3xl font-extrabold tabular-nums text-vert">
-            {value}
-          </p>
-          <p className="mt-1 truncate text-xs text-sombre/75">{subtitle}</p>
-        </div>
+export default function StatCard({ label, value, subtitle, icon, tone = 'default' }) {
+  const chip =
+    tone === 'warn'
+      ? 'bg-[#fff3c9] text-dore-dark'
+      : tone === 'bad'
+        ? 'bg-red-50 text-red-700'
+        : 'bg-menthe text-vert-dark'
 
-        <div
-          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-white shadow-md ${accent}`}
-        >
-          <FontAwesomeIcon icon={icon} className="h-5 w-5" />
-        </div>
-      </Card>
+  return (
+    <motion.div
+      variants={staggerItem}
+      className="flex h-full flex-col gap-2 rounded-2xl border border-[#e3ede6] bg-white p-4 sm:p-5"
+    >
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[13px] font-medium text-sombre/75">{label}</p>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-menthe text-vert">
+          <FontAwesomeIcon icon={icon} className="h-3.5 w-3.5" />
+        </span>
+      </div>
+      <p className="font-display text-4xl font-bold leading-none tabular-nums text-[#14231a] sm:text-[44px]">
+        {value}
+      </p>
+      <p className={`w-fit max-w-full rounded-lg px-2.5 py-0.5 text-xs font-semibold leading-snug ${chip}`}>
+        {subtitle}
+      </p>
     </motion.div>
   )
 }
