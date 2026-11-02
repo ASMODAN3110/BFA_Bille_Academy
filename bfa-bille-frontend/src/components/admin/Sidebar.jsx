@@ -29,6 +29,7 @@ const linkClasses = ({ isActive }) =>
 export default function Sidebar({ open, onClose, pending = 0 }) {
   const { logout } = useAuth()
 
+  /* Déconnexion → ProtectedRoute renvoie automatiquement à l'accueil. */
   const handleLogout = () => {
     onClose()
     logout()

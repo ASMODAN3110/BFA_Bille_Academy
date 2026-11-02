@@ -12,8 +12,11 @@ import { validateEmail, validatePassword } from '../../utils/validators'
    LoginForm — Formulaire de connexion au back-office
    ------------------------------------------------------------
    - Champs Email + Mot de passe (@EF46)
-   - Validation champ par champ (perte de focus + temps réel si
-     erreur déjà affichée) — calquée sur les essais
+   - Validation UNIQUEMENT à la soumission (bouton « Se connecter » ou
+     Entrée) : rien ne s'affiche tant que l'utilisateur n'a pas tenté
+     de se connecter (ni à la perte de focus, ni à la fermeture de la
+     modale). Une fois une erreur affichée, le champ est revalidé en
+     temps réel pour qu'elle disparaisse dès qu'elle est corrigée.
    - Appel `login()` du contexte (1,5 s simulé) (@EF47)
    - Message d'erreur « Identifiants incorrects » en cas d'échec
    - Redirection vers /admin/dashboard en cas de succès (@EF46)
@@ -43,15 +46,6 @@ export default function LoginForm() {
     if (fieldErrors[name]) {
       setFieldErrors((prev) => ({ ...prev, [name]: validator(value) }))
     }
-  }
-
-  /* Marque le champ comme « touché » et le valide (à la perte de
-     focus ou à la soumission). */
-  const handleBlur = (e) => {
-    const { name, value } = e.target
-    const validator = name === 'email' ? validateEmail : validatePassword
-    setTouched((prev) => ({ ...prev, [name]: true }))
-    setFieldErrors((prev) => ({ ...prev, [name]: validator(value) }))
   }
 
   const handleSubmit = async (e) => {
@@ -99,7 +93,6 @@ export default function LoginForm() {
         type="email"
         value={email}
         onChange={handleChange}
-        onBlur={handleBlur}
         placeholder="admin@bfa-academy.com"
         error={fieldErrors.email}
         touched={touched.email}
@@ -114,7 +107,6 @@ export default function LoginForm() {
         type="password"
         value={password}
         onChange={handleChange}
-        onBlur={handleBlur}
         placeholder="••••••••"
         error={fieldErrors.password}
         touched={touched.password}

@@ -1,15 +1,17 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import {
   BrowserRouter,
   Routes,
   Route,
   Navigate,
   useLocation,
+  useNavigate,
 } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import useAuth from './hooks/useAuth'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
+import LoginModal from './components/auth/LoginModal'
 import Home from './pages/Home'
 
 /* Code-splitting par route (@ENF-ACC-05) : chaque page est chargée à la
@@ -24,7 +26,6 @@ const Blog = lazy(() => import('./pages/Blog'))
 const BlogDetails = lazy(() => import('./pages/BlogDetails'))
 const Results = lazy(() => import('./pages/Results'))
 const Shop = lazy(() => import('./pages/Shop'))
-const AdminLogin = lazy(() => import('./pages/AdminLogin'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 const AdminPlayers = lazy(() => import('./pages/AdminPlayers'))
 const AdminCategories = lazy(() => import('./pages/AdminCategories'))
@@ -37,15 +38,15 @@ const AdminResults = lazy(() => import('./pages/AdminResults'))
 const AdminShop = lazy(() => import('./pages/AdminShop'))
 const AdminSettings = lazy(() => import('./pages/AdminSettings'))
 const AdminLayout = lazy(() => import('./layouts/AdminLayout'))
-const Placeholder = lazy(() => import('./pages/Placeholder'))
 
 /* ============================================================
    ProtectedRoute — Garde-fou des pages back-office (@EF48)
    ------------------------------------------------------------
-   Redirige vers /admin si l'utilisateur n'est pas authentifié.
+   Redirige vers /admin (modale de connexion) si l'utilisateur n'est pas
+   authentifié, ou vers l'accueil juste après une déconnexion.
    ============================================================ */
 function ProtectedRoute({ children }) {
-  const { isAuthenticated, checking } = useAuth()
+  const { isAuthenticated, checking, loggedOut } = useAuth()
   if (checking) {
     return (
       <div
@@ -58,9 +59,26 @@ function ProtectedRoute({ children }) {
     )
   }
   if (!isAuthenticated) {
-    return <Navigate to="/admin" replace />
+    // Déconnexion volontaire → accueil ; sinon /admin ouvre la modale de connexion.
+    return <Navigate to={loggedOut ? '/' : '/admin'} replace />
   }
   return children
+}
+
+/* ============================================================
+   AdminEntry — Route /admin (saisie directe de l'adresse)
+   ------------------------------------------------------------
+   Plus de page de connexion : on renvoie vers l'accueil en
+   demandant l'ouverture de la modale de connexion (état de
+   navigation `openLogin`), ou vers le tableau de bord si la
+   session est déjà ouverte. Les redirections des routes
+   protégées et des sessions expirées passent aussi par /admin.
+   ============================================================ */
+function AdminEntry() {
+  const { isAuthenticated, checking } = useAuth()
+  if (checking) return null
+  if (isAuthenticated) return <Navigate to="/admin/dashboard" replace />
+  return <Navigate to="/" replace state={{ openLogin: true }} />
 }
 
 /* ============================================================
@@ -68,13 +86,34 @@ function ProtectedRoute({ children }) {
    ------------------------------------------------------------
    Navbar / Footer rendus une seule fois autour des Routes
    (sauf dans la zone admin /admin/* qui a son propre layout).
-   Sur la page de connexion (/admin), le Footer passe en variante
-   « public » (le bouton Back-office y est masqué).
+   La connexion au back-office est une modale (lien « Back-office »
+   du Footer, ou redirection depuis /admin).
    ============================================================ */
 function AppShell() {
-  const { pathname } = useLocation()
-  const isAdminLogin = pathname === '/admin'
+  const { pathname, state } = useLocation()
+  const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
   const isAdminArea = pathname.startsWith('/admin/')
+  const [loginOpen, setLoginOpen] = useState(false)
+
+  const openLogin = useCallback(() => {
+    if (isAuthenticated) navigate('/admin/dashboard')
+    else setLoginOpen(true)
+  }, [isAuthenticated, navigate])
+
+  /* Arrivée via /admin : ouvre la modale puis nettoie l'état de navigation
+     (un rechargement ne la rouvre pas). */
+  useEffect(() => {
+    if (state?.openLogin) {
+      setLoginOpen(true)
+      navigate(pathname, { replace: true, state: null })
+    }
+  }, [state, pathname, navigate])
+
+  /* Connexion réussie → on entre dans la zone admin : la modale se ferme. */
+  useEffect(() => {
+    if (isAdminArea) setLoginOpen(false)
+  }, [isAdminArea])
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -112,7 +151,7 @@ function AppShell() {
           <Route path="/blog/:id" element={<BlogDetails />} />
           <Route path="/resultats" element={<Results />} />
           <Route path="/boutique" element={<Shop />} />
-          <Route path="/admin" element={<AdminLogin />} />
+          <Route path="/admin" element={<AdminEntry />} />
 
           {/* Zone back-office : layout protégé (@EF48) */}
           <Route
@@ -148,13 +187,19 @@ function AppShell() {
             <Route path="/admin/settings" element={<AdminSettings />} />
           </Route>
 
-            <Route path="*" element={<Placeholder page="/" />} />
+            {/* Adresse /admin/… inconnue : même logique que /admin. */}
+            <Route path="/admin/*" element={<AdminEntry />} />
+            {/* Toute autre adresse inconnue : retour automatique à l'accueil. */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
       </main>
 
       {!isAdminArea && (
-        <Footer variant="default" />
+        <>
+          <Footer variant="default" onOpenLogin={openLogin} />
+          <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
+        </>
       )}
     </div>
   )

@@ -19,7 +19,8 @@ import logo from '../../assets/logo-removebg-preview.png'
    ------------------------------------------------------------
    - Logo + description du club
    - Liens rapides (dont le lien Back-office, masqué en variante
-     "public" ex : page de connexion)
+     "public") : il appelle `onOpenLogin` (modale de connexion, ou
+     tableau de bord si déjà connecté — géré par AppShell)
    - Coordonnées (adresse, téléphone, email)
    - Réseaux sociaux
    ============================================================ */
@@ -31,9 +32,14 @@ const SOCIAL_ICONS = {
   youtube: faYoutube,
 }
 
-export default function Footer({ variant = 'default' }) {
+export default function Footer({ variant = 'default', onOpenLogin }) {
   const year = new Date().getFullYear()
   const isPublic = variant === 'public'
+
+  const openBackOffice = (e) => {
+    e.preventDefault()
+    onOpenLogin?.()
+  }
 
   return (
     <footer className="border-t-4 border-dore bg-menthe text-sombre">
@@ -98,6 +104,7 @@ export default function Footer({ variant = 'default' }) {
                 <li>
                   <Link
                     to="/admin"
+                    onClick={openBackOffice}
                     className="text-sombre/75 transition-colors hover:text-vert"
                   >
                     Back-office

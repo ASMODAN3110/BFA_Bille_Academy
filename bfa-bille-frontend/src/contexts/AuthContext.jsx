@@ -33,6 +33,9 @@ export const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(getStoredUser)
   const [checking, setChecking] = useState(() => Boolean(getStoredUser()))
+  // Vrai après une déconnexion volontaire : ProtectedRoute renvoie alors à
+  // l'accueil (sans modale) au lieu de passer par /admin.
+  const [loggedOut, setLoggedOut] = useState(false)
 
   useEffect(() => {
     const storedUser = getStoredUser()
@@ -82,6 +85,7 @@ export function AuthProvider({ children }) {
 
     setSession({ token: data.token, user: data.user })
     setUser(data.user)
+    setLoggedOut(false)
     return data.user
   }, [])
 
@@ -89,12 +93,13 @@ export function AuthProvider({ children }) {
     // Best-effort : on déconnecte localement même si le backend ne répond pas.
     api('/api/auth/logout', { method: 'POST' }).catch(() => {})
     clearSession()
+    setLoggedOut(true)
     setUser(null)
   }, [])
 
   const value = useMemo(
-    () => ({ user, isAuthenticated: Boolean(user), checking, login, logout }),
-    [user, checking, login, logout],
+    () => ({ user, isAuthenticated: Boolean(user), checking, loggedOut, login, logout }),
+    [user, checking, loggedOut, login, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
