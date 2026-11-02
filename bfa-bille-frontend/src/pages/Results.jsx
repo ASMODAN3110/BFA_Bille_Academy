@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import SectionTitle from '../components/ui/SectionTitle'
-import Card from '../components/ui/Card'
+import PageHero from '../components/layout/PageHero'
 import CategoryFilter from '../components/results/CategoryFilter'
 import ResultsList from '../components/results/ResultsList'
 import RankingTable from '../components/results/RankingTable'
-import { useScrollAnimation, fadeUp } from '../hooks/useScrollAnimation'
 import { parseLocalDate } from '../utils/dateUtils'
 import { api } from '../utils/api'
 import { normalizeResult } from '../utils/resultsAdapter'
 import { useCategories } from '../hooks/useCategories'
 
 /* ============================================================
-   Results — Page « Résultats & Classements » (/resultats)
+   Results — Page « Résultats & Classements » (/resultats), maquette Claude Design
+   Bandeau de titre, pastilles de catégorie, puis deux colonnes :
+   « Derniers résultats » à gauche, « Classement » à droite.
    ------------------------------------------------------------
    - Sélecteur de catégorie (Tous + catégories du backend) qui
      pilote à la fois les résultats et les classements
@@ -28,7 +28,6 @@ import { useCategories } from '../hooks/useCategories'
    ============================================================ */
 
 export default function Results() {
-  const { ref, isInView } = useScrollAnimation({ amount: 0.1 })
   const { categories } = useCategories()
   const CATEGORIES = ['Tous', ...categories.map((c) => c.nom)]
 
@@ -116,86 +115,83 @@ export default function Results() {
     )
   }, [selectedCategory, classements])
 
+  const hasRankings =
+    loadingRankings || errorRankings || Object.keys(classementsToShow).length > 0
+
   return (
-    <section id="resultats" className="bg-clair py-16 md:py-24">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          ref={ref}
-          variants={fadeUp}
-          initial="hidden"
-          animate={isInView ? 'visible' : 'hidden'}
-        >
-          <SectionTitle
-            title="Résultats & Classements"
-            subtitle="Suivez les performances de nos équipes, résultats de matchs et classements par catégorie."
+    <>
+      <PageHero
+        crumbs={[{ label: 'Accueil', to: '/' }, { label: 'Résultats' }]}
+        title="Résultats et classements"
+        lead="Suivez les performances de chaque équipe de l'académie."
+      />
+
+      <section id="resultats" className="bg-[#fafcfa] py-10 md:py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <CategoryFilter
+            categories={CATEGORIES}
+            active={selectedCategory}
+            onChange={setSelectedCategory}
           />
-        </motion.div>
 
-        <CategoryFilter
-          categories={CATEGORIES}
-          active={selectedCategory}
-          onChange={setSelectedCategory}
-        />
-
-        {/* Contenu — re-animé (fade-in) à chaque changement de catégorie */}
-        <motion.div
-          key={selectedCategory}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="space-y-8"
-        >
-          {/* Résultats */}
-          <Card className="p-6 md:p-8">
-            <h3 className="mb-5 text-xl font-extrabold text-vert">Résultats</h3>
-            {loadingResults ? (
-              <p className="text-center text-sm text-sombre/75">
-                Chargement des résultats…
-              </p>
-            ) : errorResults ? (
-              <div
-                role="alert"
-                className="rounded-2xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-center text-sm font-medium text-erreur"
-              >
-                {errorResults}
-              </div>
-            ) : (
-              <ResultsList results={filteredResults} />
-            )}
-          </Card>
-
-          {/* Classements — masqués tant qu'aucun classement n'existe */}
-          {(loadingRankings || errorRankings || Object.keys(classementsToShow).length > 0) && (
-            <Card className="p-6 md:p-8">
-              <h3 className="mb-6 text-xl font-extrabold text-vert">
-                Classements
-              </h3>
-              {loadingRankings ? (
-                <p className="text-center text-sm text-sombre/75">
-                  Chargement des classements…
-                </p>
-              ) : errorRankings ? (
+          {/* Contenu — re-animé (fondu) à chaque changement de catégorie */}
+          <motion.div
+            key={selectedCategory}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            className="mt-8 flex flex-wrap items-start gap-10"
+          >
+            {/* Résultats */}
+            <div className="min-w-0 flex-[1_1_520px]">
+              <h2 className="mb-5 font-display text-3xl font-bold leading-none text-[#14231a] md:text-4xl">
+                Derniers résultats
+              </h2>
+              {loadingResults ? (
+                <p className="text-sm text-sombre/75">Chargement des résultats…</p>
+              ) : errorResults ? (
                 <div
                   role="alert"
-                  className="rounded-2xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-center text-sm font-medium text-erreur"
+                  className="rounded-2xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-sm font-medium text-erreur"
                 >
-                  {errorRankings}
+                  {errorResults}
                 </div>
               ) : (
-                <div className="space-y-8">
-                  {Object.entries(classementsToShow).map(([categorie, teams]) => (
-                    <RankingTable
-                      key={categorie}
-                      title={categorie}
-                      teams={teams}
-                    />
-                  ))}
-                </div>
+                <ResultsList results={filteredResults} />
               )}
-            </Card>
-          )}
-        </motion.div>
-      </div>
-    </section>
+            </div>
+
+            {/* Classements — masqués tant qu'aucun classement n'existe */}
+            {hasRankings && (
+              <div className="min-w-0 flex-[1_1_400px]">
+                <h2 className="mb-5 font-display text-3xl font-bold leading-none text-[#14231a] md:text-4xl">
+                  Classement
+                </h2>
+                {loadingRankings ? (
+                  <p className="text-sm text-sombre/75">Chargement des classements…</p>
+                ) : errorRankings ? (
+                  <div
+                    role="alert"
+                    className="rounded-2xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-sm font-medium text-erreur"
+                  >
+                    {errorRankings}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-8">
+                    {Object.entries(classementsToShow).map(([categorie, teams]) => (
+                      <RankingTable
+                        key={categorie}
+                        title={Object.keys(classementsToShow).length > 1 ? categorie : undefined}
+                        teams={teams}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.div>
+        </div>
+      </section>
+    </>
   )
 }

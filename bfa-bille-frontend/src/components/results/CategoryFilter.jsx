@@ -1,11 +1,9 @@
-import Button from '../ui/Button'
-
 /* ============================================================
-   CategoryFilter — Sélecteur de catégorie (résultats/classements)
+   CategoryFilter — Sélecteur de catégorie (résultats / classements)
    ------------------------------------------------------------
-   Boutons `Button` (variantes filter / filter-active) pour
-   choisir entre « Tous », « U17 A » et « U15 Elite ». Le même
-   filtre pilote à la fois les résultats et les classements.
+   Pastilles arrondies (maquette Claude Design) ; la pastille active
+   est pleine verte. Le même filtre pilote les résultats et les
+   classements.
    ============================================================ */
 
 export default function CategoryFilter({ categories, active, onChange }) {
@@ -13,23 +11,25 @@ export default function CategoryFilter({ categories, active, onChange }) {
     <div
       role="tablist"
       aria-label="Filtrer par catégorie"
-      className="mb-10 flex flex-wrap items-center justify-center gap-3"
+      className="flex flex-wrap items-center gap-2"
     >
       {categories.map((category) => {
         const isActive = active === category
         return (
-          <Button
+          <button
             key={category}
             type="button"
-            size="sm"
-            variant={isActive ? 'filter-active' : 'filter'}
-            onClick={() => onChange(category)}
             role="tab"
             aria-selected={isActive}
-            className="rounded-full px-6"
+            onClick={() => onChange(category)}
+            className={`inline-flex min-h-10 items-center rounded-full border px-4 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-dore/40 ${
+              isActive
+                ? 'border-vert bg-vert text-white'
+                : 'border-[#cfe6d6] bg-white text-sombre/80 hover:border-vert hover:text-vert'
+            }`}
           >
-            {category}
-          </Button>
+            {category === 'Tous' ? 'Toutes les catégories' : category}
+          </button>
         )
       })}
     </div>
