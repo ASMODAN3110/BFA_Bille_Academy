@@ -1,11 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCircleCheck } from '@fortawesome/free-solid-svg-icons'
 import PageHeader from '../components/admin/PageHeader'
-import Card from '../components/ui/Card'
-import Button from '../components/ui/Button'
-import FormInput from '../components/trial/FormInput'
 import useAuth from '../hooks/useAuth'
 import { api, getToken, setSession } from '../utils/api'
 import { fadeUp } from '../hooks/useScrollAnimation'
@@ -14,98 +9,113 @@ import UsersManager from '../components/admin/users/UsersManager'
 /* ============================================================
    AdminSettings — Paramètres du back-office (/admin/settings)
    ------------------------------------------------------------
-   1. Profil administrateur (nom, e-mail) → PUT /admin/users/:id
-   2. Mot de passe (actuel + nouveau + confirmation)
-      → PUT /admin/profile/password
-   3. Gestion des utilisateurs (création, reset mot de passe)
+   Maquette Claude Design : deux cartes côte à côte.
+   1. « Mon compte » : nom, e-mail, mot de passe actuel + nouveau
+      - profil     → PUT /admin/users/:id (si nom / e-mail modifiés)
+      - mot de passe → PUT /admin/profile/password (si renseigné)
+   2. « Utilisateurs du back-office » (création, reset mot de passe)
    ============================================================ */
 
-/** Classes du message de statut (succès / erreur). */
-function statusClass(msg) {
-  if (!msg) return ''
-  return msg.type === 'succes'
-    ? 'border-succes/30 bg-succes/10 text-succes'
-    : 'border-erreur/30 bg-erreur/10 text-erreur'
+const input =
+  'h-11 w-full rounded-[10px] border bg-white px-3 text-sm outline-none transition focus:ring-2 focus:ring-vert/20'
+
+function Field({ label, name, error, hint, ...props }) {
+  return (
+    <div>
+      <label htmlFor={name} className="mb-1.5 block text-[13px] font-semibold">
+        {label}
+      </label>
+      <input
+        id={name}
+        name={name}
+        aria-invalid={Boolean(error)}
+        className={`${input} ${error ? 'border-erreur' : 'border-[#cfe0d4] focus:border-vert'}`}
+        {...props}
+      />
+      {error && (
+        <p role="alert" className="mt-1.5 text-sm font-medium text-erreur">
+          {error}
+        </p>
+      )}
+      {hint && !error && <p className="mt-1.5 text-xs text-sombre/75">{hint}</p>}
+    </div>
+  )
 }
 
 export default function AdminSettings() {
   const { user } = useAuth()
 
-  /* --- 1. Profil -------------------------------------------------- */
-  const [profile, setProfile] = useState({
+  const [form, setForm] = useState({
     nom: user?.nom ?? '',
     email: user?.email ?? '',
+    motDePasseActuel: '',
+    nouveauMotDePasse: '',
   })
-  const [profileErrors, setProfileErrors] = useState({})
-  const [savingProfile, setSavingProfile] = useState(false)
-  const [profileMsg, setProfileMsg] = useState(null)
+  const [errors, setErrors] = useState({})
+  const [saving, setSaving] = useState(false)
+  const [messages, setMessages] = useState([])
 
-  const handleProfileChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target
-    setProfile((prev) => ({ ...prev, [name]: value }))
-    setProfileErrors((prev) => ({ ...prev, [name]: undefined }))
-    setProfileMsg(null)
+    setForm((prev) => ({ ...prev, [name]: value }))
+    setErrors((prev) => ({ ...prev, [name]: undefined }))
+    setMessages([])
   }
 
-  const handleSaveProfile = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    const next = {}
-    if (!profile.nom.trim()) next.nom = 'Le nom est requis.'
-    if (!/^\S+@\S+\.\S+$/.test(profile.email.trim())) next.email = 'E-mail invalide.'
-    if (Object.keys(next).length > 0) { setProfileErrors(next); return }
+    const nom = form.nom.trim()
+    const email = form.email.trim()
+    // Seul « nouveau mot de passe » déclenche un changement : un champ actuel
+    // pré-rempli par le navigateur ne doit rien provoquer.
+    const wantsPassword = Boolean(form.nouveauMotDePasse)
 
-    setSavingProfile(true)
-    setProfileMsg(null)
-    try {
-      const data = await api(`/admin/users/${user.id}`, {
-        method: 'PUT',
-        auth: true,
-        body: { nom: profile.nom.trim(), email: profile.email.trim() },
-      })
-      setSession({ token: getToken(), user: { ...user, ...data.data } })
-      setProfileMsg({ type: 'succes', text: 'Profil mis à jour.' })
-    } catch (err) {
-      setProfileMsg({ type: 'erreur', text: err?.message || 'Impossible de mettre à jour le profil.' })
-    } finally {
-      setSavingProfile(false)
+    const next = {}
+    if (!nom) next.nom = 'Le nom est requis.'
+    if (!/^\S+@\S+\.\S+$/.test(email)) next.email = 'E-mail invalide.'
+    if (wantsPassword) {
+      if (!form.motDePasseActuel) next.motDePasseActuel = 'Le mot de passe actuel est requis.'
+      if (form.nouveauMotDePasse.length < 6) next.nouveauMotDePasse = 'Au moins 6 caractères.'
     }
-  }
+    if (Object.keys(next).length > 0) {
+      setErrors(next)
+      return
+    }
 
-  /* --- 2. Mot de passe -------------------------------------------- */
-  const [pwd, setPwd] = useState({ motDePasseActuel: '', nouveauMotDePasse: '', confirmation: '' })
-  const [pwdErrors, setPwdErrors] = useState({})
-  const [savingPwd, setSavingPwd] = useState(false)
-  const [pwdMsg, setPwdMsg] = useState(null)
-
-  const handlePwdChange = (e) => {
-    const { name, value } = e.target
-    setPwd((prev) => ({ ...prev, [name]: value }))
-    setPwdErrors((prev) => ({ ...prev, [name]: undefined }))
-    setPwdMsg(null)
-  }
-
-  const handleChangePassword = async (e) => {
-    e.preventDefault()
-    const next = {}
-    if (!pwd.motDePasseActuel) next.motDePasseActuel = 'Le mot de passe actuel est requis.'
-    if (pwd.nouveauMotDePasse.length < 6) next.nouveauMotDePasse = 'Au moins 6 caractères.'
-    if (pwd.confirmation !== pwd.nouveauMotDePasse) next.confirmation = 'Les mots de passe ne correspondent pas.'
-    if (Object.keys(next).length > 0) { setPwdErrors(next); return }
-
-    setSavingPwd(true)
-    setPwdMsg(null)
+    setSaving(true)
+    setMessages([])
+    const done = []
     try {
-      const data = await api('/admin/profile/password', {
-        method: 'PUT',
-        auth: true,
-        body: { motDePasseActuel: pwd.motDePasseActuel, nouveauMotDePasse: pwd.nouveauMotDePasse },
-      })
-      setPwdMsg({ type: 'succes', text: data?.message || 'Mot de passe mis à jour.' })
-      setPwd({ motDePasseActuel: '', nouveauMotDePasse: '', confirmation: '' })
+      if (nom !== (user?.nom ?? '') || email !== (user?.email ?? '')) {
+        const data = await api(`/admin/users/${user.id}`, {
+          method: 'PUT',
+          auth: true,
+          body: { nom, email },
+        })
+        setSession({ token: getToken(), user: { ...user, ...data.data } })
+        done.push({ type: 'succes', text: 'Profil mis à jour.' })
+      }
+      if (wantsPassword) {
+        const data = await api('/admin/profile/password', {
+          method: 'PUT',
+          auth: true,
+          body: {
+            motDePasseActuel: form.motDePasseActuel,
+            nouveauMotDePasse: form.nouveauMotDePasse,
+          },
+        })
+        done.push({ type: 'succes', text: data?.message || 'Mot de passe mis à jour.' })
+        setForm((prev) => ({ ...prev, motDePasseActuel: '', nouveauMotDePasse: '' }))
+      }
+      if (done.length === 0) done.push({ type: 'succes', text: 'Aucune modification à enregistrer.' })
+      setMessages(done)
     } catch (err) {
-      setPwdMsg({ type: 'erreur', text: err?.message || 'Impossible de modifier le mot de passe.' })
+      setMessages([
+        ...done,
+        { type: 'erreur', text: err?.message || 'Impossible de mettre à jour le compte.' },
+      ])
     } finally {
-      setSavingPwd(false)
+      setSaving(false)
     }
   }
 
@@ -114,108 +124,81 @@ export default function AdminSettings() {
       variants={fadeUp}
       initial="hidden"
       animate="visible"
-      className="space-y-6"
+      className="space-y-5 sm:space-y-6"
     >
       <PageHeader
         title="Paramètres"
-        subtitle="Profil, mot de passe et gestion des utilisateurs."
+        subtitle="Votre compte et les accès au back-office."
       />
 
-      {/* --- 1. Profil ------------------------------------------------- */}
-      <Card className="p-5 md:p-6">
-        <h2 className="text-lg font-bold text-sombre">Profil administrateur</h2>
-        <p className="mt-0.5 text-sm text-sombre/75">
-          Nom et e-mail affichés dans le back-office.
-        </p>
-
-        {profileMsg && (
-          <p className={`mt-4 rounded-xl border px-4 py-3 text-sm font-medium ${statusClass(profileMsg)}`}>
-            {profileMsg.text}
-          </p>
-        )}
-
-        <form onSubmit={handleSaveProfile} className="mt-5 space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FormInput
+      <div className="flex flex-wrap items-start gap-4">
+        <section className="min-w-0 flex-[1_1_22rem] rounded-2xl border border-[#e3ede6] bg-white p-5 sm:p-6">
+          <h2 className="mb-3.5 text-base font-bold">Mon compte</h2>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3.5" noValidate>
+            {messages.map((m) => (
+              <p
+                key={m.text}
+                role={m.type === 'erreur' ? 'alert' : 'status'}
+                className={`rounded-xl border px-4 py-3 text-sm font-medium ${
+                  m.type === 'succes'
+                    ? 'border-succes/30 bg-succes/10 text-succes'
+                    : 'border-erreur/30 bg-erreur/10 text-erreur'
+                }`}
+              >
+                {m.text}
+              </p>
+            ))}
+            <Field
               label="Nom"
               name="nom"
-              value={profile.nom}
-              onChange={handleProfileChange}
-              error={profileErrors.nom}
-              placeholder="Ex : Administrateur"
-              required
+              value={form.nom}
+              onChange={handleChange}
+              error={errors.nom}
+              autoComplete="name"
             />
-            <FormInput
+            <Field
               label="E-mail"
               name="email"
               type="email"
-              value={profile.email}
-              onChange={handleProfileChange}
-              error={profileErrors.email}
-              placeholder="admin@bfa-academy.com"
-              required
+              value={form.email}
+              onChange={handleChange}
+              error={errors.email}
+              autoComplete="email"
             />
-          </div>
-          <Button type="submit" disabled={savingProfile}>
-            {savingProfile ? 'Enregistrement…' : 'Enregistrer le profil'}
-          </Button>
-        </form>
-      </Card>
-
-      {/* --- 2. Mot de passe ------------------------------------------- */}
-      <Card className="p-5 md:p-6">
-        <h2 className="text-lg font-bold text-sombre">Mot de passe</h2>
-        <p className="mt-0.5 text-sm text-sombre/75">
-          Modifiez le mot de passe de votre compte.
-        </p>
-
-        {pwdMsg && (
-          <p className={`mt-4 rounded-xl border px-4 py-3 text-sm font-medium ${statusClass(pwdMsg)}`}>
-            {pwdMsg.text}
-          </p>
-        )}
-
-        <form onSubmit={handleChangePassword} className="mt-5 space-y-4">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <FormInput
+            <Field
               label="Mot de passe actuel"
               name="motDePasseActuel"
               type="password"
-              value={pwd.motDePasseActuel}
-              onChange={handlePwdChange}
-              error={pwdErrors.motDePasseActuel}
+              value={form.motDePasseActuel}
+              onChange={handleChange}
+              error={errors.motDePasseActuel}
               placeholder="••••••••"
-              required
+              autoComplete="off"
             />
-            <FormInput
+            <Field
               label="Nouveau mot de passe"
               name="nouveauMotDePasse"
               type="password"
-              value={pwd.nouveauMotDePasse}
-              onChange={handlePwdChange}
-              error={pwdErrors.nouveauMotDePasse}
-              placeholder="••••••••"
-              required
+              value={form.nouveauMotDePasse}
+              onChange={handleChange}
+              error={errors.nouveauMotDePasse}
+              hint="6 caractères minimum. Laissez vide pour le conserver."
+              autoComplete="new-password"
             />
-            <FormInput
-              label="Confirmation"
-              name="confirmation"
-              type="password"
-              value={pwd.confirmation}
-              onChange={handlePwdChange}
-              error={pwdErrors.confirmation}
-              placeholder="••••••••"
-              required
-            />
-          </div>
-          <Button type="submit" disabled={savingPwd}>
-            {savingPwd ? 'Modification…' : 'Modifier le mot de passe'}
-          </Button>
-        </form>
-      </Card>
+            <div>
+              <button
+                type="submit"
+                disabled={saving}
+                className="inline-flex h-11 items-center rounded-xl bg-vert px-[18px] text-sm font-semibold text-white transition hover:bg-vert-dark disabled:opacity-60"
+              >
+                {saving ? 'Enregistrement…' : 'Mettre à jour'}
+              </button>
+            </div>
+          </form>
+        </section>
 
-      {/* --- 3. Utilisateurs ------------------------------------------- */}
-      <UsersManager />
+        <UsersManager />
+      </div>
     </motion.div>
   )
 }

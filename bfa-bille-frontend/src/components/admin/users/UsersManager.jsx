@@ -1,15 +1,4 @@
 import { useCallback, useEffect, useState } from 'react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {
-  faKey,
-  faPlus,
-  faUserPlus,
-  faUserShield,
-  faUsers,
-} from '@fortawesome/free-solid-svg-icons'
-import Card from '../../ui/Card'
-import Button from '../../ui/Button'
-import Badge from '../../ui/Badge'
 import { api } from '../../../utils/api'
 import { normalizeAdmin } from '../../../utils/adminUsersAdapter'
 import useAuth from '../../../hooks/useAuth'
@@ -17,13 +6,22 @@ import UserFormModal from './UserFormModal'
 import ResetPasswordModal from './ResetPasswordModal'
 
 /* ============================================================
-   UsersManager — Gestion des utilisateurs (Paramètres)
+   UsersManager — « Utilisateurs du back-office » (Paramètres)
    ------------------------------------------------------------
-   - Liste les administrateurs (GET /admin/users)
-   - Création d'un utilisateur (POST /admin/users)
-   - Réinitialisation du mot de passe d'un autre admin
-     (PUT /admin/users/:id/password) — masquée sur sa propre ligne
+   - Liste les administrateurs (GET /admin/users) : avatar,
+     nom, e-mail, pastille de rôle
+   - « + Inviter » : création d'un utilisateur (POST /admin/users)
+   - « Réinitialiser le mot de passe » d'un autre admin
+     (PUT /admin/users/:id/password) — absent sur sa propre ligne
    ============================================================ */
+
+const initials = (nom) =>
+  String(nom ?? '')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join('') || '?'
 
 export default function UsersManager() {
   const { user } = useAuth()
@@ -63,63 +61,73 @@ export default function UsersManager() {
   }, [target, load])
 
   return (
-    <Card className="p-5 md:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="flex items-center gap-2 text-lg font-bold text-sombre">
-            <FontAwesomeIcon icon={faUsers} className="h-4 w-4 text-vert" />
-            Utilisateurs
-          </h2>
-          <p className="mt-0.5 text-sm text-sombre/75">
-            Comptes autorisés à accéder au back-office.
-          </p>
-        </div>
-        <Button onClick={() => setShowCreate(true)} size="sm">
-          <FontAwesomeIcon icon={faPlus} className="h-3.5 w-3.5" />
-          Nouvel utilisateur
-        </Button>
+    <section className="min-w-0 flex-[1_1_27rem] rounded-2xl border border-[#e3ede6] bg-white p-5 sm:p-6">
+      <div className="mb-1.5 flex items-center justify-between gap-3">
+        <h2 className="text-base font-bold">Utilisateurs du back-office</h2>
+        <button
+          type="button"
+          onClick={() => setShowCreate(true)}
+          className="min-h-9 text-[13px] font-semibold text-vert-dark hover:underline"
+        >
+          + Inviter
+        </button>
       </div>
 
       {error && (
-        <p className="mt-4 rounded-xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-sm text-erreur">
+        <p className="mt-3 rounded-xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-sm text-erreur">
           {error}
         </p>
       )}
 
       {loading ? (
-        <p className="mt-5 text-center text-sm text-sombre/75">Chargement…</p>
+        <p className="py-6 text-center text-sm text-sombre/75">Chargement…</p>
       ) : admins.length === 0 ? (
-        <p className="mt-5 py-8 text-center text-sm text-sombre/75">
-          <FontAwesomeIcon icon={faUserPlus} className="mx-auto mb-2 block h-8 w-8 text-sombre/20" />
-          Aucun utilisateur. Créez le premier compte.
+        <p className="py-6 text-center text-sm text-sombre/75">
+          Aucun utilisateur. Invitez le premier compte.
         </p>
       ) : (
-        <ul className="mt-4 divide-y divide-clair">
+        <ul>
           {admins.map((a) => {
             const isSelf = a.id === user?.id
             return (
-              <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                <div className="min-w-0">
-                  <p className="flex items-center gap-2 truncate font-semibold text-sombre">
+              <li
+                key={a.id}
+                className="flex flex-wrap items-center gap-3 border-t border-[#eef3ef] py-3 text-sm first:border-t-0"
+              >
+                <span
+                  className={`flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full font-bold ${
+                    isSelf ? 'bg-menthe text-vert-dark' : 'bg-[#fff3c9] text-dore-dark'
+                  }`}
+                >
+                  {initials(a.nom)}
+                </span>
+                <div className="min-w-0 flex-1 basis-44">
+                  <b className="block truncate font-semibold">
                     {a.nom}
-                    {isSelf && (
-                      <Badge variant="success">Vous</Badge>
-                    )}
-                  </p>
-                  <p className="mt-0.5 truncate text-sm text-sombre/75">{a.email}</p>
-                  <p className="text-xs text-sombre/75">
-                    {a.roleLabel} · Créé le {a.dateCreationFr} · Dernière connexion {a.derniereConnexionFr}
-                  </p>
+                    {isSelf && <span className="ml-2 text-xs font-normal text-sombre/70">(vous)</span>}
+                  </b>
+                  <span className="block truncate text-xs text-sombre/75">{a.email}</span>
+                  <span className="block text-xs text-sombre/60">
+                    Dernière connexion {a.derniereConnexionFr}
+                  </span>
                 </div>
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                    a.role === 'SUPER_ADMIN' || a.role === 'ADMIN'
+                      ? 'bg-[#dcefe2] text-vert-dark'
+                      : 'bg-[#eceff0] text-[#4a5750]'
+                  }`}
+                >
+                  {a.roleLabel}
+                </span>
                 {!isSelf && (
-                  <Button
-                    variant="outline"
-                    size="sm"
+                  <button
+                    type="button"
                     onClick={() => setTarget(a)}
+                    className="min-h-9 basis-full pl-[50px] text-left text-[13px] font-semibold text-vert-dark hover:underline"
                   >
-                    <FontAwesomeIcon icon={faKey} className="h-3.5 w-3.5" />
                     Réinitialiser le mot de passe
-                  </Button>
+                  </button>
                 )}
               </li>
             )
@@ -138,6 +146,6 @@ export default function UsersManager() {
         admin={target}
         onReset={handleReset}
       />
-    </Card>
+    </section>
   )
 }
