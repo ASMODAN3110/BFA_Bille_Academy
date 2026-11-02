@@ -24,7 +24,7 @@ const TYPE_BADGE = {
 const actionButtonClasses =
   'flex h-9 w-9 items-center justify-center rounded-lg transition active:scale-95'
 
-export default function EventsTable({ events, onEdit, onDelete }) {
+export default function EventsTable({ events, onEdit, onDelete, bare = false }) {
   const columns = [
     { key: 'titre', label: 'Titre' },
     {
@@ -92,6 +92,8 @@ export default function EventsTable({ events, onEdit, onDelete }) {
       </Card>
     )
   }
+
+  if (bare) return <Table columns={columns} rows={events} rowKey="id" />
 
   return (
     <Card className="p-4 md:p-5">

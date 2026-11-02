@@ -1,13 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCalendarPlus } from '@fortawesome/free-solid-svg-icons'
+import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import PageHeader from '../components/admin/PageHeader'
 import AdminCalendarGrid from '../components/admin/AdminCalendarGrid'
 import EventsTable from '../components/admin/EventsTable'
+import EventPanel from '../components/admin/EventPanel'
 import EventForm from '../components/admin/EventForm'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
-import Button from '../components/ui/Button'
 import { fadeUp } from '../hooks/useScrollAnimation'
 import { api } from '../utils/api'
 import { normalizeEvent } from '../utils/eventAdapter'
@@ -17,7 +17,8 @@ import { normalizeEvent } from '../utils/eventAdapter'
    ------------------------------------------------------------
    - Données : GET /api/events?limit=100 (liste normalisée).
    - CRUD : POST/PUT/DELETE /admin/events (protégés, auth: true).
-   - Vue mensuelle (grille) + liste détaillée (tableau)
+   - Vue mensuelle (grille) ou liste (bascule Mois / Liste) + panneau
+     d'édition rapide de l'événement sélectionné (maquette Claude Design)
    - `autoAdd` : ouvre le formulaire d'ajout au chargement
      (route /admin/events/add depuis les actions rapides)
    ============================================================ */
@@ -34,6 +35,11 @@ export default function AdminCalendar({ autoAdd = false }) {
   const [editing, setEditing] = useState(null)
   const [toDelete, setToDelete] = useState(null)
   const [serverError, setServerError] = useState(null)
+  const [view, setView] = useState('mois')
+  const [selectedId, setSelectedId] = useState(null)
+  const [panelError, setPanelError] = useState(null)
+  const [panelSaving, setPanelSaving] = useState(false)
+  const panelRef = useRef(null)
 
   /* Recharge les événements depuis le backend (tri date puis heure serveur). */
   const loadEvents = useCallback(async () => {
@@ -114,13 +120,66 @@ export default function AdminCalendar({ autoAdd = false }) {
     }
   }
 
+  /* Sélection : sur téléphone le panneau est sous la grille, on y amène l'écran. */
+  const selectEvent = (id) => {
+    setSelectedId(id)
+    setPanelError(null)
+    if (window.matchMedia('(max-width: 1023px)').matches) {
+      requestAnimationFrame(() =>
+        panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      )
+    }
+  }
+
+  /* Enregistrement rapide : le backend exige le corps complet → on repart
+     de l'événement et on n'écrase que titre / date / heure / lieu. */
+  const handleQuickSave = async (event, patch) => {
+    setPanelError(null)
+    setPanelSaving(true)
+    const code = event.type === 'Match' ? 'MATCH' : 'ENTRAINEMENT'
+    const body = {
+      titre: patch.titre.trim(),
+      date: patch.date,
+      heure: patch.heure,
+      lieu: patch.lieu.trim(),
+      type: code,
+      categorieId: event.categorieId,
+    }
+    if (code === 'MATCH') {
+      body.equipeA = event.equipeA
+      body.equipeB = event.equipeB
+      if (event.typeMatch) body.typeMatch = event.typeMatch
+    } else {
+      if (event.objectif) body.objectif = event.objectif
+      if (event.duree != null) body.duree = event.duree
+    }
+    try {
+      const saved = await api(`/admin/events/${event.id}`, {
+        method: 'PUT',
+        body,
+        auth: true,
+      })
+      const normalized = normalizeEvent(saved?.data)
+      setEvents((prev) => prev.map((e) => (e.id === normalized.id ? normalized : e)))
+    } catch (err) {
+      setPanelError(err?.message || 'Impossible d’enregistrer l’événement.')
+    } finally {
+      setPanelSaving(false)
+    }
+  }
+
+  const selectedEvent = events.find((e) => e.id === selectedId) ?? null
+
   /* Suppression (DELETE) — puis retrait de la liste locale. */
   const handleDelete = () => {
     const id = toDelete?.id
     if (id == null) return
     setToDelete(null)
     api(`/admin/events/${id}`, { method: 'DELETE', auth: true })
-      .then(() => setEvents((prev) => prev.filter((e) => e.id !== id)))
+      .then(() => {
+        setEvents((prev) => prev.filter((e) => e.id !== id))
+        setSelectedId((cur) => (cur === id ? null : cur))
+      })
       .catch((err) =>
         setError(err?.message || 'Impossible de supprimer l’événement.'),
       )
@@ -131,16 +190,20 @@ export default function AdminCalendar({ autoAdd = false }) {
       variants={fadeUp}
       initial="hidden"
       animate="visible"
-      className="space-y-6"
+      className="space-y-5 sm:space-y-6"
     >
       <PageHeader
         title="Calendrier"
-        subtitle="Planification des matches et entraînements de l'académie."
+        subtitle="Matchs, entraînements et événements de l'académie."
         action={
-          <Button type="button" onClick={openAdd} className="shrink-0">
-            <FontAwesomeIcon icon={faCalendarPlus} className="h-4 w-4" />
-            Créer un événement
-          </Button>
+          <button
+            type="button"
+            onClick={openAdd}
+            className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-vert px-[18px] text-sm font-semibold text-white transition hover:bg-vert-dark"
+          >
+            <FontAwesomeIcon icon={faPlus} className="h-4 w-4" />
+            Nouvel événement
+          </button>
         }
       />
 
@@ -156,20 +219,36 @@ export default function AdminCalendar({ autoAdd = false }) {
           {error}
         </div>
       ) : (
-        <>
+        <div className="flex flex-wrap items-start gap-4">
           <AdminCalendarGrid
             events={events}
             currentMonth={currentMonth}
             onPrev={goPrevMonth}
             onNext={goNextMonth}
-          />
-
-          <EventsTable
-            events={sortedEvents}
-            onEdit={openEdit}
-            onDelete={setToDelete}
-          />
-        </>
+            view={view}
+            onViewChange={setView}
+            selectedId={selectedId}
+            onSelect={selectEvent}
+          >
+            <EventsTable
+              bare
+              events={sortedEvents}
+              onEdit={openEdit}
+              onDelete={setToDelete}
+            />
+          </AdminCalendarGrid>
+          <div ref={panelRef} className="flex min-w-0 flex-1 basis-72 scroll-mt-20">
+            <EventPanel
+              key={selectedEvent?.id ?? 'none'}
+              event={selectedEvent}
+              error={panelError}
+              saving={panelSaving}
+              onSave={handleQuickSave}
+              onDelete={setToDelete}
+              onFull={openEdit}
+            />
+          </div>
+        </div>
       )}
 
       <EventForm
