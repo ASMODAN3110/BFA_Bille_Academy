@@ -1,34 +1,38 @@
-import Button from '../ui/Button'
-
 /* ============================================================
-   EventFilters — Filtres du calendrier
+   EventFilters — Filtres du calendrier (maquette Claude Design)
    ------------------------------------------------------------
-   Deux groupes de boutons (variantes filter / filter-active) :
-   - Catégories : Tous, U9, U15, U17
-   - Types      : Tous, Match, Training
+   Deux groupes de pastilles arrondies, la pastille active est pleine
+   verte :
+   - Catégorie : Toutes, U9, U12, U15, U17…
+   - Type      : Tous, Match, Entraînement
    ============================================================ */
 
-function FilterGroup({ label, options, active, onChange }) {
+const chipClasses = (active) =>
+  `inline-flex min-h-10 items-center rounded-full border px-4 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-dore/40 ${
+    active
+      ? 'border-vert bg-vert text-white'
+      : 'border-[#cfe6d6] bg-white text-sombre/80 hover:border-vert hover:text-vert'
+  }`
+
+function FilterGroup({ label, labelId, options, active, onChange, allLabel }) {
   return (
-    <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-center">
-      <span className="w-24 text-sm font-bold uppercase tracking-wider text-sombre/75">
+    <div>
+      <div className="mb-1.5 text-sm font-semibold" id={labelId}>
         {label}
-      </span>
-      <div className="flex flex-wrap items-center justify-center gap-2">
+      </div>
+      <div role="group" aria-labelledby={labelId} className="flex flex-wrap gap-2">
         {options.map((option) => {
           const isActive = active === option
           return (
-            <Button
+            <button
               key={option}
               type="button"
-              size="sm"
-              variant={isActive ? 'filter-active' : 'filter'}
               onClick={() => onChange(option)}
               aria-pressed={isActive}
-              className="rounded-full px-4"
+              className={chipClasses(isActive)}
             >
-              {option}
-            </Button>
+              {option === 'Tous' ? allLabel : option}
+            </button>
           )
         })}
       </div>
@@ -45,18 +49,22 @@ export default function EventFilters({
   onTypeChange,
 }) {
   return (
-    <div className="mb-8 flex flex-col items-center justify-center gap-4 rounded-2xl bg-white p-4 shadow-sm sm:flex-row sm:gap-10 md:gap-16">
+    <div className="flex flex-wrap items-end gap-x-8 gap-y-5">
       <FilterGroup
         label="Catégorie"
+        labelId="cal-filtre-categorie"
         options={categories}
         active={selectedCategory}
         onChange={onCategoryChange}
+        allLabel="Toutes"
       />
       <FilterGroup
         label="Type"
+        labelId="cal-filtre-type"
         options={types}
         active={selectedType}
         onChange={onTypeChange}
+        allLabel="Tous"
       />
     </div>
   )

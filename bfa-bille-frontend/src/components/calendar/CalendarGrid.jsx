@@ -1,8 +1,5 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons'
-import Card from '../ui/Card'
 import {
   getDaysInMonth,
   getFirstDayOfMonth,
@@ -11,53 +8,51 @@ import {
 } from '../../utils/dateUtils'
 
 /* ============================================================
-   CalendarGrid — Grille mensuelle 7×6
+   CalendarGrid — Grille mensuelle (maquette Claude Design)
    ------------------------------------------------------------
-   - Navigation précédent / suivant (transition fade)
-   - Cases des autres mois atténuées, aujourd'hui mis en évidence
-   - Point doré en bas à droite sur les jours avec événement(s)
-   - Tooltip au survol listant le(s) titre(s) de l'événement
+   - Semaine du lundi au dimanche, en-tête vert, 6 semaines
+   - Cases des autres mois atténuées ; aujourd'hui = numéro dans
+     un rond vert
+   - Jours avec événements : pastilles de type (Match / Entr.),
+     2 au maximum puis « +n » ; chaque pastille ouvre le détail
+   - Mobile : simples points colorés (pas de défilement horizontal)
+   La navigation entre les mois est dans la barre d'outils de la page.
    ============================================================ */
 
-const DAY_NAMES = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
+const DAY_NAMES = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 
-/** Construit les 42 cases (6 semaines) du mois affiché. */
+const TYPE_STYLE = {
+  Match: { pill: 'bg-menthe text-[#0f6b33]', dot: 'bg-vert', short: 'Match' },
+  Entraînement: { pill: 'bg-[#eef2ef] text-sombre/80', dot: 'bg-sombre/50', short: 'Entr.' },
+}
+const DEFAULT_STYLE = { pill: 'bg-[#fff4cc] text-dore-dark', dot: 'bg-dore', short: 'Événement' }
+const styleOf = (type) => TYPE_STYLE[type] ?? DEFAULT_STYLE
+
+const MAX_PILLS = 2
+
+/** Construit les 42 cases (6 semaines, lundi en premier) du mois affiché. */
 function buildMonthCells(year, month) {
-  const firstDay = getFirstDayOfMonth(month, year) // 0 = dimanche
+  const firstDay = (getFirstDayOfMonth(month, year) + 6) % 7 // 0 = lundi
   const daysInMonth = getDaysInMonth(month, year)
   const prevMonth = new Date(year, month - 1, 1)
-  const prevDays = getDaysInMonth(
-    prevMonth.getMonth(),
-    prevMonth.getFullYear(),
-  )
+  const prevDays = getDaysInMonth(prevMonth.getMonth(), prevMonth.getFullYear())
 
   const cells = []
-
-  // Jours de fin du mois précédent (atténués)
   for (let i = firstDay - 1; i >= 0; i -= 1) {
     cells.push({ day: prevDays - i, current: false, date: new Date(year, month - 1, prevDays - i) })
   }
-  // Jours du mois affiché
   for (let d = 1; d <= daysInMonth; d += 1) {
     cells.push({ day: d, current: true, date: new Date(year, month, d) })
   }
-  // Jours de début du mois suivant (pour compléter 7×6)
   let next = 1
   while (cells.length < 42) {
     cells.push({ day: next, current: false, date: new Date(year, month + 1, next) })
     next += 1
   }
-
   return cells
 }
 
-export default function CalendarGrid({
-  currentDate,
-  eventMap,
-  onPreviousMonth,
-  onNextMonth,
-  monthLabel,
-}) {
+export default function CalendarGrid({ currentDate, eventMap, onSelect }) {
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
   const today = new Date()
@@ -65,102 +60,92 @@ export default function CalendarGrid({
   const cells = useMemo(() => buildMonthCells(year, month), [year, month])
 
   return (
-    <Card className="p-4 sm:p-6">
-      {/* En-tête : navigation entre les mois */}
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={onPreviousMonth}
-          aria-label="Mois précédent"
-          className="flex h-10 w-10 items-center justify-center rounded-full text-vert transition hover:bg-clair"
-        >
-          <FontAwesomeIcon icon={faChevronLeft} className="h-4 w-4" />
-        </button>
-
-        <h3 className="text-lg font-extrabold text-vert md:text-xl">
-          {monthLabel}
-        </h3>
-
-        <button
-          type="button"
-          onClick={onNextMonth}
-          aria-label="Mois suivant"
-          className="flex h-10 w-10 items-center justify-center rounded-full text-vert transition hover:bg-clair"
-        >
-          <FontAwesomeIcon icon={faChevronRight} className="h-4 w-4" />
-        </button>
+    <div className="overflow-hidden rounded-[20px] border border-[#e3ede6] bg-white">
+      {/* Jours de la semaine */}
+      <div className="grid grid-cols-7 bg-vert text-center text-[13px] font-semibold text-white">
+        {DAY_NAMES.map((name) => (
+          <div key={name} className="py-3">
+            {name}
+          </div>
+        ))}
       </div>
 
-      {/* Grille (key = mois pour rejouer la transition) */}
+      {/* Cases (key = mois pour rejouer la transition de changement de mois) */}
       <motion.div
         key={`${year}-${month}`}
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
+        className="grid grid-cols-7"
       >
-        {/* Jours de la semaine */}
-        <div className="grid grid-cols-7 gap-1">
-          {DAY_NAMES.map((name) => (
+        {cells.map((cell, i) => {
+          const dateKey = toDateKey(cell.date)
+          const dayEvents = cell.current ? (eventMap[dateKey] ?? []) : []
+          const isToday = cell.current && isSameDay(cell.date, today)
+          const extra = dayEvents.length - MAX_PILLS
+
+          return (
             <div
-              key={name}
-              className="py-2 text-center text-xs font-bold uppercase tracking-wider text-sombre/75"
+              key={`${dateKey}-${i}`}
+              className={`min-h-[64px] border-b border-r border-[#e3ede6] p-1.5 text-[13px] sm:min-h-[96px] sm:p-2 ${
+                cell.current ? '' : 'bg-[#fafcfa]'
+              } ${(i + 1) % 7 === 0 ? 'border-r-0' : ''} ${i >= 35 ? 'border-b-0' : ''}`}
             >
-              {name}
-            </div>
-          ))}
-        </div>
-
-        {/* Cases */}
-        <div className="grid grid-cols-7 gap-1">
-          {cells.map((cell, i) => {
-            const dateKey = toDateKey(cell.date)
-            const dayEvents = eventMap[dateKey] ?? []
-            const isToday = cell.current && isSameDay(cell.date, today)
-
-            return (
               <div
-                key={`${dateKey}-${i}`}
-                className="group relative aspect-square"
+                className={
+                  isToday
+                    ? 'flex h-6 w-6 items-center justify-center rounded-full bg-vert font-bold text-white'
+                    : `font-semibold ${cell.current ? 'text-sombre/80' : 'text-sombre/35'}`
+                }
               >
-                {/* Case */}
-                <div
-                  className={`flex h-full w-full items-center justify-center rounded-lg text-sm transition-colors ${
-                    isToday
-                      ? 'bg-vert font-bold text-white shadow-md'
-                      : cell.current
-                        ? 'text-sombre hover:bg-clair'
-                        : 'text-sombre/40'
-                  }`}
-                  aria-disabled={cell.current ? undefined : 'true'}
-                >
-                  {cell.day}
-                </div>
-
-                {/* Point doré : jour avec événement(s) */}
-                {dayEvents.length > 0 && (
-                  <span
-                    className={`absolute bottom-1 right-1 h-1.5 w-1.5 rounded-full bg-dore ${
-                      isToday ? '' : 'group-hover:scale-150'
-                    } transition-transform`}
-                  />
-                )}
-
-                {/* Tooltip au survol */}
-                {dayEvents.length > 0 && (
-                  <div className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-1 hidden w-max max-w-[220px] -translate-x-1/2 rounded-lg bg-vert-dark px-3 py-2 text-xs text-white shadow-xl group-hover:block">
-                    <p className="mb-1 font-bold text-dore">{cell.day} — {dayEvents.length} événement{dayEvents.length > 1 ? 's' : ''}</p>
-                    {dayEvents.map((e) => (
-                      <p key={e.id} className="py-0.5">
-                        {e.titre}
-                      </p>
-                    ))}
-                  </div>
-                )}
+                {cell.day}
               </div>
-            )
-          })}
-        </div>
+
+              {/* Mobile : points */}
+              {dayEvents.length > 0 && (
+                <div className="mt-1.5 flex flex-wrap gap-1 sm:hidden">
+                  {dayEvents.map((e) => (
+                    <button
+                      key={e.id}
+                      type="button"
+                      onClick={() => onSelect(e)}
+                      aria-label={`${e.titre}, ${e.type}`}
+                      className={`h-3 w-3 rounded-full ${styleOf(e.type).dot}`}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Tablette / ordinateur : pastilles */}
+              {dayEvents.length > 0 && (
+                <div className="mt-1.5 hidden flex-col gap-1 sm:flex">
+                  {dayEvents.slice(0, MAX_PILLS).map((e) => (
+                    <button
+                      key={e.id}
+                      type="button"
+                      onClick={() => onSelect(e)}
+                      title={e.titre}
+                      aria-label={`${e.titre}, ${e.type}`}
+                      className={`truncate rounded-lg px-2 py-[3px] text-left text-xs font-semibold transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-vert ${styleOf(e.type).pill}`}
+                    >
+                      {styleOf(e.type).short}
+                    </button>
+                  ))}
+                  {extra > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => onSelect(dayEvents[MAX_PILLS])}
+                      className="px-1 text-left text-xs font-semibold text-sombre/70 hover:text-vert"
+                    >
+                      +{extra}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </motion.div>
-    </Card>
+    </div>
   )
 }
