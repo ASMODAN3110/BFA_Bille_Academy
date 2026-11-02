@@ -1,37 +1,32 @@
-import { motion } from 'framer-motion'
-import {
-  useScrollAnimation,
-  staggerContainer,
-  staggerItem,
-} from '../../hooks/useScrollAnimation'
-
 /* ============================================================
-   ObjectivesList — Objectifs de la saison
+   ObjectivesList — Objectifs de la saison (maquette Claude Design)
    ------------------------------------------------------------
-   Liste à puces stylisées avec un point doré, en cascade.
+   Une carte par objectif, précédée d'un numéro dans un rond menthe.
    ============================================================ */
 
 export default function ObjectivesList({ objectifs }) {
-  const { ref, isInView } = useScrollAnimation({ amount: 0.15 })
+  if (objectifs.length === 0) {
+    return <p className="text-sm text-sombre/70">Objectifs non renseignés.</p>
+  }
 
   return (
-    <motion.ul
-      ref={ref}
-      variants={staggerContainer}
-      initial="hidden"
-      animate={isInView ? 'visible' : 'hidden'}
-      className="space-y-3"
-    >
+    <ol className="flex flex-col gap-3">
       {objectifs.map((objectif, index) => (
-        <motion.li
+        <li
           key={`${objectif}-${index}`}
-          variants={staggerItem}
-          className="flex items-start gap-3"
+          className="flex items-start gap-4 rounded-[20px] border border-[#e3ede6] bg-white px-5 py-[18px]"
         >
-          <span className="mt-2.5 h-2.5 w-2.5 shrink-0 rounded-full bg-dore" />
-          <span className="min-w-0 break-words text-sombre/80">{objectif}</span>
-        </motion.li>
+          <span
+            aria-hidden="true"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-menthe font-bold text-[#0f6b33]"
+          >
+            {index + 1}
+          </span>
+          <span className="min-w-0 break-words pt-0.5 leading-relaxed text-sombre/80">
+            {objectif}
+          </span>
+        </li>
       ))}
-    </motion.ul>
+    </ol>
   )
 }

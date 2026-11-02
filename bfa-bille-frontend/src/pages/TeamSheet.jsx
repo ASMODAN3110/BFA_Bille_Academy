@@ -3,23 +3,22 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFutbol } from '@fortawesome/free-solid-svg-icons'
-import Breadcrumb from '../components/layout/Breadcrumb'
-import SectionTitle from '../components/ui/SectionTitle'
+import PageHero from '../components/layout/PageHero'
 import Button from '../components/ui/Button'
-import Card from '../components/ui/Card'
-import TeamSelector from '../components/team/TeamSelector'
+import TeamPills from '../components/team/TeamPills'
 import RosterTable from '../components/team/RosterTable'
 import StaffList from '../components/team/StaffList'
 import ObjectivesList from '../components/team/ObjectivesList'
 import PalmaresList from '../components/team/PalmaresList'
-import { useScrollAnimation, fadeUp } from '../hooks/useScrollAnimation'
 import { useCategories } from '../hooks/useCategories'
 import { api } from '../utils/api'
 import { normalizeFiche } from '../utils/teamSheetAdapter'
 
 /* ============================================================
    TeamSheet — Fiche technique d'une catégorie
-               (/equipes/technique/:categorie)
+               (/equipes/technique/:categorie), maquette Claude Design
+   Bandeau de titre + sélecteur de catégorie, puis deux colonnes :
+   effectif et objectifs à gauche, staff et palmarès à droite.
    ------------------------------------------------------------
    Module 5 — branchement backend :
    - L'URL porte le NOM de catégorie (/equipes/technique/U9), l'API
@@ -38,7 +37,6 @@ export default function TeamSheet() {
   const navigate = useNavigate()
   const { categories, loading: categoriesLoading, error: categoriesError } =
     useCategories()
-  const { ref, isInView } = useScrollAnimation({ amount: 0.1 })
 
   /* Catégorie résolue par NOM (URL) → objet { id, nom }. */
   const cat = categories.find((c) => c.nom === categorie)
@@ -84,121 +82,110 @@ export default function TeamSheet() {
       })
   }, [catId])
 
-  const breadcrumbItems = [
-    { label: 'Accueil', href: '/' },
-    { label: 'Équipes', href: '/equipes' },
-    { label: 'Fiches techniques', href: '/equipes/technique' },
+  const crumbs = [
+    { label: 'Accueil', to: '/' },
+    { label: 'Équipes', to: '/equipes' },
+    { label: 'Fiches techniques', to: '/equipes/technique' },
   ]
-  if (catName) breadcrumbItems.push({ label: catName })
+  if (catName) crumbs.push({ label: catName })
+
+  const subTitle = 'mb-5 font-display text-3xl font-bold leading-none text-[#14231a] md:text-4xl'
 
   return (
-    <section id="fiche-technique" className="bg-clair py-16 md:py-24">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <Breadcrumb items={breadcrumbItems} className="mb-8" />
-
-        <motion.div
-          ref={ref}
-          variants={fadeUp}
-          initial="hidden"
-          animate={isInView ? 'visible' : 'hidden'}
-        >
-          <SectionTitle
-            title="Fiches Techniques"
-            subtitle="Profils techniques détaillés, effectifs et données historiques par catégorie."
-          />
-        </motion.div>
-
+    <>
+      <PageHero
+        crumbs={crumbs}
+        title="Fiches techniques"
+        lead="Staff, objectifs, palmarès et effectif de chaque catégorie."
+      >
         {categories.length > 0 && (
-          <TeamSelector
-            categories={categories.map((c) => c.nom)}
-            active={catName}
-            onChange={(name) => navigate(`/equipes/technique/${name}`)}
-          />
-        )}
-
-        {/* Contenu de la fiche */}
-        {categoriesLoading ? (
-          <p className="mt-10 py-10 text-center text-sm text-sombre/75">
-            Chargement des catégories…
-          </p>
-        ) : categoriesError ? (
-          <div
-            role="alert"
-            className="mt-10 rounded-xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-sm font-medium text-erreur"
-          >
-            {categoriesError}
+          <div className="mt-7">
+            <TeamPills
+              categories={categories.map((c) => c.nom)}
+              active={catName}
+              onChange={(name) => navigate(`/equipes/technique/${name}`)}
+            />
           </div>
-        ) : !cat ? (
-          /* Redirection en cours vers la 1re catégorie réelle. */
-          null
-        ) : loading ? (
-          <p className="mt-10 py-10 text-center text-sm text-sombre/75">
-            Chargement de la fiche…
-          </p>
-        ) : error || !fiche ? (
-          <div className="mx-auto mt-10 max-w-md rounded-2xl border border-dashed border-dore/40 bg-white px-6 py-14 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-clair text-dore-dark">
-              <FontAwesomeIcon icon={faFutbol} className="h-7 w-7" />
+        )}
+      </PageHero>
+
+      <section id="fiche-technique" className="bg-[#fafcfa] py-10 md:py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {categoriesLoading ? (
+            <p className="py-10 text-center text-sm text-sombre/75">
+              Chargement des catégories…
+            </p>
+          ) : categoriesError ? (
+            <div
+              role="alert"
+              className="rounded-xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-sm font-medium text-erreur"
+            >
+              {categoriesError}
             </div>
-            <p className="mt-5 font-semibold text-sombre">
-              {error ?? 'Fiche technique non disponible pour cette catégorie.'}
+          ) : !cat ? (
+            /* Redirection en cours vers la 1re catégorie réelle. */
+            null
+          ) : loading ? (
+            <p className="py-10 text-center text-sm text-sombre/75">
+              Chargement de la fiche…
             </p>
-            <p className="mt-2 text-sm text-sombre/75">
-              {error
-                ? 'Réessayez dans quelques instants.'
-                : 'Aucune fiche technique pour cette catégorie pour le moment.'}
-            </p>
-          </div>
-        ) : (
-          <motion.div
-            key={catName}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
-            className="mt-10 grid gap-6 md:grid-cols-2"
-          >
-            {/* Effectif */}
-            <Card className="p-6 md:p-8">
-              <h3 className="mb-4 text-xl font-extrabold text-vert">
-                Effectif {fiche.saison}
-              </h3>
-              <RosterTable effectif={fiche.effectif} />
-              <div className="mt-5 flex justify-end">
-                <Button
-                  to="/equipes"
-                  variant="outline"
-                  size="sm"
-                  className="px-6"
-                >
-                  Voir tout l'effectif →
-                </Button>
+          ) : error || !fiche ? (
+            <div className="mx-auto max-w-md rounded-[20px] border border-dashed border-dore/40 bg-white px-6 py-14 text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-menthe text-vert">
+                <FontAwesomeIcon icon={faFutbol} className="h-7 w-7" />
               </div>
-            </Card>
+              <p className="mt-5 font-semibold text-sombre">
+                {error ?? 'Fiche technique non disponible pour cette catégorie.'}
+              </p>
+              <p className="mt-2 text-sm text-sombre/75">
+                {error
+                  ? 'Réessayez dans quelques instants.'
+                  : 'Aucune fiche technique pour cette catégorie pour le moment.'}
+              </p>
+            </div>
+          ) : (
+            <motion.div
+              key={catName}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+              className="flex flex-wrap items-start gap-10"
+            >
+              {/* Colonne principale : effectif + objectifs */}
+              <div className="flex min-w-0 flex-[2_1_560px] flex-col gap-10">
+                <div>
+                  <h2 className={subTitle}>Effectif {fiche.saison}</h2>
+                  <div className="overflow-hidden rounded-[20px] border border-[#e3ede6] bg-white">
+                    <RosterTable effectif={fiche.effectif} />
+                  </div>
+                  <div className="mt-5 flex justify-end">
+                    <Button to="/equipes" variant="outline" size="sm" className="px-6">
+                      Voir tout l&rsquo;effectif →
+                    </Button>
+                  </div>
+                </div>
 
-            {/* Staff technique */}
-            <Card className="p-6 md:p-8">
-              <h3 className="mb-5 text-xl font-extrabold text-vert">
-                Staff Technique
-              </h3>
-              <StaffList staff={fiche.staff} />
-            </Card>
+                <div>
+                  <h2 className={subTitle}>Objectifs de la saison</h2>
+                  <ObjectivesList objectifs={fiche.objectifs} />
+                </div>
+              </div>
 
-            {/* Objectifs de la saison */}
-            <Card className="p-6 md:p-8">
-              <h3 className="mb-5 text-xl font-extrabold text-vert">
-                Objectifs Saison
-              </h3>
-              <ObjectivesList objectifs={fiche.objectifs} />
-            </Card>
-
-            {/* Palmarès */}
-            <Card className="p-6 md:p-8">
-              <h3 className="mb-5 text-xl font-extrabold text-vert">Palmarès</h3>
-              <PalmaresList palmares={fiche.palmares} />
-            </Card>
-          </motion.div>
-        )}
-      </div>
-    </section>
+              {/* Colonne latérale : staff + palmarès */}
+              <aside className="flex min-w-0 flex-[1_1_320px] flex-col gap-10">
+                <div>
+                  <h2 className={subTitle}>Staff</h2>
+                  <StaffList staff={fiche.staff} />
+                </div>
+                <div>
+                  <h2 className={subTitle}>Palmarès</h2>
+                  <PalmaresList palmares={fiche.palmares} />
+                </div>
+              </aside>
+            </motion.div>
+          )}
+        </div>
+      </section>
+    </>
   )
 }
