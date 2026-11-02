@@ -1,12 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {
-  faArrowLeft,
-  faImages,
-  faPlus,
-  faXmark,
-} from '@fortawesome/free-solid-svg-icons'
+import { faImages, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
 import PageHeader from '../components/admin/PageHeader'
 import ThemeFilter from '../components/admin/gallery/ThemeFilter'
 import AlbumGrid from '../components/admin/gallery/AlbumGrid'
@@ -16,7 +11,6 @@ import MediaUploadModal from '../components/admin/gallery/MediaUploadModal'
 import MediaGrid from '../components/admin/gallery/MediaGrid'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import Modal from '../components/ui/Modal'
-import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Pagination from '../components/ui/Pagination'
 import { fadeUp } from '../hooks/useScrollAnimation'
@@ -38,8 +32,9 @@ import { normalizeAlbum } from '../utils/albumAdapter'
    - États : loading / error (chargement) + serverError (actions,
      affiché dans la modale d'album ou en bandeau sinon).
    ------------------------------------------------------------
-   @EF21 Vue grille : albums triés par date, filtre par thème,
-         pagination (4 par page)
+   @EF21 Vue grille (maquette Claude Design) : albums triés par date,
+         filtre par thème, pagination (11 par page + carte d'ajout) ;
+         l'album sélectionné affiche ses médias sous la grille
    @EF22 CRUD des albums (création / modification / suppression
          avec confirmation)
    @EF23 Import de médias : drag & drop ou parcours, formats
@@ -48,7 +43,7 @@ import { normalizeAlbum } from '../utils/albumAdapter'
          média avec confirmation
    ============================================================ */
 
-const PAGE_SIZE = 4
+const PAGE_SIZE = 11
 
 export default function AdminGallery() {
   const [albums, setAlbums] = useState([])
@@ -69,13 +64,6 @@ export default function AdminGallery() {
   /* Compteur de requêtes : ignore une réponse périmée si la liste
      est rechargée. */
   const loadSeq = useRef(0)
-
-  const currentView = selectedAlbumId ? 'media' : 'grid'
-
-  const selectedAlbum = useMemo(
-    () => albums.find((a) => a.id === selectedAlbumId) ?? null,
-    [albums, selectedAlbumId],
-  )
 
   const filteredAlbums = useMemo(
     () =>
@@ -99,9 +87,14 @@ export default function AdminGallery() {
     [sortedAlbums, page],
   )
 
+  /* Album affiché : celui choisi s'il est dans la page, sinon le premier. */
+  const selectedAlbum =
+    pageAlbums.find((a) => a.id === selectedAlbumId) ?? pageAlbums[0] ?? null
+
   /* Retour à la 1re page quand le thème change. */
   useEffect(() => {
     setPage(1)
+    setSelectedAlbumId(null)
   }, [selectedTheme])
 
   /* -------- Chargement -------- */
@@ -193,16 +186,6 @@ export default function AdminGallery() {
 
   /* -------------------- Médias -------------------- */
 
-  const openAlbumMedia = (album) => {
-    setSelectedAlbumId(album.id)
-    setPage(1)
-  }
-
-  const backToAlbums = () => {
-    setSelectedAlbumId(null)
-    setPage(1)
-  }
-
   /* L'upload a réussi → on remplace l'album par la réponse serveur
      (le backend renvoie l'album mis à jour, médias inclus). */
   const handleUploaded = (updatedAlbum) => {
@@ -222,7 +205,7 @@ export default function AdminGallery() {
 
   /* ⚠️ React Compiler : albumId + mediaId lus au 1er niveau. */
   const confirmDeleteMedia = () => {
-    const albumId = selectedAlbumId
+    const albumId = selectedAlbum?.id
     const mediaId = toDeleteMedia?.id
     if (albumId == null || mediaId == null) return
     setToDeleteMedia(null)
@@ -253,7 +236,7 @@ export default function AdminGallery() {
       variants={fadeUp}
       initial="hidden"
       animate="visible"
-      className="space-y-6"
+      className="space-y-5 sm:space-y-6"
     >
       {/* Erreur d'une action hors modale (suppression) — le message
           d'enregistrement s'affiche dans la modale d'album. */}
@@ -276,113 +259,78 @@ export default function AdminGallery() {
 
       <PageHeader
         title="Galerie"
-        subtitle="Albums photos et vidéos publiés sur le site public."
+        subtitle="Albums photo et vidéo publiés sur le site public."
         action={
-          <Button type="button" onClick={openAddAlbum} className="shrink-0">
+          <button
+            type="button"
+            onClick={openAddAlbum}
+            className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-vert px-[18px] text-sm font-semibold text-white transition hover:bg-vert-dark"
+          >
             <FontAwesomeIcon icon={faPlus} className="h-4 w-4" />
-            Créer un album
-          </Button>
+            Nouvel album
+          </button>
         }
       />
 
-      {currentView === 'grid' ? (
-        loading ? (
-          <p className="py-10 text-center text-sm text-sombre/75">
-            Chargement des albums…
-          </p>
-        ) : error ? (
-          <div
-            role="alert"
-            className="rounded-xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-sm font-medium text-erreur"
-          >
-            {error}
-          </div>
-        ) : (
-          <>
-            <ThemeFilter
-              selected={selectedTheme}
-              onSelect={setSelectedTheme}
-              count={sortedAlbums.length}
-              total={albums.length}
-            />
+      {loading ? (
+        <p className="py-10 text-center text-sm text-sombre/75">
+          Chargement des albums…
+        </p>
+      ) : error ? (
+        <div
+          role="alert"
+          className="rounded-xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-sm font-medium text-erreur"
+        >
+          {error}
+        </div>
+      ) : (
+        <>
+          <ThemeFilter selected={selectedTheme} onSelect={setSelectedTheme} />
 
-            {pageAlbums.length === 0 ? (
-              <Card className="p-10 text-center">
-                <FontAwesomeIcon
-                  icon={faImages}
-                  className="mx-auto h-10 w-10 text-sombre/20"
-                />
-                <p className="mt-3 font-bold text-sombre/75">
-                  Aucun album dans ce thème.
-                </p>
-              </Card>
-            ) : (
-              <>
-                <AlbumGrid
-                  albums={pageAlbums}
-                  onOpen={openAlbumMedia}
-                  onAddMedia={(album) => {
-                    setSelectedAlbumId(album.id)
-                    setIsMediaModalOpen(true)
-                  }}
+          <AlbumGrid
+            albums={pageAlbums}
+            selectedId={selectedAlbum?.id ?? null}
+            onSelect={setSelectedAlbumId}
+            onAddPhotos={() =>
+              selectedAlbum ? setIsMediaModalOpen(true) : openAddAlbum()
+            }
+          />
+
+          {totalPages > 1 && (
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              variant="square"
+            />
+          )}
+
+          {selectedAlbum && (
+            <section className="rounded-2xl border border-[#e3ede6] bg-white px-4 py-[18px] sm:px-5">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+                <div className="min-w-0">
+                  <h2 className="truncate text-base font-bold">{selectedAlbum.titre}</h2>
+                  <span className="text-[13px] text-sombre/75">
+                    {selectedAlbum.medias.length > 0
+                      ? 'Photo de couverture : ★ 1re photo'
+                      : 'Aucun média pour le moment'}
+                  </span>
+                </div>
+                <AlbumActions
+                  album={selectedAlbum}
+                  onAddMedia={() => setIsMediaModalOpen(true)}
                   onEdit={openEditAlbum}
                   onDelete={requestDeleteAlbum}
                 />
-                <Pagination
-                  currentPage={page}
-                  totalPages={totalPages}
-                  onPageChange={setPage}
-                />
-              </>
-            )}
-          </>
-        )
-      ) : (
-        /* ------------ Vue médias d'un album ------------ */
-        <Card className="overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-clair p-4 md:p-5">
-            <div className="flex min-w-0 items-center gap-3">
-              <button
-                type="button"
-                onClick={backToAlbums}
-                aria-label="Retour aux albums"
-                title="Retour aux albums"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-vert transition hover:bg-vert/10 active:scale-95"
-              >
-                <FontAwesomeIcon icon={faArrowLeft} className="h-4 w-4" />
-              </button>
-              <div className="min-w-0">
-                <h2 className="truncate text-lg font-bold text-vert">
-                  {selectedAlbum?.titre}
-                </h2>
-                <p className="truncate text-xs text-sombre/75">
-                  {selectedAlbum?.description}
-                </p>
               </div>
-            </div>
-
-            <div className="flex shrink-0 items-center gap-3">
-              <span className="flex items-center gap-1.5 rounded-full bg-vert/10 px-3 py-1 text-xs font-bold text-vert">
-                <FontAwesomeIcon icon={faImages} className="h-3.5 w-3.5" />
-                {selectedAlbum?.medias.length ?? 0} média(s)
-              </span>
-              <AlbumActions
+              <MediaGrid
                 album={selectedAlbum}
-                onAddMedia={() => setIsMediaModalOpen(true)}
-                onEdit={openEditAlbum}
-                onDelete={requestDeleteAlbum}
+                onPreview={setPreviewMedia}
+                onDeleteMedia={requestDeleteMedia}
               />
-            </div>
-          </div>
-
-          <div className="p-4 md:p-5">
-            <MediaGrid
-              album={selectedAlbum}
-              onPreview={setPreviewMedia}
-              onDeleteMedia={requestDeleteMedia}
-            />
-          </div>
-        </Card>
+            </section>
+          )}
+        </>
       )}
 
       <AlbumFormModal

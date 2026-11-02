@@ -1,61 +1,49 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faImages } from '@fortawesome/free-solid-svg-icons'
-import Button from '../../ui/Button'
-import Card from '../../ui/Card'
 import { ALBUM_THEMES } from '../../../utils/albumAdapter'
 
 /* ============================================================
    ThemeFilter — Filtre par thème des albums (@EF22)
    ------------------------------------------------------------
-   - Boutons « chips » : Tous + thèmes de la galerie
-   - Compteur « X album(s) affiché(s) sur Y »
-   - Props : themes, selected, onSelect(theme), count, total
+   - Pastilles : « Tous les thèmes » + thèmes de la galerie
+   - Props : themes, selected, onSelect(theme)
    - GALLERY_THEMES = alias d'ALBUM_THEMES : une seule source
      de thèmes sur le front (module 4), aucune duplication.
    ============================================================ */
 
 export const GALLERY_THEMES = ALBUM_THEMES
 
+const chip = (on) =>
+  `inline-flex h-10 items-center rounded-[10px] border px-3.5 text-[13px] transition ${
+    on
+      ? 'border-vert bg-menthe font-semibold text-vert-dark'
+      : 'border-[#e3ede6] bg-white font-medium text-[#3b4d42] hover:border-vert/50'
+  }`
+
 export default function ThemeFilter({
   themes = GALLERY_THEMES,
   selected = 'Tous',
   onSelect,
-  count = 0,
-  total = 0,
 }) {
   return (
-    <Card className="flex flex-wrap items-center justify-between gap-3 p-4 md:p-5">
-      <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filtrer par thème">
-        <Button
+    <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrer par thème">
+      <button
+        type="button"
+        onClick={() => onSelect('Tous')}
+        aria-pressed={selected === 'Tous'}
+        className={chip(selected === 'Tous')}
+      >
+        Tous les thèmes
+      </button>
+      {themes.map((theme) => (
+        <button
+          key={theme}
           type="button"
-          variant={selected === 'Tous' ? 'filter-active' : 'filter'}
-          size="sm"
-          onClick={() => onSelect('Tous')}
-          aria-pressed={selected === 'Tous'}
+          onClick={() => onSelect(theme)}
+          aria-pressed={selected === theme}
+          className={chip(selected === theme)}
         >
-          Tous
-        </Button>
-        {themes.map((theme) => (
-          <Button
-            key={theme}
-            type="button"
-            variant={selected === theme ? 'filter-active' : 'filter'}
-            size="sm"
-            onClick={() => onSelect(theme)}
-            aria-pressed={selected === theme}
-          >
-            {theme}
-          </Button>
-        ))}
-      </div>
-
-      <p className="flex items-center gap-2 text-sm text-sombre/75">
-        <FontAwesomeIcon icon={faImages} className="h-4 w-4 text-vert" />
-        <span>
-          <span className="font-bold text-vert">{count}</span> album(s)
-          affiché(s) sur {total}
-        </span>
-      </p>
-    </Card>
+          {theme}
+        </button>
+      ))}
+    </div>
   )
 }

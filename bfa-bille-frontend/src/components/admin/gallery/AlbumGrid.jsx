@@ -1,33 +1,27 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {
-  faImages,
-  faVideo,
-} from '@fortawesome/free-solid-svg-icons'
-import AlbumActions from './AlbumActions'
-import { parseLocalDate, formatDateCard } from '../../../utils/dateUtils'
-import { staggerContainer, staggerItem } from '../../../hooks/useScrollAnimation'
+import { faImages, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { getAlbumCover } from '../../../utils/albumAdapter'
 
 /* Couverture d'un album. Si l'URL échoue (média manquant en stockage),
-   on retombe sur le placeholder plutôt qu'une image cassée. */
+   on retombe sur le dégradé de la maquette plutôt qu'une image cassée. */
 function AlbumCover({ cover, title }) {
   const [failed, setFailed] = useState(false)
   if (cover && !failed) {
     return (
       <img
         src={cover}
-        alt={`Couverture de l'album ${title}`}
+        alt=""
         loading="lazy"
         onError={() => setFailed(true)}
-        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        className="h-full w-full object-cover"
+        title={`Couverture de l'album ${title}`}
       />
     )
   }
   return (
-    <div className="flex h-full w-full items-center justify-center bg-vert/10">
-      <FontAwesomeIcon icon={faImages} className="h-10 w-10 text-vert/30" />
+    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#bfe3cb] to-menthe">
+      <FontAwesomeIcon icon={faImages} className="h-8 w-8 text-vert/30" />
     </div>
   )
 }
@@ -35,85 +29,50 @@ function AlbumCover({ cover, title }) {
 /* ============================================================
    AlbumGrid — Grille des albums (back-office galerie)
    ------------------------------------------------------------
-   - Grille responsive : 3 colonnes (desktop) / 2 (tablette) / 1 (mobile)
-   - Couverture cliquable → ouvre la vue médias (onOpen)
-   - Thème (badge), titre, description, date, compteurs médias
-   - Actions : ajouter des médias / modifier / supprimer
+   - Cartes : couverture (150 px), titre, « 24 médias · Matchs »
+   - Clic = sélection (les médias s'affichent sous la grille)
+   - Dernière carte en pointillés : « Ajouter des photos »
+   - 1 colonne (téléphone) / 2 (tablette) / 4 (grand écran)
    ============================================================ */
 
-/* Badge doré plein comme sur la page publique — lisible sur
-   n'importe quelle couverture (variantes translucides illisibles). */
-
-export default function AlbumGrid({ albums, onOpen, onAddMedia, onEdit, onDelete }) {
-  if (!albums || albums.length === 0) return null
-
+export default function AlbumGrid({ albums, selectedId, onSelect, onAddPhotos }) {
   return (
-    <motion.div
-      variants={staggerContainer}
-      initial="hidden"
-      animate="visible"
-      className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3"
-    >
+    <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {albums.map((album) => {
-        const videoCount = album.medias.filter((m) => m.type === 'video').length
-        // Couverture = 1re image de l'album (pas de coverImage côté backend).
-        const cover = getAlbumCover(album)
+        const on = album.id === selectedId
+        const n = album.medias.length
         return (
-          <motion.div key={album.id} variants={staggerItem} className="h-full">
-            <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-clair bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-vert/10">
-              {/* Couverture cliquable */}
-              <button
-                type="button"
-                onClick={() => onOpen(album)}
-                aria-label={`Ouvrir l'album ${album.titre}`}
-                className="relative block aspect-[16/10] w-full overflow-hidden text-left"
-              >
-                <AlbumCover cover={cover} title={album.titre} />
-                <span className="absolute inset-0 bg-gradient-to-t from-vert-dark/70 via-transparent to-transparent" />
-                <span className="absolute bottom-3 left-3 rounded-full bg-dore px-2.5 py-0.5 text-xs font-bold text-vert-dark shadow">
-                  {album.theme}
-                </span>
-                <span className="absolute right-3 top-3 flex items-center gap-2">
-                  {videoCount > 0 && (
-                    <span className="flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-xs font-bold text-vert">
-                      <FontAwesomeIcon icon={faVideo} className="h-3 w-3" />
-                      {videoCount}
-                    </span>
-                  )}
-                  <span className="flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-xs font-bold text-vert">
-                    <FontAwesomeIcon icon={faImages} className="h-3 w-3" />
-                    {album.medias.length}
-                  </span>
-                </span>
-              </button>
-
-              {/* Corps de la carte */}
-              <div className="flex flex-1 flex-col p-4">
-                <h3 className="line-clamp-1 font-extrabold text-vert">
-                  {album.titre}
-                </h3>
-                {album.description && (
-                  <p className="mt-1 line-clamp-2 text-sm text-sombre/75">
-                    {album.description}
-                  </p>
-                )}
-                <p className="mt-1 text-xs text-sombre/75">
-                  {formatDateCard(parseLocalDate(album.dateCreation))}
-                </p>
-
-                <div className="mt-4 flex items-center justify-end gap-2 border-t border-clair pt-3">
-                  <AlbumActions
-                    album={album}
-                    onAddMedia={onAddMedia}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                  />
-                </div>
+          <button
+            key={album.id}
+            type="button"
+            onClick={() => onSelect(album.id)}
+            aria-pressed={on}
+            aria-label={`Ouvrir l'album ${album.titre}`}
+            className={`overflow-hidden rounded-2xl border bg-white text-left transition hover:shadow-md ${
+              on ? 'border-vert ring-2 ring-vert/25' : 'border-[#e3ede6]'
+            }`}
+          >
+            <div className="h-[150px]">
+              <AlbumCover cover={getAlbumCover(album)} title={album.titre} />
+            </div>
+            <div className="p-3.5">
+              <b className="line-clamp-1 font-semibold">{album.titre}</b>
+              <div className="mt-0.5 text-xs text-sombre/75">
+                {n} média{n > 1 ? 's' : ''} · {album.theme}
               </div>
             </div>
-          </motion.div>
+          </button>
         )
       })}
-    </motion.div>
+      <button
+        type="button"
+        onClick={onAddPhotos}
+        className="flex min-h-[150px] flex-col items-center justify-center gap-2 rounded-2xl border-[1.5px] border-dashed border-[#b9d4c1] bg-[#fafcfa] p-4 text-sm font-semibold text-vert-dark transition hover:bg-menthe sm:min-h-[218px]"
+      >
+        <FontAwesomeIcon icon={faPlus} className="h-6 w-6" />
+        Ajouter des photos
+        <span className="text-xs font-normal text-sombre/75">Glisser-déposer ou parcourir</span>
+      </button>
+    </section>
   )
 }

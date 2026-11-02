@@ -1,87 +1,85 @@
-import { motion } from 'framer-motion'
+import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlay, faTrash, faVideo } from '@fortawesome/free-solid-svg-icons'
-import { staggerContainer, staggerItem } from '../../../hooks/useScrollAnimation'
 
 /* ============================================================
-   MediaGrid — Grille des médias d'un album (@EF24)
+   MediaGrid — Médias d'un album (@EF24)
    ------------------------------------------------------------
-   - Vignettes images (aperçu réel) / vidéos (icône lecture)
-   - Clic sur un média → aperçu agrandi (onPreview)
-   - Suppression par média (onDeleteMedia), avec confirmation
-     gérée par la page parente
-   - Grille responsive : 4 colonnes (desktop) / 3 (tablette) / 2 (mobile)
+   - Vignettes carrées : images (aperçu réel) / vidéos (icône lecture)
+   - La photo de couverture (1re image) est cerclée d'or
+   - Clic → aperçu agrandi (onPreview) ; corbeille → suppression
+     (confirmation gérée par la page parente)
+   - 3 colonnes (téléphone) / 4 (tablette) / 6 (grand écran)
    ============================================================ */
+
+function Thumb({ media }) {
+  const [failed, setFailed] = useState(false)
+  if (media.type === 'video') {
+    return (
+      <span className="relative flex h-full w-full items-center justify-center bg-vert-dark/90">
+        <FontAwesomeIcon icon={faPlay} className="h-6 w-6 text-dore" />
+        <span className="absolute bottom-1.5 right-1.5 flex items-center gap-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold uppercase text-white">
+          <FontAwesomeIcon icon={faVideo} className="h-2.5 w-2.5" />
+          Vidéo
+        </span>
+      </span>
+    )
+  }
+  if (failed) return <span className="block h-full w-full bg-[#dcefe2]" />
+  return (
+    <img
+      src={media.url}
+      alt={media.nom ?? 'Photo de l’album'}
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className="h-full w-full object-cover"
+    />
+  )
+}
 
 export default function MediaGrid({ album, onPreview, onDeleteMedia }) {
   if (!album) return null
 
   if (album.medias.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-clair p-10 text-center">
+      <div className="rounded-2xl border border-dashed border-[#cfe0d4] p-10 text-center">
         <FontAwesomeIcon icon={faVideo} className="mx-auto h-10 w-10 text-sombre/20" />
-        <p className="mt-3 font-bold text-sombre/75">
-          Aucun média dans cet album.
-        </p>
+        <p className="mt-3 font-bold text-sombre/75">Aucun média dans cet album.</p>
         <p className="mt-1 text-sm text-sombre/75">
-          Utilisez « Ajouter des médias » pour importer des photos ou vidéos.
+          Utilisez « Ajouter des photos » pour importer des photos ou vidéos.
         </p>
       </div>
     )
   }
 
+  const coverId = album.medias.find((m) => m.type === 'image')?.id
+
   return (
-    <motion.div
-      variants={staggerContainer}
-      initial="hidden"
-      animate="visible"
-      className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4"
-    >
+    <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-6">
       {album.medias.map((media) => (
-        <motion.div key={media.id} variants={staggerItem} className="group relative">
+        <div key={media.id} className="group relative">
           <button
             type="button"
             onClick={() => onPreview(media)}
             aria-label={`Visualiser ${media.nom ?? 'le média'}`}
             title="Visualiser"
-            className="block w-full overflow-hidden rounded-xl border border-clair bg-white shadow-sm transition hover:shadow-lg hover:shadow-vert/10"
+            className={`block aspect-square w-full overflow-hidden rounded-[10px] bg-[#dcefe2] ${
+              media.id === coverId ? 'outline outline-[3px] outline-dore' : ''
+            }`}
           >
-            {media.type === 'video' ? (
-              <span className="relative flex aspect-video w-full items-center justify-center bg-vert-dark/90">
-                <FontAwesomeIcon icon={faPlay} className="h-8 w-8 text-dore" />
-                <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-                  <FontAwesomeIcon icon={faVideo} className="h-2.5 w-2.5" />
-                  Vidéo
-                </span>
-              </span>
-            ) : (
-              <span className="relative block aspect-video w-full overflow-hidden">
-                <img
-                  src={media.url}
-                  alt={media.nom ?? 'Photo de l’album'}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-              </span>
-            )}
+            <Thumb media={media} />
           </button>
-
-          <div className="mt-2 flex items-center justify-between gap-2">
-            <p className="min-w-0 flex-1 truncate text-xs font-semibold text-sombre">
-              {media.nom ?? 'Sans titre'}
-            </p>
-            <button
-              type="button"
-              onClick={() => onDeleteMedia(media)}
-              aria-label={`Supprimer le média ${media.nom ?? media.id}`}
-              title="Supprimer"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-erreur transition hover:bg-erreur/10 active:scale-95"
-            >
-              <FontAwesomeIcon icon={faTrash} className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        </motion.div>
+          <button
+            type="button"
+            onClick={() => onDeleteMedia(media)}
+            aria-label={`Supprimer le média ${media.nom ?? media.id}`}
+            title="Supprimer"
+            className="absolute right-1 top-1 flex h-8 w-8 items-center justify-center rounded-lg bg-white/90 text-erreur shadow transition hover:bg-white sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+          >
+            <FontAwesomeIcon icon={faTrash} className="h-3.5 w-3.5" />
+          </button>
+        </div>
       ))}
-    </motion.div>
+    </div>
   )
 }
