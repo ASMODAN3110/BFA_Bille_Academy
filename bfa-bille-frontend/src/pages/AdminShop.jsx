@@ -1,16 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faPenToSquare, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons'
 import PageHeader from '../components/admin/PageHeader'
 import ShopStats from '../components/admin/shop/ShopStats'
 import ShopFilters from '../components/admin/shop/ShopFilters'
 import ProductTable from '../components/admin/shop/ProductTable'
 import ProductFormModal from '../components/admin/shop/ProductFormModal'
 import QuoteRequests from '../components/admin/shop/QuoteRequests'
+import QuotePanel from '../components/admin/shop/QuotePanel'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
-import Button from '../components/ui/Button'
-import Pagination from '../components/ui/Pagination'
 import { fadeUp } from '../hooks/useScrollAnimation'
 import { api } from '../utils/api'
 import { normalizeProduct, normalizeQuote } from '../utils/shopAdapter'
@@ -23,6 +22,8 @@ import { normalizeProduct, normalizeQuote } from '../utils/shopAdapter'
    @EF45 Suppression d'un produit avec confirmation
    @EF46 Demandes de devis : consultation, réponse (mailto),
          marquage « traité »
+   Maquette Claude Design : onglets Produits / Devis à gauche, détail
+   du devis sélectionné à droite.
    ------------------------------------------------------------
    État (conforme au cahier des charges) :
      products, quotes, categoryFilter, stockFilter,
@@ -31,6 +32,11 @@ import { normalizeProduct, normalizeQuote } from '../utils/shopAdapter'
    ============================================================ */
 
 const ITEMS_PER_PAGE = 10
+
+const TABS = [
+  { value: 'produits', label: 'Produits' },
+  { value: 'devis', label: 'Devis' },
+]
 
 const stockLevel = (qty) => {
   if (qty === 0) return 'Rupture'
@@ -51,6 +57,10 @@ export default function AdminShop({ autoAdd = false }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [serverError, setServerError] = useState(null)
+  const [tab, setTab] = useState('produits')
+  const [quoteId, setQuoteId] = useState(null)
+  const [menu, setMenu] = useState(null)
+  const panelRef = useRef(null)
 
   /* Route /admin/products/add → ouvre le formulaire d'ajout. */
   useEffect(() => {
@@ -111,8 +121,36 @@ export default function AdminShop({ autoAdd = false }) {
     [filtered, page],
   )
 
-  const start = filtered.length === 0 ? 0 : (page - 1) * ITEMS_PER_PAGE + 1
-  const end = Math.min(page * ITEMS_PER_PAGE, filtered.length)
+  /* Devis affiché : celui choisi, sinon le premier à traiter, sinon le premier. */
+  const activeQuote =
+    quotes.find((q) => q.id === quoteId) ??
+    quotes.find((q) => !q.estTraite) ??
+    quotes[0] ??
+    null
+
+  const selectQuote = (id) => {
+    setQuoteId(id)
+    if (window.matchMedia('(max-width: 1023px)').matches) {
+      requestAnimationFrame(() =>
+        panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      )
+    }
+  }
+
+  /* Menu « ⋯ » : se ferme au clic ailleurs, à Échap ou au défilement. */
+  useEffect(() => {
+    if (!menu) return undefined
+    const close = () => setMenu(null)
+    const onKey = (e) => e.key === 'Escape' && close()
+    window.addEventListener('click', close)
+    window.addEventListener('scroll', close, true)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('click', close)
+      window.removeEventListener('scroll', close, true)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [menu])
 
   /* -------------------- Produits -------------------- */
 
@@ -186,74 +224,132 @@ export default function AdminShop({ autoAdd = false }) {
       variants={fadeUp}
       initial="hidden"
       animate="visible"
-      className="space-y-6"
+      className="space-y-5 sm:space-y-6"
     >
       <PageHeader
-        title="Gestion de la boutique"
-        subtitle="Gérez votre inventaire et les demandes clients."
+        title="Boutique"
+        subtitle="Produits, stock et demandes de devis."
         action={
-          <Button type="button" onClick={openAdd} className="shrink-0">
+          <button
+            type="button"
+            onClick={openAdd}
+            className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-vert px-[18px] text-sm font-semibold text-white transition hover:bg-vert-dark"
+          >
             <FontAwesomeIcon icon={faPlus} className="h-4 w-4" />
-            Ajouter un produit
-          </Button>
+            Nouveau produit
+          </button>
         }
       />
-
-      <ShopStats products={products} quotes={quotes} />
 
       {loading ? (
         <p className="text-center text-sm text-sombre/75">
           Chargement de la boutique…
         </p>
-      ) : error ? (
-        <div
-          role="alert"
-          className="rounded-2xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-center text-sm font-medium text-erreur"
-        >
-          {error}
-        </div>
       ) : (
-        <div className="space-y-4">
-          <ShopFilters
-            products={products}
-            categoryFilter={categoryFilter}
-            onCategoryChange={setCategoryFilter}
-            stockFilter={stockFilter}
-            onStockChange={setStockFilter}
-          />
+        <>
+          {error && (
+            <div
+              role="alert"
+              className="rounded-2xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-center text-sm font-medium text-erreur"
+            >
+              {error}
+            </div>
+          )}
 
-          <ProductTable
-            products={pageItems}
-            onEdit={openEdit}
-            onDelete={(product) => {
-              setToDelete(product)
-              setIsDeleteConfirmOpen(true)
-            }}
-          />
+          <ShopStats products={products} quotes={quotes} />
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm text-sombre/75" role="status">
-              {filtered.length === 0 ? (
-                'Aucun produit.'
+          <div className="flex flex-wrap items-start gap-4">
+            <section className="min-w-0 flex-[999_1_32rem] overflow-hidden rounded-2xl border border-[#e3ede6] bg-white">
+              <div className="flex flex-wrap items-center gap-x-2 border-b border-[#e3ede6] px-2">
+                <div role="tablist" aria-label="Boutique" className="flex">
+                  {TABS.map((t) => {
+                    const on = tab === t.value
+                    const n = t.value === 'produits' ? products.length : quotes.length
+                    return (
+                      <button
+                        key={t.value}
+                        type="button"
+                        role="tab"
+                        aria-selected={on}
+                        onClick={() => setTab(t.value)}
+                        className={`min-h-11 border-b-2 px-3.5 py-2.5 text-sm font-semibold transition ${
+                          on
+                            ? 'border-vert text-vert-dark'
+                            : 'border-transparent text-sombre/70 hover:text-sombre'
+                        }`}
+                      >
+                        {t.label} · {n}
+                      </button>
+                    )
+                  })}
+                </div>
+                {tab === 'produits' && (
+                  <ShopFilters
+                    categoryFilter={categoryFilter}
+                    onCategoryChange={setCategoryFilter}
+                    stockFilter={stockFilter}
+                    onStockChange={setStockFilter}
+                  />
+                )}
+              </div>
+
+              {tab === 'produits' ? (
+                <ProductTable
+                  products={pageItems}
+                  total={filtered.length}
+                  page={page}
+                  pageSize={ITEMS_PER_PAGE}
+                  onPageChange={setPage}
+                  onEdit={openEdit}
+                  onMenu={(product, rect) =>
+                    setMenu({ product, top: rect.bottom + 4, right: window.innerWidth - rect.right })
+                  }
+                />
               ) : (
-                <>
-                  Affichage{' '}
-                  <span className="font-bold text-vert">{start}</span>–{end} sur{' '}
-                  <span className="font-bold text-vert">{filtered.length}</span>{' '}
-                  produit(s)
-                </>
+                <QuoteRequests
+                  quotes={quotes}
+                  activeId={activeQuote?.id ?? null}
+                  onSelect={selectQuote}
+                />
               )}
-            </p>
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              onPageChange={setPage}
-            />
+            </section>
+
+            <div ref={panelRef} className="flex min-w-0 flex-1 basis-80 scroll-mt-20">
+              <QuotePanel quote={activeQuote} onTreat={handleToggleTraite} />
+            </div>
           </div>
-        </div>
+        </>
       )}
 
-      <QuoteRequests quotes={quotes} onToggleTraite={handleToggleTraite} />
+      {menu && (
+        <div
+          role="menu"
+          style={{ top: menu.top, right: menu.right }}
+          className="fixed z-50 min-w-44 rounded-xl border border-[#e3ede6] bg-white p-1.5 shadow-lg"
+        >
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => openEdit(menu.product)}
+            className="flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm transition hover:bg-[#f4f9f6]"
+          >
+            <FontAwesomeIcon icon={faPenToSquare} className="h-4 w-4 text-vert" />
+            Modifier
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setToDelete(menu.product)
+              setIsDeleteConfirmOpen(true)
+            }}
+            className="flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm text-erreur transition hover:bg-erreur/10"
+          >
+            <FontAwesomeIcon icon={faTrash} className="h-4 w-4" />
+            Supprimer
+          </button>
+        </div>
+      )}
 
       <ProductFormModal
         open={isModalOpen}

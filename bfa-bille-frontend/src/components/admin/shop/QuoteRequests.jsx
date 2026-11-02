@@ -1,21 +1,14 @@
-import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEnvelopeOpenText } from '@fortawesome/free-solid-svg-icons'
-import Card from '../../ui/Card'
-import QuoteActions from './QuoteActions'
-import { staggerItem } from '../../../hooks/useScrollAnimation'
 
 /* ============================================================
-   QuoteRequests — Demandes de devis de la boutique
+   QuoteRequests — Liste des demandes de devis (onglet « Devis »)
    ------------------------------------------------------------
-   - Liste : demandeur (avatar initiales), e-mail, date, articles
-     (une ligne par produit : quantité / taille), message (extrait)
-   - Badge « Nouveau » sur les demandes non traitées
-   - Actions : Répondre (mailto) / Marquer comme traité
-   - Desktop : lignes en colonne · Mobile : cartes empilées
+   - Une ligne par devis : avatar (initiales), nom, « N articles ·
+     date », pastille À traiter / Traité ; clic = détail à droite
    ============================================================ */
 
-const initials = (nomComplet) =>
+export const initials = (nomComplet) =>
   String(nomComplet ?? '')
     .split(' ')
     .filter(Boolean)
@@ -23,97 +16,66 @@ const initials = (nomComplet) =>
     .map((w) => w[0].toUpperCase())
     .join('')
 
-const formatQuoteDate = (iso) => {
+const formatDate = (iso) => {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return '—'
-  const date = d.toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  })
-  const heure = d.toLocaleTimeString('fr-FR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-  return `${date} · ${heure}`
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-export default function QuoteRequests({ quotes, onToggleTraite }) {
-  const pending = quotes.filter((q) => !q.estTraite).length
+export function QuotePill({ traite }) {
+  return (
+    <span
+      className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+        traite ? 'bg-[#dcefe2] text-vert-dark' : 'bg-[#fff3c9] text-dore-dark'
+      }`}
+    >
+      {traite ? 'Traité' : 'À traiter'}
+    </span>
+  )
+}
+
+export default function QuoteRequests({ quotes, activeId, onSelect }) {
+  if (quotes.length === 0) {
+    return (
+      <div className="px-6 py-10 text-center">
+        <FontAwesomeIcon icon={faEnvelopeOpenText} className="mx-auto h-10 w-10 text-sombre/20" />
+        <p className="mt-3 text-sm font-bold text-sombre/75">Aucune demande de devis.</p>
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h2 className="text-lg font-bold text-vert">
-            Demandes de devis
-          </h2>
-          <p className="text-sm text-sombre/75">
-            {quotes.length} demande(s) —{' '}
-            <span className="font-semibold text-dore">{pending}</span> en attente
-          </p>
-        </div>
-      </div>
-
-      <Card className="divide-y divide-clair overflow-hidden">
-        {quotes.length === 0 ? (
-          <div className="p-10 text-center">
-            <FontAwesomeIcon
-              icon={faEnvelopeOpenText}
-              className="mx-auto h-10 w-10 text-sombre/20"
-            />
-            <p className="mt-3 font-bold text-sombre/75">
-              Aucune demande de devis.
-            </p>
-          </div>
-        ) : (
-          quotes.map((quote) => (
-            <motion.div
-              key={quote.id}
-              variants={staggerItem}
-              className={`flex flex-col gap-3 p-4 transition-colors hover:bg-clair/60 md:flex-row md:items-center md:justify-between ${
-                quote.estTraite ? 'opacity-60' : 'bg-vert/[0.02]'
+    <ul>
+      {quotes.map((q) => {
+        const n = q.lignes.length
+        return (
+          <li key={q.id} className="border-t border-[#eef3ef]">
+            <button
+              type="button"
+              onClick={() => onSelect(q.id)}
+              aria-current={q.id === activeId}
+              className={`flex min-h-[68px] w-full flex-wrap items-center gap-x-3.5 gap-y-2 px-3 py-3 text-left text-sm transition hover:bg-[#f4f9f6] sm:px-[18px] ${
+                q.id === activeId ? 'bg-[#f1f8f3]' : ''
               }`}
             >
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-vert/10 text-xs font-extrabold text-vert">
-                    {initials(quote.nomComplet)}
-                  </span>
-                  <p className="font-bold text-sombre">{quote.nomComplet}</p>
-                  {!quote.estTraite && (
-                    <span className="rounded-full bg-dore/15 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-dore-dark">
-                      Nouveau
-                    </span>
-                  )}
-                </div>
-
-                <p className="mt-1 text-xs text-sombre/75">
-                  {quote.email} · {formatQuoteDate(quote.dateDemande)}
-                </p>
-
-                <ul className="mt-2 space-y-0.5 text-sm">
-                  {quote.lignes.map((ligne) => (
-                    <li key={ligne.id}>
-                      <span className="font-semibold text-vert">{ligne.produit}</span>
-                      <span className="text-sombre/75"> × {ligne.quantite}</span>
-                      {ligne.taille && (
-                        <span className="text-sombre/75"> — {ligne.taille}</span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-
-                <p className="mt-1 line-clamp-2 text-sm text-sombre/75">
-                  {quote.message}
-                </p>
-              </div>
-
-              <QuoteActions quote={quote} onToggleTraite={onToggleTraite} />
-            </motion.div>
-          ))
-        )}
-      </Card>
-    </div>
+              <span
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-bold ${
+                  q.estTraite ? 'bg-[#dcefe2] text-vert-dark' : 'bg-[#fff3c9] text-dore-dark'
+                }`}
+              >
+                {initials(q.nomComplet)}
+              </span>
+              <span className="min-w-0 flex-1 basis-40">
+                <b className="block truncate font-semibold">{q.nomComplet}</b>
+                <span className="block truncate text-xs text-sombre/75">
+                  {n} article{n > 1 ? 's' : ''} · {formatDate(q.dateDemande)}
+                </span>
+              </span>
+              <QuotePill traite={q.estTraite} />
+            </button>
+          </li>
+        )
+      })}
+    </ul>
   )
 }
