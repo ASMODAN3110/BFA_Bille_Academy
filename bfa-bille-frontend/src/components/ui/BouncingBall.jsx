@@ -31,6 +31,12 @@
      - `speed`            : durée d'un cycle de rebond (s)
      - `bounceHeight`     : hauteur du premier rebond (px)
      - `shadowIntensity`  : opacité max de l'ombre (0 à 1)
+     - `spin`             : false = pas de rotation CSS automatique (le
+                            parent pilote lui-même la rotation)
+                            (défaut : true)
+     - `bounce`           : false = pas de rebond ni d'ombre au sol,
+                            le ballon ne fait que tourner sur lui-même
+                            (défaut : true)
      - `tint`             : filtre CSS optionnel (ex.
                             'sepia(1) hue-rotate(20deg)') pour
                             teinter l'image sans la retoucher
@@ -61,6 +67,8 @@ export default function BouncingBall({
   speed = 1.8,
   bounceHeight = 140,
   shadowIntensity = 0.35,
+  bounce = true,
+  spin = true,
   tint,
   className = '',
 }) {
@@ -168,7 +176,7 @@ export default function BouncingBall({
 
       <div
         aria-hidden="true"
-        className="animate-ball-bounce-realistic"
+        className={bounce ? 'animate-ball-bounce-realistic' : undefined}
         style={{
           width: 'var(--bb-size)',
           height: 'var(--bb-size)',
@@ -180,7 +188,7 @@ export default function BouncingBall({
           src={src}
           alt=""
           draggable="false"
-          className="animate-ball-spin block w-full h-full select-none pointer-events-none drop-shadow-[0_8px_20px_rgba(0,0,0,0.35)]"
+          className={`${spin ? 'animate-ball-spin ' : ''}block w-full h-full select-none pointer-events-none drop-shadow-[0_8px_20px_rgba(0,0,0,0.35)]`}
           style={{
             animationDuration: `${Math.max(speed * 0.6, 0.4)}s`,
             filter: tint,
@@ -189,6 +197,7 @@ export default function BouncingBall({
       </div>
 
       {/* Ombre au sol : dégradé radial (centre sombre -> bords transparents) */}
+      {bounce && (
       <span
         aria-hidden="true"
         className="animate-shadow-bounce-realistic rounded-[50%] block"
@@ -203,6 +212,7 @@ export default function BouncingBall({
           '--shadow-intensity': 'var(--bb-shadow-intensity)',
         }}
       />
+      )}
     </div>
   )
 }

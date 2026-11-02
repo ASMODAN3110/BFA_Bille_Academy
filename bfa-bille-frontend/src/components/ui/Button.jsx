@@ -21,7 +21,7 @@ import './GlareHover.css'
 const VARIANT_STYLES = {
   primary: 'bg-vert text-white hover:bg-vert-light shadow-lg shadow-vert/25',
   secondary:
-    'bg-dore text-vert-dark hover:bg-dore-dark shadow-lg shadow-dore/30',
+    'bg-dore text-vert-dark hover:bg-[#e6c65a] hover:shadow-xl shadow-lg shadow-dore/30',
   outline:
     'border-2 border-dore text-dore-dark hover:bg-dore hover:text-vert-dark',
   danger: 'bg-erreur text-white hover:opacity-90 shadow-lg shadow-erreur/25',
@@ -39,7 +39,7 @@ const SIZE_STYLES = {
 
 /* Variables CSS du reflet pour la variante bouton.
    --gh-bg / --gh-bg-hover suivent la charte (survol = teinte
-   claire : vert-light pour le primary, dore-dark pour secondary). */
+   claire : vert-light pour le primary, or clair pour secondary). */
 const GLARE_DEFAULTS = {
   '--gh-br': '0.5rem', // arrondi léger, comme rounded-lg
   '--gh-border': 'transparent', // pas de bordure de reflet
@@ -52,8 +52,8 @@ const GLARE_DEFAULTS = {
 }
 
 const GLARE_VARIANT_VARS = {
-  primary: { '--gh-bg': '#006400', '--gh-bg-hover': '#0a7a0a' },
-  secondary: { '--gh-bg': '#D4AF37', '--gh-bg-hover': '#b8972f' },
+  primary: { '--gh-bg': '#15803d', '--gh-bg-hover': '#0f6b33' },
+  secondary: { '--gh-bg': '#D4AF37', '--gh-bg-hover': '#e6c65a' },
   danger: { '--gh-bg': '#e53935', '--gh-bg-hover': '#c62828' },
   /* outline = « bouton hover doré » : bordure dorée, fond doré au
      survol. Le fond au repos reste transparent, --gh-bg-hover

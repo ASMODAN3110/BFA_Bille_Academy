@@ -108,5 +108,5 @@
    override la propriété background (PAS la variable --gh-bg,
    qui est inline et gagnerait toujours). */
 .glare-hover--btn:hover {
-  background: var(--gh-bg-hover, #0a7a0a);
+  background: var(--gh-bg-hover, #0f6b33);
 }

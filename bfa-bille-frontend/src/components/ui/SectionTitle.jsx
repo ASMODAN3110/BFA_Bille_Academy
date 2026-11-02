@@ -13,6 +13,7 @@ export default function SectionTitle({
   subtitle,
   align = 'center',
   light = false,
+  decor = true,
   className = '',
 }) {
   const isCenter = align === 'center'
@@ -24,6 +25,7 @@ export default function SectionTitle({
       } ${className}`}
     >
       {/* Décor doré */}
+      {decor && (
       <div
         className={`flex items-center gap-2 mb-4 ${
           isCenter ? 'justify-center' : ''
@@ -33,10 +35,11 @@ export default function SectionTitle({
         <span className="h-1 w-3 rounded-full bg-dore/60" />
         <span className="h-1 w-1.5 rounded-full bg-dore/40" />
       </div>
+      )}
 
       <h2
-        className={`font-extrabold text-3xl md:text-4xl lg:text-[2.6rem] leading-tight tracking-tight ${
-          light ? 'text-white' : 'text-sombre'
+        className={`font-display font-bold text-4xl md:text-5xl leading-none tracking-tight ${
+          light ? 'text-white' : 'text-[#14231a]'
         }`}
       >
         {title}

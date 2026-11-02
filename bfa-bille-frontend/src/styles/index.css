@@ -1,26 +1,29 @@
 /* ============================================================
    BFA Bille Academy — Feuille de styles globale (Tailwind v4)
-   Charte : Vert #006400 · Doré #D4AF37 · Blanc #FFFFFF
+   Charte : Vert #15803D · Doré #D4AF37 · Blanc #FFFFFF
             Gris clair #F5F5F5 · Gris foncé #333333
    ============================================================ */
 @import "tailwindcss";
 
 @theme {
   /* --- Couleurs de la charte --- */
-  --color-vert: #006400;
-  --color-vert-dark: #004d00;
-  --color-vert-light: #0a7a0a;
+  --color-vert: #15803d;
+  --color-vert-dark: #0f5c2b;
+  --color-vert-light: #22a058;
+  /* Fond menthe clair (pied de page, sections douces) */
+  --color-menthe: #eaf4ed;
   --color-dore: #d4af37;
   /* dore-dark assombri pour WCAG AA : #7d6116 → 5.9:1 sur blanc,
      4.9:1 sur bg-dore/15 (l'ancien #b8972f ne faisait que 2.8:1). */
   --color-dore-dark: #7d6116;
-  --color-clair: #f5f5f5;
+  --color-clair: #f3f8f4;
   --color-sombre: #333333;
   /* Formulaires : validation */
   --color-erreur: #e53935;
   --color-succes: #4caf50;
 
   /* --- Typographie --- */
+  --font-display: "Barlow Condensed", "Inter", ui-sans-serif, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     Roboto, sans-serif;
 

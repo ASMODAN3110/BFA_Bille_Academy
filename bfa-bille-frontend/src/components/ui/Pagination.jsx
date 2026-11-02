@@ -9,6 +9,9 @@ import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons
      - `totalPages`    : nombre total de pages
      - `onPageChange`  : callback(page)
      - `className`     : classes ajoutées au conteneur
+     - `variant`       : 'default' (boutons ronds + Précédent / Suivant)
+                         ou 'square' (maquette Claude Design : carrés
+                         arrondis, flèches ← →)
    Rendu : boutons « Précédent » / « Suivant » + numéros de page.
    Masquée si une seule page.
    ============================================================ */
@@ -18,8 +21,60 @@ export default function Pagination({
   totalPages,
   onPageChange,
   className = '',
+  variant = 'default',
 }) {
   if (totalPages <= 1) return null
+
+  if (variant === 'square') {
+    const squareClasses = (active, disabled) =>
+      [
+        'inline-flex h-11 min-w-11 items-center justify-center rounded-xl border px-2 font-semibold',
+        'transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-dore/40',
+        active
+          ? 'border-vert bg-vert text-white'
+          : disabled
+            ? 'cursor-not-allowed border-[#e3ede6] bg-white text-sombre/40'
+            : 'border-[#cfe6d6] bg-white hover:border-vert hover:text-vert',
+      ].join(' ')
+
+    return (
+      <nav
+        aria-label="Pagination"
+        className={`flex flex-wrap items-center justify-center gap-2 ${className}`}
+      >
+        <button
+          type="button"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          aria-label="Page précédente"
+          className={squareClasses(false, currentPage === 1)}
+        >
+          <span aria-hidden="true">←</span>
+        </button>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <button
+            key={page}
+            type="button"
+            onClick={() => onPageChange(page)}
+            aria-label={`Aller à la page ${page}`}
+            aria-current={page === currentPage ? 'page' : undefined}
+            className={squareClasses(page === currentPage, false)}
+          >
+            {page}
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          aria-label="Page suivante"
+          className={squareClasses(false, currentPage === totalPages)}
+        >
+          <span aria-hidden="true">→</span>
+        </button>
+      </nav>
+    )
+  }
 
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1)
 

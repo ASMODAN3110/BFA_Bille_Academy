@@ -3,6 +3,7 @@ import { NavLink, Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { navLinks } from '../../config/site'
+import Button from '../ui/Button'
 import logo from '../../assets/logo-removebg-preview.png'
 
 /* ============================================================
@@ -16,7 +17,9 @@ import logo from '../../assets/logo-removebg-preview.png'
 const linkClasses = ({ isActive }) =>
   [
     'px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200',
-    isActive ? 'text-dore-dark' : 'text-sombre/80 hover:text-vert',
+    isActive
+      ? 'text-vert font-semibold border-b-2 border-dore rounded-none'
+      : 'text-sombre/80 hover:text-vert',
   ].join(' ')
 
 export default function Navbar() {
@@ -39,7 +42,7 @@ export default function Navbar() {
             className="h-11 w-11 object-contain"
           />
           <span className="flex flex-col leading-tight">
-            <span className="text-lg font-extrabold text-vert">BFA Bille</span>
+            <span className="font-display text-2xl font-bold tracking-wide text-vert">BFA Bille</span>
             <span className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-dore-dark">
               Football Academy
             </span>
@@ -59,6 +62,9 @@ export default function Navbar() {
 
         {/* Actions */}
         <div className="flex items-center gap-3">
+          <Button to="/essais" size="sm" className="hidden! xl:inline-flex!">
+            Inscription aux essais
+          </Button>
           {/* Burger mobile */}
           <button
             type="button"
