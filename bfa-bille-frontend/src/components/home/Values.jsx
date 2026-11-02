@@ -9,7 +9,7 @@ import Card from '../ui/Card'
 import SectionTitle from '../ui/SectionTitle'
 import { values } from '../../config/site'
 import {
-  useScrollAnimation,
+  useRevealOnce,
   staggerContainer,
   staggerItem,
 } from '../../hooks/useScrollAnimation'
@@ -27,37 +27,38 @@ const VALUE_ICONS = {
 }
 
 export default function Values() {
-  const { ref, isInView } = useScrollAnimation()
+  const { ref, initial, animate } = useRevealOnce('valeurs')
 
   return (
-    <section id="valeurs" className="bg-clair py-20 md:py-24">
+    <section id="valeurs" className="bg-[#fafcfa] py-20 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionTitle
           title="Nos Piliers"
+          align="left"
+          decor={false}
           subtitle="Les valeurs qui guident chaque joueur, chaque entraîneur, chaque entraînement."
         />
 
         <motion.div
           ref={ref}
           variants={staggerContainer}
-          initial="hidden"
-          animate={isInView ? 'visible' : 'hidden'}
+          initial={initial}
+          animate={animate}
           className="grid gap-8 md:grid-cols-3"
         >
           {values.map((value) => (
             <motion.div key={value.id} variants={staggerItem}>
-              <Card variant="elevated" className="h-full p-8 text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-vert text-dore shadow-lg shadow-vert/20">
+              <Card variant="elevated" className="h-full rounded-[20px] border-[#e3ede6] p-7 shadow-none">
+                <div className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-menthe text-vert">
                   <FontAwesomeIcon
                     icon={VALUE_ICONS[value.icon]}
-                    className="h-7 w-7"
+                    className="h-6 w-6"
                   />
                 </div>
-                <h3 className="mt-6 text-2xl font-bold text-vert">
+                <h3 className="mt-5 text-xl font-semibold text-[#14231a]">
                   {value.title}
                 </h3>
-                <span className="mx-auto mt-3 block h-1 w-12 rounded-full bg-dore" />
-                <p className="mt-4 text-sm leading-relaxed text-sombre/75">
+                <p className="mt-2 leading-relaxed text-sombre/80">
                   {value.description}
                 </p>
               </Card>

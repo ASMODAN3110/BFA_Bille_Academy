@@ -1,9 +1,7 @@
-import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFutbol } from '@fortawesome/free-solid-svg-icons'
 import Button from '../ui/Button'
 import { club } from '../../config/site'
-import { useScrollAnimation, scaleIn } from '../../hooks/useScrollAnimation'
 
 /* ============================================================
    CTA — Appel à l'action final
@@ -17,16 +15,10 @@ const CTA_BG =
   'https://images.unsplash.com/photo-1459865264687-595d652de67e?auto=format&fit=crop&w=1600&q=80'
 
 export default function CTA() {
-  const { ref, isInView } = useScrollAnimation({ amount: 0.3 })
-
   return (
-    <section>
-      <motion.div
-        ref={ref}
-        variants={scaleIn}
-        initial="hidden"
-        animate={isInView ? 'visible' : 'hidden'}
-        className="relative overflow-hidden bg-gradient-to-br from-vert via-vert to-vert-dark px-6 py-16 text-center shadow-2xl shadow-vert/40 md:px-12 md:py-20"
+    <section className="bg-white px-4 pb-16 pt-4 sm:px-6 lg:px-8">
+      <div
+        className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] bg-gradient-to-br from-vert via-vert to-vert-dark px-6 py-16 text-center shadow-2xl shadow-vert/40 md:px-12 md:py-20"
       >
         {/* Image de fond (pleine, sans voile) */}
         <div
@@ -54,12 +46,7 @@ export default function CTA() {
         />
 
         <div className="relative">
-          <span className="inline-flex items-center gap-2 rounded-full border border-dore/50 bg-dore/10 px-4 py-1.5 text-sm font-semibold text-dore">
-            <FontAwesomeIcon icon={faFutbol} className="h-4 w-4" />
-            {club.tagline}
-          </span>
-
-          <h2 className="mx-auto mt-6 max-w-3xl text-3xl font-black leading-tight text-white md:text-5xl">
+          <h2 className="mx-auto max-w-5xl font-display text-5xl font-extrabold leading-[0.95] text-white sm:text-6xl md:text-7xl lg:text-8xl">
             Rejoignez <span className="text-dore">l&rsquo;aventure</span>
             <br />
             BFA Bille Academy
@@ -76,6 +63,8 @@ export default function CTA() {
               href={`mailto:${club.email}`}
               variant="secondary"
               size="lg"
+              glare={{ '--gh-bg-hover': '#D4AF37' }}
+              className="hover:bg-dore!"
             >
               Contactez-nous
             </Button>
@@ -84,7 +73,7 @@ export default function CTA() {
             </Button>
           </div>
         </div>
-      </motion.div>
+      </div>
     </section>
   )
 }

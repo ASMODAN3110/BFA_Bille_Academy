@@ -7,16 +7,12 @@ import {
   faMedal,
   faUsers,
 } from '@fortawesome/free-solid-svg-icons'
-import SectionTitle from '../ui/SectionTitle'
 import {
-  useScrollAnimation,
+  useRevealOnce,
   staggerContainer,
   staggerItem,
 } from '../../hooks/useScrollAnimation'
-
-/* ⚠️ Plus de données mock : la section part vide (aucune statistique
-   pour le moment). Sera branchée au backend (module « Chiffres clés »). */
-const stats = []
+import useHomeData from '../../hooks/useHomeData'
 
 /* ============================================================
    Stats — Chiffres clés avec compteur animé
@@ -32,10 +28,14 @@ const STAT_ICONS = {
 }
 
 /* Petit composant compteur animé (0 → valeur) */
-function Counter({ value, isInView }) {
+function Counter({ value, isInView, instant }) {
   const nodeRef = useRef(null)
 
   useEffect(() => {
+    if (instant) {
+      if (nodeRef.current) nodeRef.current.textContent = String(value)
+      return undefined
+    }
     if (!isInView) return undefined
 
     const controls = animate(0, value, {
@@ -48,19 +48,19 @@ function Counter({ value, isInView }) {
       },
     })
     return () => controls.stop()
-  }, [isInView, value])
+  }, [isInView, value, instant])
 
   return <span ref={nodeRef}>0</span>
 }
 
-export default function Stats() {
-  const { ref, isInView } = useScrollAnimation({ once: true, amount: 0.3 })
+function StatsContent({ stats }) {
+  const { ref, initial, animate, revealed, already } = useRevealOnce('stats', 0.3)
 
   // Section masquée tant qu'aucune statistique n'est disponible.
   if (stats.length === 0) return null
 
   return (
-    <section id="stats" className="relative overflow-hidden bg-vert-dark py-20 md:py-24">
+    <section id="stats" className="relative overflow-hidden bg-white py-12 md:py-14">
       {/* Décor */}
       <div
         aria-hidden="true"
@@ -68,34 +68,28 @@ export default function Stats() {
       />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionTitle
-          light
-          title="Nos Chiffres Clés"
-          subtitle="Le fruit d'un travail exigeant et passionné, saison après saison."
-        />
-
         <motion.div
           ref={ref}
           variants={staggerContainer}
-          initial="hidden"
-          animate={isInView ? 'visible' : 'hidden'}
-          className="grid grid-cols-2 gap-6 lg:grid-cols-4 lg:gap-8"
+          initial={initial}
+          animate={animate}
+          className="grid grid-cols-2 gap-6 lg:grid-cols-4"
         >
           {stats.map((stat) => (
             <motion.div
               key={stat.label}
               variants={staggerItem}
-              className="rounded-2xl border border-dore/20 bg-white/5 p-6 text-center backdrop-blur-sm transition-colors duration-300 hover:border-dore/50 md:p-8"
+              className="py-2"
             >
               <FontAwesomeIcon
                 icon={STAT_ICONS[stat.icon]}
-                className="mx-auto h-8 w-8 text-dore"
+                className="h-6 w-6 text-dore-dark"
               />
-              <p className="mt-4 text-4xl font-black text-white md:text-5xl">
-                <Counter value={stat.value} isInView={isInView} />
-                <span className="text-dore">{stat.suffix}</span>
+              <p className="mt-2 font-display text-5xl font-extrabold leading-none text-vert md:text-6xl">
+                <Counter value={stat.value} isInView={revealed} instant={already} />
+                <span>{stat.suffix}</span>
               </p>
-              <p className="mt-2 text-sm font-medium uppercase tracking-wider text-white/70">
+              <p className="mt-2 text-[15px] text-sombre/70">
                 {stat.label}
               </p>
             </motion.div>
@@ -104,4 +98,12 @@ export default function Stats() {
       </div>
     </section>
   )
+}
+
+/* Les données arrivent après le premier rendu : le contenu (et son
+   détecteur de scroll) n'est monté qu'une fois qu'elles sont là. */
+export default function Stats() {
+  const { stats } = useHomeData()
+  if (stats.length === 0) return null
+  return <StatsContent stats={stats} />
 }
