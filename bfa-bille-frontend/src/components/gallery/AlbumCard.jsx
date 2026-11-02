@@ -1,103 +1,70 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {
-  faPlay,
-  faImage,
-  faCalendarDays,
-} from '@fortawesome/free-solid-svg-icons'
-import Card from '../ui/Card'
-import { staggerItem } from '../../hooks/useScrollAnimation'
+import { faPlay, faImage } from '@fortawesome/free-solid-svg-icons'
 import { parseLocalDate, formatDateCard } from '../../utils/dateUtils'
 import { getAlbumCover } from '../../utils/albumAdapter'
 
 /* ============================================================
-   AlbumCard — Carte d'un album (cliquable)
+   AlbumCard — Carte d'un album (cliquable) — maquette Claude Design
    ------------------------------------------------------------
-   Image de couverture (zoom +5 % au survol), titre, date
-   ("12 Oct 2024"), badge de thème. Une icône Play indique que
-   l'album contient au moins une vidéo. Le clic ouvre la vue
-   détaillée via onSelect.
+   Couverture de 220 px (1re image de l'album, dégradé si absente ou
+   si le fichier est introuvable) avec le thème en pastille dorée en
+   haut à gauche ; dessous, titre et nombre de médias, puis la date.
+   Une pastille Play indique qu'il y a au moins une vidéo. Le clic
+   ouvre la vue détaillée via onSelect.
    ============================================================ */
 
 export default function AlbumCard({ album, onSelect }) {
   const hasVideo = album.medias.some((media) => media.type === 'video')
-  // Pas de coverImage côté backend : la couverture est la 1re image.
   const cover = getAlbumCover(album)
-  // Si l'URL de couverture échoue (média manquant en stockage), on
-  // retombe sur le placeholder plutôt qu'une image cassée.
   const [coverFailed, setCoverFailed] = useState(false)
-  const handleKeyDown = (event) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      onSelect(album)
-    }
-  }
+  const count = album.medias.length
 
   return (
-    <motion.div variants={staggerItem}>
-      <Card
-        role="button"
-        tabIndex={0}
-        onClick={() => onSelect(album)}
-        onKeyDown={handleKeyDown}
-        aria-label={`Ouvrir l'album ${album.titre}`}
-        className="group h-full cursor-pointer overflow-hidden text-left transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-vert/15"
-      >
-        {/* Couverture (1re image de l'album, placeholder sinon) */}
-        <div className="relative overflow-hidden bg-vert">
-          {cover && !coverFailed ? (
-            <img
-              src={cover}
-              alt={`Couverture de l'album ${album.titre}`}
-              loading="lazy"
-              onError={() => setCoverFailed(true)}
-              className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          ) : (
-            <div className="flex aspect-[4/3] w-full items-center justify-center bg-vert/10">
-              <FontAwesomeIcon icon={faImage} className="h-10 w-10 text-vert/30" />
-            </div>
-          )}
-
-          {/* Badge de thème (doré : visible sur les photos de terrain) */}
-          <span className="absolute left-3 top-3 rounded-full bg-dore px-3 py-1 text-xs font-bold text-vert-dark shadow">
-            {album.theme}
+    <button
+      type="button"
+      onClick={() => onSelect(album)}
+      aria-label={`Ouvrir l'album ${album.titre}`}
+      className="group block w-full overflow-hidden rounded-[20px] border border-[#e3ede6] bg-white text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-vert/10 focus:outline-none focus-visible:ring-4 focus-visible:ring-dore/40"
+    >
+      <div className="relative h-[220px] overflow-hidden bg-gradient-to-br from-[#cfe6d6] to-menthe">
+        {cover && !coverFailed && (
+          <img
+            src={cover}
+            alt={`Couverture de l'album ${album.titre}`}
+            loading="lazy"
+            onError={() => setCoverFailed(true)}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        )}
+        {(!cover || coverFailed) && (
+          <div className="flex h-full w-full items-center justify-center">
+            <FontAwesomeIcon icon={faImage} className="h-10 w-10 text-vert/30" />
+          </div>
+        )}
+        <span className="absolute left-3.5 top-3.5 rounded-full bg-[#fff4cc] px-3 py-1 text-xs font-semibold text-dore-dark">
+          {album.theme}
+        </span>
+        {hasVideo && (
+          <span className="absolute bottom-3.5 left-3.5 flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-vert shadow">
+            <FontAwesomeIcon icon={faPlay} className="ml-0.5 h-3.5 w-3.5" />
           </span>
+        )}
+      </div>
 
-          {/* Nombre de médias */}
-          <span className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
-            <FontAwesomeIcon icon={faImage} className="h-3 w-3 text-dore" />
-            {album.medias.length}
-          </span>
-
-          {/* Badge vidéo */}
-          {hasVideo && (
-            <span className="absolute bottom-3 left-3 flex h-9 w-9 items-center justify-center rounded-full bg-dore text-vert-dark shadow-lg">
-              <FontAwesomeIcon icon={faPlay} className="ml-0.5 h-4 w-4" />
-            </span>
-          )}
-        </div>
-
-        {/* Infos */}
-        <div className="p-5">
-          <h3 className="line-clamp-1 text-lg font-bold text-sombre transition-colors duration-300 group-hover:text-vert">
+      <div className="px-5 py-[18px]">
+        <div className="flex items-baseline justify-between gap-3">
+          <h3 className="line-clamp-1 text-[19px] font-semibold text-[#14231a] transition-colors group-hover:text-vert">
             {album.titre}
           </h3>
-          <div className="mt-2 flex items-center justify-between text-sm">
-            <span className="flex items-center gap-2 text-sombre/75">
-              <FontAwesomeIcon
-                icon={faCalendarDays}
-                className="h-3.5 w-3.5 text-dore-dark"
-              />
-              {formatDateCard(parseLocalDate(album.dateCreation))}
-            </span>
-            <span className="font-semibold text-vert">
-              Voir →
-            </span>
-          </div>
+          <span className="shrink-0 text-sm text-sombre/70">
+            {count} média{count > 1 ? 's' : ''}
+          </span>
         </div>
-      </Card>
-    </motion.div>
+        <p className="mt-1 text-sm text-sombre/70">
+          {formatDateCard(parseLocalDate(album.dateCreation))}
+        </p>
+      </div>
+    </button>
   )
 }

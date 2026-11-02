@@ -89,7 +89,7 @@ export default function MediaLightbox({
                     ) : (
                       <img
                         src={media.url}
-                        alt={`Média ${index + 1}`}
+                        alt={media.caption ?? `Média ${index + 1}`}
                         loading="lazy"
                         className="max-h-[68vh] w-auto max-w-full rounded-xl object-contain shadow-2xl"
                       />
@@ -120,7 +120,9 @@ export default function MediaLightbox({
               <FontAwesomeIcon icon={faChevronLeft} className="h-4 w-4" />
             </button>
             <span className="text-sm text-white/80">
-              {media ? (media.type === 'video' ? 'Vidéo' : 'Photo') : ''}
+              {media
+                ? (media.caption ?? (media.type === 'video' ? 'Vidéo' : 'Photo'))
+                : ''}
             </span>
             <button
               type="button"

@@ -1,16 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import { motion } from 'framer-motion'
-import SectionTitle from '../components/ui/SectionTitle'
+import PageHero from '../components/layout/PageHero'
 import Button from '../components/ui/Button'
 import AlbumFilters from '../components/gallery/AlbumFilters'
 import AlbumGrid from '../components/gallery/AlbumGrid'
 import AlbumDetails from '../components/gallery/AlbumDetails'
-import { useScrollAnimation, fadeUp } from '../hooks/useScrollAnimation'
 import { api } from '../utils/api'
 import { ALBUM_THEMES, normalizeAlbum } from '../utils/albumAdapter'
 
 /* ============================================================
-   Gallery — Page « Galerie photos et vidéos » (/galerie)
+   Gallery — Page « Galerie photos et vidéos » (/galerie), maquette Claude Design
    ------------------------------------------------------------
    - Données depuis le backend (Module 4) : GET /api/albums
      (public, sans token) → items normalisés via normalizeAlbum.
@@ -24,7 +22,6 @@ const THEMES = ['Tous', ...ALBUM_THEMES]
 const PAGE_SIZE = 3
 
 export default function Gallery() {
-  const { ref, isInView } = useScrollAnimation({ amount: 0.1 })
   const [albums, setAlbums] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -62,14 +59,6 @@ export default function Gallery() {
     [selectedTheme, albums],
   )
 
-  const counts = useMemo(() => {
-    const result = { Tous: albums.length }
-    for (const theme of ALBUM_THEMES) {
-      result[theme] = albums.filter((a) => a.theme === theme).length
-    }
-    return result
-  }, [albums])
-
   const visibleAlbums = filteredAlbums.slice(0, visibleCount)
   const hasMore = visibleCount < filteredAlbums.length
 
@@ -79,71 +68,63 @@ export default function Gallery() {
   }
 
   return (
-    <section id="galerie" className="bg-clair py-16 md:py-24">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          ref={ref}
-          variants={fadeUp}
-          initial="hidden"
-          animate={isInView ? 'visible' : 'hidden'}
-        >
-          <SectionTitle
-            title="Galerie"
-            subtitle="Revivez les moments forts de notre académie en photos et en vidéos."
+    <>
+      <PageHero
+        crumbs={[{ label: 'Accueil', to: '/' }, { label: 'Galerie' }]}
+        title="Galerie photos et vidéos"
+        lead="Revivez les moments forts de notre académie en photos et en vidéos."
+      />
+
+      <section id="galerie" className="bg-[#fafcfa] py-10 md:py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <AlbumFilters
+            themes={THEMES}
+            active={selectedTheme}
+            onChange={handleThemeChange}
           />
-        </motion.div>
 
-        <AlbumFilters
-          themes={THEMES}
-          counts={counts}
-          active={selectedTheme}
-          onChange={handleThemeChange}
-        />
-
-        {loading ? (
-          <p className="py-10 text-center text-sm text-sombre/75">
-            Chargement de la galerie…
-          </p>
-        ) : error ? (
-          <div
-            role="alert"
-            className="rounded-xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-sm font-medium text-erreur"
-          >
-            {error}
-          </div>
-        ) : (
-          <>
-            <p className="mb-8 text-center text-sm text-sombre/75">
-              {filteredAlbums.length} album
-              {filteredAlbums.length > 1 ? 's' : ''} affiché
-              {filteredAlbums.length > 1 ? 's' : ''}
-              {selectedTheme !== 'Tous' && ` · thème ${selectedTheme}`}
+          {loading ? (
+            <p className="py-10 text-center text-sm text-sombre/75">
+              Chargement de la galerie…
             </p>
+          ) : error ? (
+            <div
+              role="alert"
+              className="mt-8 rounded-xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-sm font-medium text-erreur"
+            >
+              {error}
+            </div>
+          ) : (
+            <>
+              <p className="mb-6 mt-8 text-sm text-sombre/75" aria-live="polite">
+                {filteredAlbums.length} album{filteredAlbums.length > 1 ? 's' : ''}
+              </p>
 
-            <AlbumGrid albums={visibleAlbums} onSelect={setSelectedAlbum} />
+              <AlbumGrid albums={visibleAlbums} onSelect={setSelectedAlbum} />
 
-            {hasMore && (
-              <div className="mt-10 text-center">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="md"
-                  onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
-                  className="px-8"
-                >
-                  Charger plus de médias
-                </Button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+              {hasMore && (
+                <div className="mt-10 text-center">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="md"
+                    onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
+                    className="px-8"
+                  >
+                    Charger plus d&rsquo;albums
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </section>
 
       {/* Modale d'album + lightbox (toujours montées) */}
       <AlbumDetails
         album={selectedAlbum}
         onClose={() => setSelectedAlbum(null)}
       />
-    </section>
+    </>
   )
 }

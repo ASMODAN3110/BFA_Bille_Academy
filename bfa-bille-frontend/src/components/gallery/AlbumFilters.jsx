@@ -1,44 +1,37 @@
-import Button from '../ui/Button'
-
 /* ============================================================
-   AlbumFilters — Filtres des albums (Tous | Entraînements |
-   Matchs | Événements)
+   AlbumFilters — Filtres des albums par thème (maquette Claude Design)
    ------------------------------------------------------------
-   Boutons `Button` (variantes filter / filter-active) avec le
-   nombre d'albums par thème affiché en badge.
+   Pastilles arrondies : Tous les albums | Entraînements | Matchs |
+   Événements | Portraits. La pastille active est pleine verte.
    ============================================================ */
 
-export default function AlbumFilters({ themes, counts, active, onChange }) {
+const chipClasses = (active) =>
+  `inline-flex min-h-10 items-center rounded-full border px-4 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-dore/40 ${
+    active
+      ? 'border-vert bg-vert text-white'
+      : 'border-[#cfe6d6] bg-white text-sombre/80 hover:border-vert hover:text-vert'
+  }`
+
+export default function AlbumFilters({ themes, active, onChange }) {
   return (
     <div
       role="tablist"
       aria-label="Filtrer les albums par thème"
-      className="mb-8 flex flex-wrap items-center justify-center gap-3"
+      className="flex flex-wrap items-center gap-2"
     >
       {themes.map((theme) => {
         const isActive = active === theme
         return (
-          <Button
+          <button
             key={theme}
             type="button"
-            size="sm"
-            variant={isActive ? 'filter-active' : 'filter'}
-            onClick={() => onChange(theme)}
             role="tab"
             aria-selected={isActive}
-            className="rounded-full px-5"
+            onClick={() => onChange(theme)}
+            className={chipClasses(isActive)}
           >
-            {theme}
-            {counts[theme] != null && (
-              <span
-                className={`ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-bold ${
-                  isActive ? 'bg-dore text-vert-dark' : 'bg-clair text-sombre'
-                }`}
-              >
-                {counts[theme]}
-              </span>
-            )}
-          </Button>
+            {theme === 'Tous' ? 'Tous les albums' : theme}
+          </button>
         )
       })}
     </div>
