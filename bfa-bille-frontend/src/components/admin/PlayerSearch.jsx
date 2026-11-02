@@ -1,69 +1,85 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
-import Card from '../ui/Card'
 import { useCategories } from '../../hooks/useCategories'
 
 /* ============================================================
-   PlayerSearch — Recherche et filtres des joueurs
+   PlayerSearch — Barre d'outils des joueurs (admin)
    ------------------------------------------------------------
-   - Champ de recherche (nom / prénom / poste)
-   - Filtre catégorie (GET /api/categories, valeur = id)
-   - Compteur de résultats
+   - Recherche (nom / prénom / poste)
+   - Pastilles de catégorie avec effectifs : « Toutes · 86 »,
+     « U11 · 21 »… (valeur = id de catégorie, « Tous » = toutes)
+   - Filtre de poste (liste déroulante)
    ============================================================ */
 
-const selectClasses =
-  'w-full cursor-pointer appearance-none rounded-xl border-2 border-clair bg-white px-4 py-2.5 pr-9 text-sm text-sombre transition focus:border-dore focus:outline-none focus:ring-2 focus:ring-dore/40 sm:w-auto'
+const chip = (on) =>
+  `inline-flex h-[42px] items-center rounded-[10px] border px-3.5 text-[13px] transition ${
+    on
+      ? 'border-vert bg-menthe font-semibold text-vert-dark'
+      : 'border-[#e3ede6] bg-white font-medium text-[#3b4d42] hover:border-vert/50'
+  }`
 
 export default function PlayerSearch({
   query,
   onQueryChange,
   category,
   onCategoryChange,
-  resultCount,
+  poste,
+  onPosteChange,
+  postes,
+  counts,
   totalCount,
 }) {
   const { categories } = useCategories()
 
   return (
-    <Card className="p-4 md:p-5">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-        {/* Recherche */}
-        <div className="relative flex-1">
-          <FontAwesomeIcon
-            icon={faMagnifyingGlass}
-            className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sombre/75"
-          />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => onQueryChange(e.target.value)}
-            placeholder="Rechercher un joueur ou un poste…"
-            aria-label="Rechercher un joueur"
-            className="w-full rounded-xl border-2 border-clair bg-white py-2.5 pl-11 pr-4 text-sm text-sombre placeholder:text-sombre/75 transition focus:border-dore focus:outline-none focus:ring-2 focus:ring-dore/40"
-          />
-        </div>
+    <div className="flex flex-wrap items-center gap-2.5 rounded-[14px] border border-[#e3ede6] bg-white p-3">
+      <label className="flex h-[42px] flex-[1_1_16rem] items-center gap-2.5 rounded-[10px] border border-[#e3ede6] bg-[#f4f7f5] px-3 focus-within:border-vert">
+        <FontAwesomeIcon icon={faMagnifyingGlass} className="h-4 w-4 text-sombre/60" />
+        <span className="sr-only">Rechercher un joueur</span>
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => onQueryChange(e.target.value)}
+          placeholder="Nom du joueur…"
+          className="min-w-0 flex-1 border-0 bg-transparent text-sm outline-none"
+        />
+      </label>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <select
-            value={category}
-            onChange={(e) => onCategoryChange(e.target.value)}
-            aria-label="Filtrer par catégorie"
-            className={selectClasses}
+      <div role="group" aria-label="Catégorie" className="flex flex-wrap gap-2.5">
+        <button
+          type="button"
+          aria-pressed={category === 'Tous'}
+          onClick={() => onCategoryChange('Tous')}
+          className={chip(category === 'Tous')}
+        >
+          Toutes · {totalCount}
+        </button>
+        {categories.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            aria-pressed={category === String(c.id)}
+            onClick={() => onCategoryChange(String(c.id))}
+            className={chip(category === String(c.id))}
           >
-            <option value="Tous">Toutes catégories</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={String(cat.id)}>
-                {cat.nom}
-              </option>
-            ))}
-          </select>
-        </div>
+            {c.nom} · {counts[c.id] ?? 0}
+          </button>
+        ))}
       </div>
 
-      <p className="mt-3 text-xs text-sombre/75">
-        {resultCount} joueur{resultCount > 1 ? 's' : ''} affiché
-        {resultCount > 1 ? 's' : ''} sur {totalCount}
-      </p>
-    </Card>
+      <select
+        value={poste}
+        onChange={(e) => onPosteChange(e.target.value)}
+        aria-label="Filtrer par poste"
+        className="h-[42px] rounded-[10px] border border-[#e3ede6] bg-white px-3 text-[13px] font-medium text-[#3b4d42] outline-none focus:border-vert"
+      >
+        <option value="Tous">Poste : tous</option>
+        {postes.map((p) => (
+          <option key={p} value={p}>
+            {p}
+          </option>
+        ))}
+      </select>
+    </div>
   )
 }

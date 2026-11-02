@@ -11,6 +11,8 @@
        · autres colonnes → paires « libellé / valeur »
        · colonne `actions` → pied de carte
    - `minWidth` : largeur minimale du <table> (px) en mode tableau.
+   - `col.header` : contenu d'en-tête personnalisé (ex. case « tout cocher »)
+   - `rowClassName(row)` : fond de ligne (défaut `bg-white`)
    - `cards={false}` garde le tableau (défilant) même sur mobile.
    ============================================================ */
 
@@ -21,6 +23,7 @@ export default function Table({
   className = '',
   minWidth = 420,
   cards = true,
+  rowClassName,
 }) {
   const lead = columns.filter((c) => !c.label && c.key !== 'actions')
   const actions = columns.find((c) => c.key === 'actions')
@@ -42,7 +45,7 @@ export default function Table({
                   scope="col"
                   className="px-4 py-3 text-xs font-semibold uppercase tracking-wider"
                 >
-                  {col.label}
+                  {col.header ?? col.label}
                 </th>
               ))}
             </tr>
@@ -51,7 +54,7 @@ export default function Table({
             {rows.map((row, index) => (
               <tr
                 key={row[rowKey] ?? index}
-                className="bg-white transition-colors hover:bg-[#f4f9f6]"
+                className={`${rowClassName?.(row) ?? 'bg-white'} transition-colors hover:bg-[#f4f9f6]`}
               >
                 {columns.map((col) => (
                   <td key={col.key} className="px-4 py-3 text-sombre">
@@ -67,7 +70,7 @@ export default function Table({
       {cards && (
         <ul className="divide-y divide-[#eef3ef] md:hidden">
           {rows.map((row, index) => (
-            <li key={row[rowKey] ?? index} className="space-y-3 bg-white px-4 py-4">
+            <li key={row[rowKey] ?? index} className={`space-y-3 px-4 py-4 ${rowClassName?.(row) ?? 'bg-white'}`}>
               <div className="flex items-start gap-3">
                 {lead.map((col) => (
                   <div key={col.key} className="shrink-0 pt-1">

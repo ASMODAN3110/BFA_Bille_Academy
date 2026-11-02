@@ -1,32 +1,73 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {
-  faFilePdf,
-  faPenToSquare,
-  faSpinner,
-  faTrash,
-  faUsers,
-} from '@fortawesome/free-solid-svg-icons'
-import Card from '../ui/Card'
-import Badge from '../ui/Badge'
+import { faEllipsis, faUsers } from '@fortawesome/free-solid-svg-icons'
 import Table from '../ui/Table'
+import Pagination from '../ui/Pagination'
 import { getAge } from '../../utils/ageUtils'
 
 /* ============================================================
    PlayerTable — Tableau des joueurs (admin)
    ------------------------------------------------------------
-   - Colonnes : Joueur (photo/initiales + nom), Catégorie, Poste,
-     Âge (calculé depuis dateNaissance), Actions
-   - Réutilise `Table` (en-tête vert, lignes alternées)
+   - Colonnes : case, Joueur (avatar + nom + âge), Catégorie,
+     Poste, Arrivée, Fiche (complète / photo manquante),
+     Actions (Modifier + menu « ⋯ »)
+   - Lignes sélectionnées surlignées ; pied « 1–5 sur 86 » +
+     pagination carrée (maquette Claude Design)
+   - Sur téléphone, `Table` affiche chaque joueur en carte
    ============================================================ */
-
-const actionButtonClasses =
-  'flex h-9 w-9 items-center justify-center rounded-lg transition active:scale-95'
 
 const initials = (row) =>
   `${row.prenom?.[0] ?? ''}${row.nom?.[0] ?? ''}`.toUpperCase() || '?'
 
-export default function PlayerTable({ players, onEdit, onDelete, onExportPdf, exportingId }) {
+export const playerName = (row) => [row.prenom, row.nom].filter(Boolean).join(' ')
+
+const formatArrivee = (iso) =>
+  iso
+    ? new Date(iso).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      })
+    : '—'
+
+const checkboxClasses = 'h-[18px] w-[18px] shrink-0 cursor-pointer accent-vert'
+
+export default function PlayerTable({
+  players,
+  total,
+  page,
+  pageSize,
+  onPageChange,
+  selectedIds,
+  onToggle,
+  onToggleAll,
+  onEdit,
+  onMenu,
+}) {
+  const allChecked = players.length > 0 && players.every((p) => selectedIds.includes(p.id))
+
   const columns = [
+    {
+      key: 'select',
+      label: '',
+      header: (
+        <input
+          type="checkbox"
+          checked={allChecked}
+          onChange={onToggleAll}
+          aria-label="Sélectionner tous les joueurs de la page"
+          className={checkboxClasses}
+        />
+      ),
+      render: (row) => (
+        <input
+          type="checkbox"
+          checked={selectedIds.includes(row.id)}
+          onChange={() => onToggle(row.id)}
+          aria-label={`Sélectionner ${playerName(row)}`}
+          className={checkboxClasses}
+        />
+      ),
+    },
     {
       key: 'nom',
       label: 'Joueur',
@@ -35,18 +76,22 @@ export default function PlayerTable({ players, onEdit, onDelete, onExportPdf, ex
           {row.photo ? (
             <img
               src={row.photo}
-              alt={row.nom}
+              alt=""
               loading="lazy"
-              className="h-9 w-9 shrink-0 rounded-full object-cover"
+              className="h-[38px] w-[38px] shrink-0 rounded-full object-cover"
             />
           ) : (
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-vert/10 text-xs font-bold text-vert">
+            <div className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full bg-[#fff3c9] text-sm font-bold text-dore-dark">
               {initials(row)}
             </div>
           )}
           <div className="min-w-0">
-            <p className="truncate font-semibold text-sombre">{row.nom}</p>
-            <p className="truncate text-xs text-sombre/75">{row.prenom}</p>
+            <b className="block truncate font-semibold">{playerName(row)}</b>
+            {row.dateNaissance && (
+              <span className="block text-xs text-sombre/75">
+                {getAge(row.dateNaissance)} ans
+              </span>
+            )}
           </div>
         </div>
       ),
@@ -55,75 +100,88 @@ export default function PlayerTable({ players, onEdit, onDelete, onExportPdf, ex
       key: 'categorie',
       label: 'Catégorie',
       render: (row) => (
-        <Badge variant="selected">{row.categorie?.nom ?? '—'}</Badge>
+        <span className="rounded-full bg-menthe px-2.5 py-0.5 text-xs font-semibold text-vert-dark">
+          {row.categorie?.nom ?? '—'}
+        </span>
       ),
     },
     { key: 'poste', label: 'Poste' },
     {
-      key: 'age',
-      label: 'Âge',
+      key: 'arrivee',
+      label: 'Arrivée',
+      render: (row) => (
+        <span className="text-sombre/75">{formatArrivee(row.dateArrivee)}</span>
+      ),
+    },
+    {
+      key: 'fiche',
+      label: 'Fiche',
       render: (row) =>
-        `${row.dateNaissance ? getAge(row.dateNaissance) : '—'} ans`,
+        row.photo ? (
+          <span className="text-[13px] font-semibold text-vert-dark">Complète</span>
+        ) : (
+          <span className="text-[13px] font-semibold text-dore-dark">Photo manquante</span>
+        ),
     },
     {
       key: 'actions',
       label: 'Actions',
       render: (row) => (
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => onExportPdf(row)}
-            disabled={exportingId === row.id}
-            aria-label={`Exporter la fiche de ${row.nom}`}
-            className={`${actionButtonClasses} text-dore-dark hover:bg-dore/10 disabled:opacity-50`}
-          >
-            <FontAwesomeIcon
-              icon={exportingId === row.id ? faSpinner : faFilePdf}
-              spin={exportingId === row.id}
-              className="h-4 w-4"
-            />
-          </button>
+        <div className="flex items-center justify-end gap-1">
           <button
             type="button"
             onClick={() => onEdit(row)}
-            aria-label={`Modifier ${row.nom}`}
-            className={`${actionButtonClasses} text-vert hover:bg-vert/10`}
+            aria-label={`Modifier ${playerName(row)}`}
+            className="min-h-9 rounded-lg px-3 text-sm font-semibold text-vert-dark transition hover:bg-menthe"
           >
-            <FontAwesomeIcon icon={faPenToSquare} className="h-4 w-4" />
+            Modifier
           </button>
           <button
             type="button"
-            onClick={() => onDelete(row)}
-            aria-label={`Supprimer ${row.nom}`}
-            className={`${actionButtonClasses} text-erreur hover:bg-erreur/10`}
+            onClick={(e) => onMenu(row, e.currentTarget.getBoundingClientRect())}
+            aria-label={`Plus d'actions pour ${playerName(row)}`}
+            aria-haspopup="menu"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-sombre/70 transition hover:bg-[#f4f7f5]"
           >
-            <FontAwesomeIcon icon={faTrash} className="h-4 w-4" />
+            <FontAwesomeIcon icon={faEllipsis} className="h-4 w-4" />
           </button>
         </div>
       ),
     },
   ]
 
-  if (players.length === 0) {
+  if (total === 0) {
     return (
-      <Card className="p-10 text-center">
-        <FontAwesomeIcon
-          icon={faUsers}
-          className="mx-auto h-10 w-10 text-sombre/20"
-        />
-        <p className="mt-3 font-bold text-sombre/75">
-          Aucun joueur pour le moment.
-        </p>
-        <p className="mt-1 text-sm text-sombre/75">
-          Ajoutez le premier joueur pour l'afficher ici.
-        </p>
-      </Card>
+      <div className="rounded-2xl border border-[#e3ede6] bg-white p-10 text-center">
+        <FontAwesomeIcon icon={faUsers} className="mx-auto h-10 w-10 text-sombre/20" />
+        <p className="mt-3 font-bold text-sombre/75">Aucun joueur pour cette sélection.</p>
+      </div>
     )
   }
 
+  const from = (page - 1) * pageSize + 1
+  const to = Math.min(page * pageSize, total)
+
   return (
-    <Card className="p-4 md:p-5">
-      <Table columns={columns} rows={players} rowKey="id" />
-    </Card>
+    <div className="overflow-hidden rounded-2xl border border-[#e3ede6] bg-white">
+      <Table
+        columns={columns}
+        rows={players}
+        rowKey="id"
+        minWidth={760}
+        rowClassName={(row) => (selectedIds.includes(row.id) ? 'bg-[#f1f8f3]' : 'bg-white')}
+      />
+      <div className="flex flex-wrap items-center justify-between gap-2.5 border-t border-[#eef3ef] px-4 py-3 text-[13px] text-sombre/75">
+        <span>
+          {from}–{to} sur {total}
+        </span>
+        <Pagination
+          currentPage={page}
+          totalPages={Math.max(1, Math.ceil(total / pageSize))}
+          onPageChange={onPageChange}
+          variant="square"
+        />
+      </div>
+    </div>
   )
 }
