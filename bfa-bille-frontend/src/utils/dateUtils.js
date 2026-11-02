@@ -68,3 +68,15 @@ export function isSameDay(date1, date2) {
     date1.getDate() === date2.getDate()
   )
 }
+
+/** « Aujourd'hui », « Hier », « Il y a 3 j », puis « 12 oct. ». */
+export function relativeDate(iso) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  const start = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate())
+  const days = Math.round((start(new Date()) - start(d)) / 86400000)
+  if (days <= 0) return "Aujourd'hui"
+  if (days === 1) return 'Hier'
+  if (days < 7) return `Il y a ${days} j`
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+}

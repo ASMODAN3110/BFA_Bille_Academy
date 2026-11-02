@@ -1,72 +1,43 @@
-import { motion } from 'framer-motion'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {
-  faUsers,
-  faUserClock,
-  faCircleCheck,
-  faCircleXmark,
-} from '@fortawesome/free-solid-svg-icons'
-import StatCard from '../StatCard'
-import { staggerContainer } from '../../../hooks/useScrollAnimation'
-
 /* ============================================================
-   TrialStats — Cartes statistiques des demandes d'essai (admin)
+   TrialStats — Chiffres des demandes d'essai (admin, @EF20)
    ------------------------------------------------------------
-   - Total, En attente, Confirmés, Refusés (@EF20)
-   - Icône colorée + tendance en % du total
-   - Apparition en cascade (staggerContainer)
+   - Total, En attente (mise en avant en doré), Acceptées, Refusées
+   - Valeur en Barlow Condensed, 2 colonnes sur téléphone
    ============================================================ */
 
 export default function TrialStats({ trials }) {
-  const total = trials.length
   const counts = { 'En attente': 0, Confirmé: 0, Refusé: 0 }
   trials.forEach((t) => {
     if (counts[t.statut] !== undefined) counts[t.statut] += 1
   })
 
-  const pct = (n) => (total > 0 ? Math.round((n / total) * 100) : 0)
-
   const stats = [
-    {
-      label: 'Total',
-      value: total,
-      subtitle: 'Candidatures reçues',
-      icon: faUsers,
-      accent: 'bg-vert',
-    },
+    { label: 'Total', value: trials.length },
     {
       label: 'En attente',
       value: counts['En attente'],
-      subtitle: `${pct(counts['En attente'])} % du total`,
-      icon: faUserClock,
-      accent: 'bg-orange-500',
+      box: 'border-[#efdca0] bg-[#fffdf3]',
+      text: 'text-dore-dark',
     },
-    {
-      label: 'Confirmés',
-      value: counts.Confirmé,
-      subtitle: `${pct(counts.Confirmé)} % du total`,
-      icon: faCircleCheck,
-      accent: 'bg-succes',
-    },
-    {
-      label: 'Refusés',
-      value: counts.Refusé,
-      subtitle: `${pct(counts.Refusé)} % du total`,
-      icon: faCircleXmark,
-      accent: 'bg-erreur',
-    },
+    { label: 'Acceptées', value: counts.Confirmé, text: 'text-vert-dark' },
+    { label: 'Refusées', value: counts.Refusé },
   ]
 
   return (
-    <motion.div
-      variants={staggerContainer}
-      initial="hidden"
-      animate="visible"
-      className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4"
-    >
+    <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
       {stats.map((s) => (
-        <StatCard key={s.label} {...s} />
+        <div
+          key={s.label}
+          className={`rounded-2xl border p-4 ${s.box ?? 'border-[#e3ede6] bg-white'}`}
+        >
+          <p className={`text-[13px] ${s.text ?? 'text-sombre/75'}`}>{s.label}</p>
+          <p
+            className={`font-display text-[38px] font-bold leading-[1.1] tabular-nums ${s.text ?? 'text-[#14231a]'}`}
+          >
+            {s.value}
+          </p>
+        </div>
       ))}
-    </motion.div>
+    </section>
   )
 }

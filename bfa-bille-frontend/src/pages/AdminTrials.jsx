@@ -8,9 +8,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import PageHeader from '../components/admin/PageHeader'
 import TrialStats from '../components/admin/trials/TrialStats'
-import TrialSearch from '../components/admin/trials/TrialSearch'
 import TrialTable from '../components/admin/trials/TrialTable'
-import TrialDetailsModal from '../components/admin/trials/TrialDetailsModal'
+import TrialDetailPanel from '../components/admin/trials/TrialDetailPanel'
 import TrialRefuseModal from '../components/admin/trials/TrialRefuseModal'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import Button from '../components/ui/Button'
@@ -88,14 +87,13 @@ export default function AdminTrials() {
   const [error, setError] = useState(null)
   const [serverError, setServerError] = useState(null)
   const [query, setQuery] = useState('')
-  const [status, setStatus] = useState('Tous')
+  const [status, setStatus] = useState('En attente')
   const [category, setCategory] = useState('Tous')
-  const [dateFilter, setDateFilter] = useState('')
+  const [activeId, setActiveId] = useState(null)
+  const panelRef = useRef(null)
   const [page, setPage] = useState(1)
   const [selectedIds, setSelectedIds] = useState([])
   const [toDelete, setToDelete] = useState(null)
-  const [selectedTrial, setSelectedTrial] = useState(null)
-  const [detailsOpen, setDetailsOpen] = useState(false)
   const [trialToRefuse, setTrialToRefuse] = useState(null)
   const [refuseOpen, setRefuseOpen] = useState(false)
 
@@ -106,7 +104,7 @@ export default function AdminTrials() {
   /* Retour à la 1re page dès qu'un filtre change. */
   useEffect(() => {
     setPage(1)
-  }, [query, status, category, dateFilter])
+  }, [query, status, category])
 
   /* Désélectionne les candidats masqués par un filtre. */
   useEffect(() => {
@@ -114,7 +112,7 @@ export default function AdminTrials() {
       prev.filter((id) => filtered.some((t) => t.id === id)),
     )
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, status, category, dateFilter])
+  }, [query, status, category])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -128,13 +126,9 @@ export default function AdminTrials() {
       const matchesStatus = status === 'Tous' || t.statut === status
       const matchesCategory =
         category === 'Tous' || t.categorie === category
-      const matchesDate =
-        !dateFilter ||
-        (t.dateEssai ?? '').startsWith(dateFilter) ||
-        (t.dateSoumission ?? '').startsWith(dateFilter)
-      return matchesQuery && matchesStatus && matchesCategory && matchesDate
+      return matchesQuery && matchesStatus && matchesCategory
     })
-  }, [trials, query, status, category, dateFilter])
+  }, [trials, query, status, category])
 
   const counts = useMemo(() => {
     const c = { 'En attente': 0, Confirmé: 0, Refusé: 0 }
@@ -305,11 +299,18 @@ export default function AdminTrials() {
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     )
 
-  const openDetails = (row) => {
-    setSelectedTrial(row)
-    setDetailsOpen(true)
+  /* Sur téléphone la fiche est sous la liste : on y amène l'écran. */
+  const selectTrial = (id) => {
+    setActiveId(id)
+    if (window.matchMedia('(max-width: 1023px)').matches) {
+      requestAnimationFrame(() =>
+        panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      )
+    }
   }
-  const closeDetails = () => setDetailsOpen(false)
+
+  const activeTrial =
+    filtered.find((t) => t.id === activeId) ?? pageItems[0] ?? null
 
   const openRefuse = (row) => {
     setTrialToRefuse(row)
@@ -324,11 +325,11 @@ export default function AdminTrials() {
       variants={fadeUp}
       initial="hidden"
       animate="visible"
-      className="space-y-6"
+      className="space-y-5 sm:space-y-6"
     >
       <PageHeader
         title="Demandes d'essai"
-        subtitle="Consultez, validez ou refusez les candidatures des futurs académiciens."
+        subtitle="Traitez les candidatures en un clic : acceptez ou refusez, le candidat est prévenu par e-mail."
       />
 
       <TrialStats trials={trials} />
@@ -364,19 +365,6 @@ export default function AdminTrials() {
         </div>
       ) : (
         <>
-          <TrialSearch
-            query={query}
-            onQueryChange={setQuery}
-            status={status}
-            onStatusChange={setStatus}
-            category={category}
-            onCategoryChange={setCategory}
-            dateFilter={dateFilter}
-            onDateFilterChange={setDateFilter}
-            resultCount={filtered.length}
-            totalCount={trials.length}
-          />
-
           {/* Barre d'actions groupées */}
           {selectedOnPage.length > 0 && (
             <motion.div
@@ -388,61 +376,55 @@ export default function AdminTrials() {
                 {selectedOnPage.length} sélectionné(s)
               </p>
               <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="sm"
-                  onClick={handleBulkConfirm}
-                >
+                <Button type="button" variant="primary" size="sm" onClick={handleBulkConfirm}>
                   <FontAwesomeIcon icon={faCircleCheck} className="h-4 w-4" />
-                  Valider
+                  Accepter
                 </Button>
-                <Button
-                  type="button"
-                  variant="danger"
-                  size="sm"
-                  onClick={handleBulkRefuse}
-                >
+                <Button type="button" variant="danger" size="sm" onClick={handleBulkRefuse}>
                   <FontAwesomeIcon icon={faCircleXmark} className="h-4 w-4" />
                   Refuser
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedIds([])}
-                >
+                <Button type="button" variant="outline" size="sm" onClick={() => setSelectedIds([])}>
                   Tout désélectionner
                 </Button>
               </div>
             </motion.div>
           )}
 
-          <TrialTable
-            trials={pageItems}
-            selectedIds={selectedIds}
-            onToggleSelect={toggleSelect}
-            onConfirm={handleConfirm}
-            onRefuse={openRefuse}
-            onDetails={openDetails}
-            onDelete={setToDelete}
-          />
-
-          <div className="flex justify-center">
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              onPageChange={setPage}
-            />
+          <div className="flex flex-wrap items-start gap-4">
+            <TrialTable
+              trials={pageItems}
+              counts={counts}
+              total={trials.length}
+              status={status}
+              onStatusChange={setStatus}
+              query={query}
+              onQueryChange={setQuery}
+              category={category}
+              onCategoryChange={setCategory}
+              selectedIds={selectedIds}
+              onToggleSelect={toggleSelect}
+              activeId={activeTrial?.id ?? null}
+              onSelect={selectTrial}
+            >
+              {totalPages > 1 && (
+                <div className="flex justify-center border-t border-[#eef3ef] p-3">
+                  <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+                </div>
+              )}
+            </TrialTable>
+            <div ref={panelRef} className="flex min-w-0 flex-1 basis-72 scroll-mt-20">
+              <TrialDetailPanel
+                trial={activeTrial}
+                onConfirm={handleConfirm}
+                onRefuse={openRefuse}
+                onDelete={setToDelete}
+              />
+            </div>
           </div>
         </>
       )}
 
-      <TrialDetailsModal
-        open={detailsOpen}
-        onClose={closeDetails}
-        trial={selectedTrial}
-      />
       <TrialRefuseModal
         open={refuseOpen}
         onClose={closeRefuse}
