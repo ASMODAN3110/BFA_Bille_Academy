@@ -4,11 +4,12 @@ import { staggerItem } from '../../hooks/useScrollAnimation'
 import { getAge } from '../../utils/ageUtils'
 
 /* ============================================================
-   PlayerCard — Carte d'un joueur (cliquable)
+   PlayerCard — Carte d'un joueur (cliquable) — maquette Claude Design
    ------------------------------------------------------------
-   Photo (ou initiales si absente), nom, poste (en doré), âge
-   (calculé depuis dateNaissance) et catégorie. Le clic (ou la
-   touche Entrée) ouvre la fiche détaillée via onSelect.
+   Bandeau photo (ou dégradé menthe si absente) avec, en bas, les
+   initiales dans un carré vert à gauche et la catégorie en pastille
+   dorée à droite. Dessous : nom complet, puis poste et âge.
+   Le clic (ou Entrée / Espace) ouvre la fiche détaillée via onSelect.
    ============================================================ */
 
 const initials = (player) =>
@@ -22,6 +23,9 @@ export default function PlayerCard({ player, onSelect }) {
     }
   }
 
+  const fullName = [player.prenom, player.nom].filter(Boolean).join(' ')
+  const age = player.dateNaissance ? getAge(player.dateNaissance) : null
+
   return (
     <motion.div variants={staggerItem}>
       <Card
@@ -29,44 +33,35 @@ export default function PlayerCard({ player, onSelect }) {
         tabIndex={0}
         onClick={() => onSelect(player)}
         onKeyDown={handleKeyDown}
-        aria-label={`Voir la fiche de ${player.nom}`}
-        className="group h-full cursor-pointer overflow-hidden text-left transition-transform duration-300 hover:scale-[1.03]"
+        aria-label={`Voir la fiche de ${fullName}`}
+        className="group h-full cursor-pointer overflow-hidden rounded-[20px] border-[#e3ede6] text-left shadow-none transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-vert/10"
       >
-        {/* Photo */}
-        <div className="relative overflow-hidden">
-          {player.photo ? (
+        {/* Bandeau photo */}
+        <div className="relative flex h-[200px] items-end justify-between overflow-hidden bg-gradient-to-br from-[#cfe6d6] to-menthe p-3.5">
+          {player.photo && (
             <img
               src={player.photo}
-              alt={`Photo de ${player.nom}`}
+              alt={`Photo de ${fullName}`}
               loading="lazy"
-              className="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
-          ) : (
-            <div className="flex aspect-square w-full items-center justify-center bg-vert/10 text-4xl font-black text-vert">
-              {initials(player)}
-            </div>
           )}
-          <span className="absolute right-3 top-3 rounded-full bg-vert px-3 py-1 text-xs font-bold text-white shadow">
+          <span className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-vert font-display text-xl font-extrabold text-white">
+            {initials(player)}
+          </span>
+          <span className="relative rounded-full bg-[#fff4cc] px-3 py-1 text-xs font-semibold text-dore-dark">
             {player.categorie?.nom ?? player.categorie}
           </span>
         </div>
 
         {/* Infos */}
-        <div className="p-5">
-          <h3 className="text-lg font-bold text-sombre transition-colors duration-300 group-hover:text-vert">
-            {player.nom}
+        <div className="px-5 py-[18px]">
+          <h3 className="text-[19px] font-semibold leading-snug text-[#14231a] transition-colors duration-300 group-hover:text-vert">
+            {fullName}
           </h3>
-          <p className="mt-1 text-xs font-bold uppercase tracking-[0.2em] text-dore-dark">
-            {player.poste}
+          <p className="mt-1 text-sm text-sombre/70">
+            {[player.poste, age != null ? `${age} ans` : null].filter(Boolean).join(' · ')}
           </p>
-          <div className="mt-4 flex items-center justify-between border-t border-clair pt-3 text-sm">
-            <span className="text-sombre/75">
-              {player.dateNaissance ? getAge(player.dateNaissance) : '—'} ans
-            </span>
-            <span className="font-semibold text-vert">
-              Voir la fiche →
-            </span>
-          </div>
         </div>
       </Card>
     </motion.div>

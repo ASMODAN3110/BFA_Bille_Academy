@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark } from '@fortawesome/free-solid-svg-icons'
-import { getAge } from '../../utils/ageUtils'
 
 /* ============================================================
    PlayerDetails — Modale de fiche détaillée d'un joueur
@@ -109,13 +108,7 @@ export default function PlayerDetails({ player, onClose }) {
                   {player.nom}
                 </h3>
 
-                <div className="mt-5 grid grid-cols-2 gap-3">
-                  <div className="rounded-xl bg-clair p-3">
-                    <p className="text-xs text-sombre/75">Âge</p>
-                    <p className="mt-0.5 font-bold text-sombre">
-                      {player.dateNaissance ? getAge(player.dateNaissance) : '—'} ans
-                    </p>
-                  </div>
+                <div className="mt-5 grid grid-cols-1 gap-3">
                   <div className="rounded-xl bg-clair p-3">
                     <p className="text-xs text-sombre/75">Arrivée au club</p>
                     <p className="mt-0.5 font-bold text-sombre">
