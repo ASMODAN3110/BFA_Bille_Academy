@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import SectionTitle from '../components/ui/SectionTitle'
+import PageHero from '../components/layout/PageHero'
+import BlogFeatured from '../components/blog/BlogFeatured'
 import BlogFilters from '../components/blog/BlogFilters'
 import BlogGrid from '../components/blog/BlogGrid'
 import Pagination from '../components/ui/Pagination'
-import { useScrollAnimation, fadeUp } from '../hooks/useScrollAnimation'
 import { parseLocalDate } from '../utils/dateUtils'
 import { api } from '../utils/api'
 import { normalizeArticle } from '../utils/blogAdapter'
 
 /* ============================================================
-   Blog — Page « Blog d'actualités » (/blog)
+   Blog — Page « Blog d'actualités » (/blog), maquette Claude Design
+   Article à la une (le plus récent), pastilles de catégorie, grille
+   des autres articles, pagination.
    ------------------------------------------------------------
    - Filtres par catégorie (Tous, Matchs, Événements, Portraits,
      Communiqués) avec compteurs d'articles publiés
@@ -25,7 +27,6 @@ const CATEGORIES = ['Tous', 'Matchs', 'Événements', 'Portraits', 'Communiqués
 const POSTS_PER_PAGE = 6
 
 export default function Blog() {
-  const { ref, isInView } = useScrollAnimation({ amount: 0.1 })
   const [blogPosts, setBlogPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -63,21 +64,22 @@ export default function Blog() {
     )
   }, [selectedCategory, blogPosts])
 
-  // Nombre d'articles publiés par catégorie (pour les badges).
-  const counts = useMemo(() => {
-    const published = blogPosts.filter((post) => post.estPublie)
-    const result = { Tous: published.length }
-    for (const categorie of CATEGORIES.slice(1)) {
-      result[categorie] = published.filter(
-        (post) => post.categorie === categorie,
-      ).length
-    }
-    return result
-  }, [blogPosts])
+  // Article à la une = le plus récent des articles publiés ; la grille liste les autres.
+  const featured = useMemo(
+    () =>
+      [...blogPosts]
+        .filter((post) => post.estPublie)
+        .sort((a, b) => parseLocalDate(b.date) - parseLocalDate(a.date))[0] ?? null,
+    [blogPosts],
+  )
+  const gridPosts = useMemo(
+    () => filteredPosts.filter((post) => post.id !== featured?.id),
+    [filteredPosts, featured],
+  )
 
-  const totalPages = Math.max(1, Math.ceil(filteredPosts.length / POSTS_PER_PAGE))
+  const totalPages = Math.max(1, Math.ceil(gridPosts.length / POSTS_PER_PAGE))
   const safePage = Math.min(currentPage, totalPages)
-  const visiblePosts = filteredPosts.slice(
+  const visiblePosts = gridPosts.slice(
     (safePage - 1) * POSTS_PER_PAGE,
     safePage * POSTS_PER_PAGE,
   )
@@ -95,67 +97,65 @@ export default function Blog() {
   }
 
   return (
-    <section id="blog" className="bg-clair py-16 md:py-24">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          ref={ref}
-          variants={fadeUp}
-          initial="hidden"
-          animate={isInView ? 'visible' : 'hidden'}
-        >
-          <SectionTitle
-            title="Blog d'Actualités"
-            subtitle="Dernières nouvelles, résultats de matchs, portraits de joueurs et communiqués du club."
-          />
-        </motion.div>
+    <>
+      <PageHero
+        crumbs={[{ label: 'Accueil', to: '/' }, { label: 'Blog' }]}
+        title="Actualités de l'académie"
+        lead="Comptes rendus de matchs, annonces et vie du club."
+      />
 
-        {loading ? (
-          <p className="mb-8 text-center text-sm text-sombre/75">
-            Chargement des articles…
-          </p>
-        ) : error ? (
-          <div
-            role="alert"
-            className="mb-8 rounded-2xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-center text-sm font-medium text-erreur"
-          >
-            {error}
-          </div>
-        ) : (
-          <>
-            <BlogFilters
-              categories={CATEGORIES}
-              counts={counts}
-              active={selectedCategory}
-              onChange={handleCategoryChange}
-            />
-
-            <p className="mb-8 text-center text-sm text-sombre/75">
-              {filteredPosts.length} article{filteredPosts.length > 1 ? 's' : ''}{' '}
-              publié{filteredPosts.length > 1 ? 's' : ''}
-              {selectedCategory !== 'Tous' && ` · catégorie ${selectedCategory}`}
+      <section id="blog" className="bg-[#fafcfa] py-10 md:py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {loading ? (
+            <p className="py-10 text-center text-sm text-sombre/75">
+              Chargement des articles…
             </p>
-
-            {/* Grille — re-animée (fade-in) à chaque changement de filtre ou de page */}
-            <div id="grille-articles" className="scroll-mt-24">
-              <motion.div
-                key={`${selectedCategory}-${safePage}`}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, ease: 'easeOut' }}
-              >
-                <BlogGrid posts={visiblePosts} />
-              </motion.div>
+          ) : error ? (
+            <div
+              role="alert"
+              className="rounded-2xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-center text-sm font-medium text-erreur"
+            >
+              {error}
             </div>
+          ) : (
+            <>
+              {featured && (
+                <div className="mb-10">
+                  <BlogFeatured post={featured} />
+                </div>
+              )}
 
-            <Pagination
-              currentPage={safePage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-              className="mt-12"
-            />
-          </>
-        )}
-      </div>
-    </section>
+              <BlogFilters
+                categories={CATEGORIES}
+                active={selectedCategory}
+                onChange={handleCategoryChange}
+              />
+
+              {/* Grille — re-animée (fondu) à chaque changement de filtre ou de page */}
+              <div id="grille-articles" className="mt-7 scroll-mt-24">
+                <motion.div
+                  key={`${selectedCategory}-${safePage}`}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, ease: 'easeOut' }}
+                >
+                  {gridPosts.length === 0 && selectedCategory === 'Tous' ? null : (
+                    <BlogGrid posts={visiblePosts} />
+                  )}
+                </motion.div>
+              </div>
+
+              <Pagination
+                variant="square"
+                currentPage={safePage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                className="mt-10"
+              />
+            </>
+          )}
+        </div>
+      </section>
+    </>
   )
 }
