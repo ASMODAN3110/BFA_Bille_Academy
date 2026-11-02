@@ -1,56 +1,36 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {
-  faPlus,
-  faTrophy,
-  faFutbol,
-  faRankingStar,
-} from '@fortawesome/free-solid-svg-icons'
+import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import PageHeader from '../components/admin/PageHeader'
 import ResultsTable from '../components/admin/ResultsTable'
 import ResultForm from '../components/admin/ResultForm'
-import StatCard from '../components/admin/StatCard'
+import RankingPanel from '../components/admin/RankingPanel'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
-import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
-import {
-  fadeUp,
-  staggerContainer,
-} from '../hooks/useScrollAnimation'
+import { fadeUp } from '../hooks/useScrollAnimation'
 import { api } from '../utils/api'
 import { normalizeResult, toResultPayload } from '../utils/resultsAdapter'
 import { useCategories } from '../hooks/useCategories'
 
 /* ============================================================
-   AdminResults — Gestion des résultats (/admin/results)
+   AdminResults — Résultats & classements (/admin/results)
    ------------------------------------------------------------
    - CRUD complet des rencontres (championnat / amical) branché
      sur GET/POST/PUT/DELETE /admin/results (auth)
-   - Bilan BFA : victoires, nuls, défaites
+   - Pastilles de catégorie : filtre backend (?categorieId=) des
+     derniers matchs + classement de la catégorie (/api/rankings)
    - Filtre par type de rencontre
    ============================================================ */
 
 const TYPE_OPTIONS = [
-  { value: 'Tous', label: 'Tous' },
+  { value: 'Tous', label: 'Tous les types' },
   { value: 'Championnat', label: 'Championnat' },
   { value: 'Amical', label: 'Amical' },
 ]
 
 const selectClasses =
-  'w-full rounded-lg border border-clair bg-white px-3 py-2 text-sm text-sombre outline-none transition focus:border-vert focus:ring-2 focus:ring-vert/20'
-
-// Le seed envoie « BFA U9 » / « BFA U15 » / « BFA U17 » (jamais « BFA »
-// seul) : on teste donc .includes('BFA'), pas === 'BFA'.
-const bfaResult = (r) => {
-  if (r.equipeA.includes('BFA') && r.equipeB.includes('BFA')) return 'nul'
-  const isHome = r.equipeA.includes('BFA')
-  const our = isHome ? r.scoreA : r.scoreB
-  const theirs = isHome ? r.scoreB : r.scoreA
-  if (our > theirs) return 'victoire'
-  if (our < theirs) return 'defaite'
-  return 'nul'
-}
+  'rounded-lg border border-[#e3ede6] bg-white px-3 py-2 text-sm text-sombre outline-none transition focus:border-vert focus:ring-2 focus:ring-vert/20'
 
 export default function AdminResults() {
   const { categories } = useCategories()
@@ -59,6 +39,8 @@ export default function AdminResults() {
   const [error, setError] = useState(null)
   const [serverError, setServerError] = useState(null)
   const [type, setType] = useState('Tous')
+  const [categorieId, setCategorieId] = useState(null)
+  const [rankingKey, setRankingKey] = useState(0)
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState(null)
   const [toDelete, setToDelete] = useState(null)
@@ -67,26 +49,26 @@ export default function AdminResults() {
     setLoading(true)
     setError(null)
     try {
-      const data = await api('/admin/results?limit=100', { auth: true })
+      const query = categorieId ? `&categorieId=${categorieId}` : ''
+      const data = await api(`/admin/results?limit=100${query}`, { auth: true })
       setResults((data?.data?.items ?? []).map(normalizeResult))
     } catch (err) {
       setError(err?.message || 'Impossible de charger les résultats.')
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [categorieId])
+
+  // Par défaut : première catégorie (comme sur la maquette).
+  useEffect(() => {
+    if (categorieId === null && categories.length > 0) setCategorieId(categories[0].id)
+  }, [categories, categorieId])
 
   useEffect(() => {
-    loadResults()
-  }, [loadResults])
+    if (categorieId !== null) loadResults()
+  }, [loadResults, categorieId])
 
-  const bilan = useMemo(() => {
-    const b = { victoire: 0, nul: 0, defaite: 0 }
-    results.forEach((r) => {
-      b[bfaResult(r)] += 1
-    })
-    return b
-  }, [results])
+  const selectedCategory = categories.find((c) => c.id === categorieId)
 
   const filtered = useMemo(() => {
     return results
@@ -116,24 +98,22 @@ export default function AdminResults() {
     setServerError(null)
     try {
       if (editing) {
-        const res = await api(`/admin/results/${editing.id}`, {
+        await api(`/admin/results/${editing.id}`, {
           method: 'PUT',
           body: toResultPayload(data),
           auth: true,
         })
-        setResults((prev) =>
-          prev.map((r) => (r.id === editing.id ? normalizeResult(res.data) : r)),
-        )
       } else {
-        const res = await api('/admin/results', {
+        await api('/admin/results', {
           method: 'POST',
           body: toResultPayload(data),
           auth: true,
         })
-        setResults((prev) => [normalizeResult(res.data), ...prev])
       }
       setFormOpen(false)
       setEditing(null)
+      setRankingKey((k) => k + 1)
+      loadResults()
     } catch (err) {
       setServerError(err?.message || "Une erreur est survenue à l'enregistrement.")
     }
@@ -144,7 +124,10 @@ export default function AdminResults() {
     if (id == null) return
     setToDelete(null)
     api(`/admin/results/${id}`, { method: 'DELETE', auth: true })
-      .then(loadResults)
+      .then(() => {
+        setRankingKey((k) => k + 1)
+        return loadResults()
+      })
       .catch((err) => setError(err?.message || 'Impossible de supprimer le résultat.'))
   }
 
@@ -153,84 +136,73 @@ export default function AdminResults() {
       variants={fadeUp}
       initial="hidden"
       animate="visible"
-      className="space-y-6"
+      className="space-y-5 sm:space-y-6"
     >
       <PageHeader
-        title="Résultats"
-        subtitle="Historique des rencontres de l'académie : scores et bilans."
+        title="Résultats & classements"
+        subtitle="Saisissez un score : le classement se met à jour automatiquement."
         action={
           <Button type="button" onClick={openAdd} className="shrink-0">
             <FontAwesomeIcon icon={faPlus} className="h-4 w-4" />
-            Ajouter un résultat
+            Saisir un résultat
           </Button>
         }
       />
 
-      <motion.div
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-        className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4"
-      >
-        <StatCard
-          label="Victoires"
-          value={bilan.victoire}
-          subtitle="Matchs gagnés par la BFA"
-          icon={faTrophy}
-          accent="bg-succes"
-        />
-        <StatCard
-          label="Nuls"
-          value={bilan.nul}
-          subtitle="Matchs nuls"
-          icon={faRankingStar}
-          accent="bg-dore"
-        />
-        <StatCard
-          label="Défaites"
-          value={bilan.defaite}
-          subtitle="Matchs perdus"
-          icon={faFutbol}
-          accent="bg-erreur"
-        />
-      </motion.div>
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Catégorie">
+        {categories.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            onClick={() => setCategorieId(c.id)}
+            aria-pressed={c.id === categorieId}
+            className={`inline-flex h-10 items-center rounded-[10px] border px-3.5 text-[13px] transition ${
+              c.id === categorieId
+                ? 'border-vert bg-menthe font-semibold text-vert-dark'
+                : 'border-[#e3ede6] bg-white font-medium text-[#3b4d42] hover:border-vert/50'
+            }`}
+          >
+            {c.nom}
+          </button>
+        ))}
+      </div>
 
-      <Card className="flex flex-wrap items-center justify-between gap-3 p-4 md:p-5">
-        <p className="text-sm text-sombre/75">
-          <span className="font-bold text-vert">{filtered.length}</span>{' '}
-          rencontre(s) sur {results.length}
-        </p>
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value)}
-          className={selectClasses}
-        >
-          {TYPE_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </Card>
-
-      {loading ? (
-        <p className="text-center text-sm text-sombre/75">
-          Chargement des résultats…
-        </p>
-      ) : error ? (
-        <div
-          role="alert"
-          className="rounded-2xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-center text-sm font-medium text-erreur"
-        >
-          {error}
-        </div>
-      ) : (
-        <ResultsTable
-          results={filtered}
-          onEdit={openEdit}
-          onDelete={setToDelete}
-        />
-      )}
+      <div className="flex flex-wrap items-start gap-4">
+        <section className="min-w-0 flex-[999_1_32rem] overflow-hidden rounded-2xl border border-[#e3ede6] bg-white">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-[18px] py-3">
+            <h2 className="text-base font-bold">Derniers matchs</h2>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className={selectClasses}
+              aria-label="Filtrer par type"
+            >
+              {TYPE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          {loading ? (
+            <p className="px-4 pb-5 text-center text-sm text-sombre/75">
+              Chargement des résultats…
+            </p>
+          ) : error ? (
+            <div
+              role="alert"
+              className="mx-4 mb-4 rounded-xl border border-erreur/30 bg-erreur/10 px-4 py-3 text-center text-sm font-medium text-erreur"
+            >
+              {error}
+            </div>
+          ) : (
+            <ResultsTable results={filtered} onEdit={openEdit} onDelete={setToDelete} />
+          )}
+        </section>
+        {selectedCategory && (
+          <RankingPanel categorie={selectedCategory} refreshKey={rankingKey} />
+        )}
+      </div>
 
       <ResultForm
         open={formOpen}
